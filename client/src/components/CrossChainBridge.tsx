@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowUpDown, ArrowLeftRight, Clock, CheckCircle, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowUpDown, ArrowLeftRight, Clock, CheckCircle, AlertCircle, ExternalLink, Loader2, Globe, Coins } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -312,11 +312,11 @@ export function CrossChainBridge() {
 
   const getNetworkLogo = (chainId: number) => {
     const logos: { [key: number]: string } = {
-      1: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
-      56: "https://cryptologos.cc/logos/binance-coin-bnb-logo.png",
-      137: "https://cryptologos.cc/logos/polygon-matic-logo.png",
-      43114: "https://cryptologos.cc/logos/avalanche-avax-logo.png",
-      20250217: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+      1: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png", // Ethereum
+      56: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png", // BNB Chain
+      137: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png", // Polygon
+      43114: "https://s2.coinmarketcap.com/static/img/coins/64x64/5805.png", // Avalanche
+      20250217: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png" // Xphere
     };
     return logos[chainId] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
   };
@@ -334,6 +334,42 @@ export function CrossChainBridge() {
       default:
         return <Clock className="w-4 h-4 text-gray-500" />;
     }
+  };
+
+  // Network logo component with error handling
+  const NetworkLogo = ({ chainId, name, className = "w-5 h-5" }: { chainId: number; name: string; className?: string }) => {
+    const [hasError, setHasError] = useState(false);
+    
+    if (hasError) {
+      return <Globe className={`${className} text-muted-foreground`} />;
+    }
+    
+    return (
+      <img 
+        src={getNetworkLogo(chainId)} 
+        alt={name}
+        className={`${className} rounded-full`}
+        onError={() => setHasError(true)}
+      />
+    );
+  };
+
+  // Token logo component with error handling
+  const TokenLogo = ({ symbol, name, className = "w-5 h-5" }: { symbol: string; name: string; className?: string }) => {
+    const [hasError, setHasError] = useState(false);
+    
+    if (hasError) {
+      return <Coins className={`${className} text-muted-foreground`} />;
+    }
+    
+    return (
+      <img 
+        src={getTokenLogo(symbol)} 
+        alt={name}
+        className={`${className} rounded-full`}
+        onError={() => setHasError(true)}
+      />
+    );
   };
 
   const availableTokens = getAvailableTokens();
