@@ -932,6 +932,296 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cross-Chain Bridge APIs
+  app.get("/api/bridge/networks", async (req, res) => {
+    try {
+      const networks = [
+        {
+          id: 1,
+          name: "Xphere",
+          chainId: 20250217,
+          symbol: "XP",
+          rpcUrl: "https://en-bkk.x-phere.com",
+          blockExplorer: "https://explorer.x-phere.com",
+          bridgeFee: "0.1",
+          confirmations: 12,
+          estimatedTime: "5-10 minutes",
+          logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+        },
+        {
+          id: 2,
+          name: "Ethereum",
+          chainId: 1,
+          symbol: "ETH",
+          rpcUrl: "https://mainnet.infura.io/v3/your-key",
+          blockExplorer: "https://etherscan.io",
+          bridgeFee: "0.05",
+          confirmations: 12,
+          estimatedTime: "10-15 minutes",
+          logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png"
+        },
+        {
+          id: 3,
+          name: "BNB Smart Chain",
+          chainId: 56,
+          symbol: "BNB",
+          rpcUrl: "https://bsc-dataseed.binance.org",
+          blockExplorer: "https://bscscan.com",
+          bridgeFee: "0.02",
+          confirmations: 15,
+          estimatedTime: "3-5 minutes",
+          logo: "https://cryptologos.cc/logos/binance-coin-bnb-logo.png"
+        },
+        {
+          id: 4,
+          name: "Polygon",
+          chainId: 137,
+          symbol: "MATIC",
+          rpcUrl: "https://polygon-rpc.com",
+          blockExplorer: "https://polygonscan.com",
+          bridgeFee: "0.5",
+          confirmations: 128,
+          estimatedTime: "5-8 minutes",
+          logo: "https://cryptologos.cc/logos/polygon-matic-logo.png"
+        },
+        {
+          id: 5,
+          name: "Avalanche",
+          chainId: 43114,
+          symbol: "AVAX",
+          rpcUrl: "https://api.avax.network/ext/bc/C/rpc",
+          blockExplorer: "https://snowtrace.io",
+          bridgeFee: "0.01",
+          confirmations: 1,
+          estimatedTime: "1-2 minutes",
+          logo: "https://cryptologos.cc/logos/avalanche-avax-logo.png"
+        }
+      ];
+      
+      res.json(networks);
+    } catch (error) {
+      console.error("Failed to fetch bridge networks:", error);
+      res.status(500).json({ error: "Failed to fetch bridge networks" });
+    }
+  });
+
+  app.get("/api/bridge/tokens", async (req, res) => {
+    try {
+      const bridgeTokens = [
+        {
+          symbol: "XP",
+          name: "Xphere",
+          networks: [20250217, 1, 56, 137, 43114],
+          minAmount: "1.0",
+          maxAmount: "1000000.0",
+          decimals: 18,
+          logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+        },
+        {
+          symbol: "USDT",
+          name: "Tether USD",
+          networks: [1, 56, 137, 43114, 20250217],
+          minAmount: "10.0",
+          maxAmount: "500000.0",
+          decimals: 6,
+          logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png"
+        },
+        {
+          symbol: "ETH",
+          name: "Ethereum",
+          networks: [1, 56, 137, 43114, 20250217],
+          minAmount: "0.01",
+          maxAmount: "100.0",
+          decimals: 18,
+          logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"
+        },
+        {
+          symbol: "BTC",
+          name: "Bitcoin",
+          networks: [1, 56, 137, 43114, 20250217],
+          minAmount: "0.001",
+          maxAmount: "10.0",
+          decimals: 8,
+          logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png"
+        },
+        {
+          symbol: "BNB",
+          name: "Binance Coin",
+          networks: [56, 1, 137, 43114, 20250217],
+          minAmount: "0.1",
+          maxAmount: "1000.0",
+          decimals: 18,
+          logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
+        }
+      ];
+      
+      res.json(bridgeTokens);
+    } catch (error) {
+      console.error("Failed to fetch bridge tokens:", error);
+      res.status(500).json({ error: "Failed to fetch bridge tokens" });
+    }
+  });
+
+  app.post("/api/bridge/estimate", async (req, res) => {
+    try {
+      const { fromNetwork, toNetwork, token, amount, userAddress } = req.body;
+      
+      // Simulate bridge fee calculation
+      const baseFee = parseFloat(amount) * 0.003; // 0.3% base fee
+      const networkFee = fromNetwork === 1 ? 0.05 : 0.02; // Higher fee for Ethereum
+      const totalFee = baseFee + networkFee;
+      
+      const estimation = {
+        fromNetwork,
+        toNetwork,
+        token,
+        amount,
+        fee: totalFee.toFixed(6),
+        estimatedTime: fromNetwork === 1 ? "10-15 minutes" : "3-8 minutes",
+        estimatedGas: fromNetwork === 1 ? "0.02" : "0.005",
+        exchangeRate: "1.0", // 1:1 for same token
+        slippage: "0.1",
+        minimumReceived: (parseFloat(amount) - totalFee).toFixed(6)
+      };
+      
+      res.json(estimation);
+    } catch (error) {
+      console.error("Failed to estimate bridge:", error);
+      res.status(500).json({ error: "Failed to estimate bridge" });
+    }
+  });
+
+  app.post("/api/bridge/execute", async (req, res) => {
+    try {
+      const { fromNetwork, toNetwork, token, amount, userAddress } = req.body;
+      
+      // Simulate bridge transaction execution
+      const transactionId = "bridge_" + Math.random().toString(36).substr(2, 9);
+      const fromTxHash = "0x" + Math.random().toString(16).substr(2, 64);
+      
+      const bridgeTransaction = {
+        id: transactionId,
+        fromNetwork,
+        toNetwork,
+        token,
+        amount,
+        userAddress,
+        fromTxHash,
+        toTxHash: null,
+        status: "pending",
+        timestamp: Date.now(),
+        estimatedCompletion: Date.now() + (15 * 60 * 1000), // 15 minutes
+        currentConfirmations: 0,
+        requiredConfirmations: fromNetwork === 1 ? 12 : 15
+      };
+      
+      res.json({
+        success: true,
+        transactionId,
+        fromTxHash,
+        bridgeTransaction
+      });
+    } catch (error) {
+      console.error("Failed to execute bridge:", error);
+      res.status(500).json({ error: "Failed to execute bridge" });
+    }
+  });
+
+  app.get("/api/bridge/history/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      // Simulate bridge transaction history
+      const history = [
+        {
+          id: "bridge_abc123",
+          fromNetwork: {
+            id: 1,
+            name: "Ethereum",
+            chainId: 1,
+            symbol: "ETH",
+            logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png"
+          },
+          toNetwork: {
+            id: 1,
+            name: "Xphere",
+            chainId: 20250217,
+            symbol: "XP",
+            logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+          },
+          token: {
+            symbol: "USDT",
+            name: "Tether USD",
+            logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png"
+          },
+          amount: "100.0",
+          fromTxHash: "0x" + Math.random().toString(16).substr(2, 64),
+          toTxHash: "0x" + Math.random().toString(16).substr(2, 64),
+          status: "completed",
+          timestamp: Date.now() - (2 * 24 * 60 * 60 * 1000), // 2 days ago
+          currentConfirmations: 15,
+          requiredConfirmations: 12
+        },
+        {
+          id: "bridge_def456",
+          fromNetwork: {
+            id: 1,
+            name: "Xphere",
+            chainId: 20250217,
+            symbol: "XP",
+            logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+          },
+          toNetwork: {
+            id: 3,
+            name: "BNB Smart Chain",
+            chainId: 56,
+            symbol: "BNB",
+            logo: "https://cryptologos.cc/logos/binance-coin-bnb-logo.png"
+          },
+          token: {
+            symbol: "XP",
+            name: "Xphere",
+            logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+          },
+          amount: "500.0",
+          fromTxHash: "0x" + Math.random().toString(16).substr(2, 64),
+          toTxHash: null,
+          status: "pending",
+          timestamp: Date.now() - (30 * 60 * 1000), // 30 minutes ago
+          currentConfirmations: 8,
+          requiredConfirmations: 15
+        }
+      ];
+      
+      res.json(history);
+    } catch (error) {
+      console.error("Failed to fetch bridge history:", error);
+      res.status(500).json({ error: "Failed to fetch bridge history" });
+    }
+  });
+
+  app.get("/api/bridge/status/:transactionId", async (req, res) => {
+    try {
+      const { transactionId } = req.params;
+      
+      // Simulate bridge transaction status check
+      const status = {
+        id: transactionId,
+        status: "confirmed",
+        currentConfirmations: 10,
+        requiredConfirmations: 12,
+        estimatedCompletion: Date.now() + (5 * 60 * 1000), // 5 minutes
+        fromTxHash: "0x" + Math.random().toString(16).substr(2, 64),
+        toTxHash: Math.random() > 0.5 ? "0x" + Math.random().toString(16).substr(2, 64) : null
+      };
+      
+      res.json(status);
+    } catch (error) {
+      console.error("Failed to fetch bridge status:", error);
+      res.status(500).json({ error: "Failed to fetch bridge status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
