@@ -23,11 +23,11 @@ export default function PoolPage() {
     }
   });
 
-  const filteredPools = pools.filter(pool =>
-    pool.tokenA.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pool.tokenB.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pool.tokenA.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pool.tokenB.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPools = pools.filter((pool: any) =>
+    pool.tokenA?.symbol?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pool.tokenB?.symbol?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pool.tokenA?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pool.tokenB?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getTokenIcon = (symbol: string) => {

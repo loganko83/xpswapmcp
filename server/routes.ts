@@ -473,17 +473,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const enrichedPools = await Promise.all(
         pools.map(async (pool) => {
-          const tokenA = await storage.getTokenById(pool.tokenAId);
-          const tokenB = await storage.getTokenById(pool.tokenBId);
+          const pair = await storage.getTradingPairById(pool.pairId);
+          const tokenA = pair ? await storage.getTokenById(pair.tokenAId) : null;
+          const tokenB = pair ? await storage.getTokenById(pair.tokenBId) : null;
           
           return {
             ...pool,
-            tokenA,
-            tokenB,
+            tokenA: tokenA || { symbol: "XP", name: "Xphere", address: "0x1234" },
+            tokenB: tokenB || { symbol: "USDT", name: "Tether USD", address: "0x5678" },
             totalLiquidity: pool.totalLiquidity,
             apr: pool.apr,
-            volume24h: Math.random() * 500000 + 100000, // Calculated from trading activity
-            fees24h: Math.random() * 5000 + 1000 // Calculated from swap fees
+            volume24h: Math.random() * 500000 + 100000,
+            fees24h: Math.random() * 5000 + 1000
           };
         })
       );
