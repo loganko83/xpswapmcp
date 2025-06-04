@@ -10,7 +10,8 @@ import { Token, SwapQuote } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTokenPrices, useTokenBalance } from "@/hooks/useTokenPrices";
+import { useTokenPrices } from "@/hooks/useTokenPrices";
+import { useXphereContracts } from "@/hooks/useXphereContracts";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +19,16 @@ export function SwapInterface() {
   const { wallet, isXphereNetwork, switchToXphere, connectWallet } = useWeb3();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Initialize smart contract integration
+  const {
+    isInitialized,
+    useTokenBalance,
+    useSwapQuote,
+    useTokenApproval,
+    useSwapExecution,
+    contractAddresses
+  } = useXphereContracts();
   
   const [fromToken, setFromToken] = useState<Token>({
     id: 1,
