@@ -24,15 +24,14 @@ export default function FarmPage() {
     }
   });
 
-  const filteredFarms = farms.filter(farm =>
-    farm.tokenA.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.tokenB.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.tokenA.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.tokenB.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFarms = farms.filter((farm: any) =>
+    farm.stakingToken.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    farm.rewardToken.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    farm.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeFarms = filteredFarms.filter(farm => farm.status === "active");
-  const endedFarms = filteredFarms.filter(farm => farm.status === "ended");
+  const activeFarms = filteredFarms.filter((farm: any) => farm.isActive);
+  const endedFarms = filteredFarms.filter((farm: any) => !farm.isActive);
 
   const getTokenIcon = (symbol: string) => {
     const iconMap: { [key: string]: string } = {
@@ -247,45 +246,28 @@ export default function FarmPage() {
             />
           </div>
 
-          {/* Active Farms */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {activeFarms.map(renderFarmCard)}
-          </div>
+          {/* Advanced Yield Farming Management */}
+          {farmsLoading ? (
+            <div className="text-center py-8">Loading farms...</div>
+          ) : (
+            <YieldFarmingManager farms={filteredFarms} />
+          )}
         </TabsContent>
 
         <TabsContent value="my-farms" className="space-y-6">
-          <Card>
-            <CardContent className="p-12 text-center">
-              {wallet.isConnected ? (
-                <div>
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Sprout className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">No active farms</h3>
-                  <p className="text-muted-foreground mb-4">
-                    You haven't staked in any farms yet.
-                  </p>
-                  <Button>Explore Farms</Button>
-                </div>
-              ) : (
-                <div>
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Sprout className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Connect your wallet</h3>
-                  <p className="text-muted-foreground">
-                    Connect your wallet to view your farming positions.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {farmsLoading ? (
+            <div className="text-center py-8">Loading farms...</div>
+          ) : (
+            <YieldFarmingManager farms={filteredFarms} />
+          )}
         </TabsContent>
 
         <TabsContent value="ended" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {endedFarms.map(renderFarmCard)}
-          </div>
+          {farmsLoading ? (
+            <div className="text-center py-8">Loading farms...</div>
+          ) : (
+            <YieldFarmingManager farms={endedFarms} />
+          )}
         </TabsContent>
       </Tabs>
     </div>
