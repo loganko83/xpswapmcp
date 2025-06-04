@@ -12,6 +12,8 @@ import {
   type LiquidityPool,
   type InsertLiquidityPool
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Token operations
@@ -40,195 +42,118 @@ export interface IStorage {
   updateLiquidityPool(id: number, pool: Partial<InsertLiquidityPool>): Promise<LiquidityPool | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private tokens: Map<number, Token>;
-  private tradingPairs: Map<number, TradingPair>;
-  private transactions: Map<number, Transaction>;
-  private liquidityPools: Map<number, LiquidityPool>;
-  private currentTokenId: number;
-  private currentTradingPairId: number;
-  private currentTransactionId: number;
-  private currentLiquidityPoolId: number;
-
-  constructor() {
-    this.tokens = new Map();
-    this.tradingPairs = new Map();
-    this.transactions = new Map();
-    this.liquidityPools = new Map();
-    this.currentTokenId = 1;
-    this.currentTradingPairId = 1;
-    this.currentTransactionId = 1;
-    this.currentLiquidityPoolId = 1;
-
-    // Initialize with default tokens
-    this.initializeDefaultData();
-  }
-
-  private async initializeDefaultData() {
-    // Default tokens
-    const defaultTokens = [
-      {
-        symbol: "XP",
-        name: "Xphere",
-        address: "0x0000000000000000000000000000000000000000",
-        decimals: 18,
-        logoUrl: "",
-        isActive: true,
-      },
-      {
-        symbol: "USDT",
-        name: "Tether USD",
-        address: "0x1234567890123456789012345678901234567890",
-        decimals: 6,
-        logoUrl: "",
-        isActive: true,
-      },
-      {
-        symbol: "ETH",
-        name: "Ethereum",
-        address: "0x2345678901234567890123456789012345678901",
-        decimals: 18,
-        logoUrl: "",
-        isActive: true,
-      },
-      {
-        symbol: "BNB",
-        name: "Binance Coin",
-        address: "0x3456789012345678901234567890123456789012",
-        decimals: 18,
-        logoUrl: "",
-        isActive: true,
-      },
-    ];
-
-    for (const tokenData of defaultTokens) {
-      await this.createToken(tokenData);
-    }
-  }
-
-  // Token operations
+export class DatabaseStorage implements IStorage {
   async getTokens(): Promise<Token[]> {
-    return Array.from(this.tokens.values()).filter(token => token.isActive);
+    return await db.select().from(tokens);
   }
 
   async getTokenById(id: number): Promise<Token | undefined> {
-    return this.tokens.get(id);
+    const [token] = await db.select().from(tokens).where(eq(tokens.id, id));
+    return token || undefined;
   }
 
   async getTokenBySymbol(symbol: string): Promise<Token | undefined> {
-    return Array.from(this.tokens.values()).find(token => token.symbol === symbol);
+    const [token] = await db.select().from(tokens).where(eq(tokens.symbol, symbol));
+    return token || undefined;
   }
 
   async createToken(insertToken: InsertToken): Promise<Token> {
-    const id = this.currentTokenId++;
-    const token: Token = {
-      ...insertToken,
-      id,
-      createdAt: new Date(),
-    };
-    this.tokens.set(id, token);
+    const [token] = await db
+      .insert(tokens)
+      .values(insertToken)
+      .returning();
     return token;
   }
 
   async updateToken(id: number, tokenUpdate: Partial<InsertToken>): Promise<Token | undefined> {
-    const existingToken = this.tokens.get(id);
-    if (!existingToken) return undefined;
-
-    const updatedToken = { ...existingToken, ...tokenUpdate };
-    this.tokens.set(id, updatedToken);
-    return updatedToken;
+    const [token] = await db
+      .update(tokens)
+      .set(tokenUpdate)
+      .where(eq(tokens.id, id))
+      .returning();
+    return token || undefined;
   }
 
-  // Trading pair operations
   async getTradingPairs(): Promise<TradingPair[]> {
-    return Array.from(this.tradingPairs.values()).filter(pair => pair.isActive);
+    return await db.select().from(tradingPairs);
   }
 
   async getTradingPairById(id: number): Promise<TradingPair | undefined> {
-    return this.tradingPairs.get(id);
+    const [pair] = await db.select().from(tradingPairs).where(eq(tradingPairs.id, id));
+    return pair || undefined;
   }
 
   async createTradingPair(insertPair: InsertTradingPair): Promise<TradingPair> {
-    const id = this.currentTradingPairId++;
-    const pair: TradingPair = {
-      ...insertPair,
-      id,
-      createdAt: new Date(),
-    };
-    this.tradingPairs.set(id, pair);
+    const [pair] = await db
+      .insert(tradingPairs)
+      .values(insertPair)
+      .returning();
     return pair;
   }
 
   async updateTradingPair(id: number, pairUpdate: Partial<InsertTradingPair>): Promise<TradingPair | undefined> {
-    const existingPair = this.tradingPairs.get(id);
-    if (!existingPair) return undefined;
-
-    const updatedPair = { ...existingPair, ...pairUpdate };
-    this.tradingPairs.set(id, updatedPair);
-    return updatedPair;
+    const [pair] = await db
+      .update(tradingPairs)
+      .set(pairUpdate)
+      .where(eq(tradingPairs.id, id))
+      .returning();
+    return pair || undefined;
   }
 
-  // Transaction operations
   async getTransactions(userAddress?: string): Promise<Transaction[]> {
-    const allTransactions = Array.from(this.transactions.values());
     if (userAddress) {
-      return allTransactions.filter(tx => tx.userAddress.toLowerCase() === userAddress.toLowerCase());
+      return await db.select().from(transactions).where(eq(transactions.userAddress, userAddress));
     }
-    return allTransactions;
+    return await db.select().from(transactions);
   }
 
   async getTransactionById(id: number): Promise<Transaction | undefined> {
-    return this.transactions.get(id);
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const id = this.currentTransactionId++;
-    const transaction: Transaction = {
-      ...insertTransaction,
-      id,
-      createdAt: new Date(),
-    };
-    this.transactions.set(id, transaction);
+    const [transaction] = await db
+      .insert(transactions)
+      .values(insertTransaction)
+      .returning();
     return transaction;
   }
 
   async updateTransactionStatus(id: number, status: Transaction["status"]): Promise<Transaction | undefined> {
-    const existingTransaction = this.transactions.get(id);
-    if (!existingTransaction) return undefined;
-
-    const updatedTransaction = { ...existingTransaction, status };
-    this.transactions.set(id, updatedTransaction);
-    return updatedTransaction;
+    const [transaction] = await db
+      .update(transactions)
+      .set({ status })
+      .where(eq(transactions.id, id))
+      .returning();
+    return transaction || undefined;
   }
 
-  // Liquidity pool operations
   async getLiquidityPools(): Promise<LiquidityPool[]> {
-    return Array.from(this.liquidityPools.values()).filter(pool => pool.isActive);
+    return await db.select().from(liquidityPools);
   }
 
   async getLiquidityPoolById(id: number): Promise<LiquidityPool | undefined> {
-    return this.liquidityPools.get(id);
+    const [pool] = await db.select().from(liquidityPools).where(eq(liquidityPools.id, id));
+    return pool || undefined;
   }
 
   async createLiquidityPool(insertPool: InsertLiquidityPool): Promise<LiquidityPool> {
-    const id = this.currentLiquidityPoolId++;
-    const pool: LiquidityPool = {
-      ...insertPool,
-      id,
-      createdAt: new Date(),
-    };
-    this.liquidityPools.set(id, pool);
+    const [pool] = await db
+      .insert(liquidityPools)
+      .values(insertPool)
+      .returning();
     return pool;
   }
 
   async updateLiquidityPool(id: number, poolUpdate: Partial<InsertLiquidityPool>): Promise<LiquidityPool | undefined> {
-    const existingPool = this.liquidityPools.get(id);
-    if (!existingPool) return undefined;
-
-    const updatedPool = { ...existingPool, ...poolUpdate };
-    this.liquidityPools.set(id, updatedPool);
-    return updatedPool;
+    const [pool] = await db
+      .update(liquidityPools)
+      .set(poolUpdate)
+      .where(eq(liquidityPools.id, id))
+      .returning();
+    return pool || undefined;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
