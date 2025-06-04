@@ -364,7 +364,7 @@ export function CrossChainBridge() {
     
     return (
       <img 
-        src={getTokenLogo(symbol)} 
+        src={getTokenIcon(symbol)} 
         alt={name}
         className={`${className} rounded-full`}
         onError={() => setHasError(true)}
@@ -402,7 +402,7 @@ export function CrossChainBridge() {
                     {networks.map((network: SupportedNetwork) => (
                       <SelectItem key={network.chainId} value={network.chainId.toString()}>
                         <div className="flex items-center gap-2">
-                          <img src={getNetworkLogo(network.chainId)} alt={network.name} className="w-5 h-5 rounded-full" />
+                          <NetworkLogo chainId={network.chainId} name={network.name} />
                           {network.name}
                         </div>
                       </SelectItem>
@@ -437,7 +437,7 @@ export function CrossChainBridge() {
                     {networks.map((network: SupportedNetwork) => (
                       <SelectItem key={network.chainId} value={network.chainId.toString()}>
                         <div className="flex items-center gap-2">
-                          <img src={getNetworkLogo(network.chainId)} alt={network.name} className="w-5 h-5 rounded-full" />
+                          <NetworkLogo chainId={network.chainId} name={network.name} />
                           {network.name}
                         </div>
                       </SelectItem>
@@ -462,7 +462,7 @@ export function CrossChainBridge() {
                 {availableTokens.map((token: BridgeToken) => (
                   <SelectItem key={token.symbol} value={token.symbol}>
                     <div className="flex items-center gap-2">
-                      <img src={getTokenIcon(token.symbol)} alt={token.symbol} className="w-5 h-5 rounded-full" />
+                      <TokenLogo symbol={token.symbol} name={token.name} />
                       <span>{token.symbol}</span>
                       <span className="text-muted-foreground">- {token.name}</span>
                     </div>

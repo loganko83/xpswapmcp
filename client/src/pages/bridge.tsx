@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeftRight, TrendingUp, Clock, Shield, Zap } from "lucide-react";
+import { ArrowLeftRight, TrendingUp, Clock, Shield, Zap, Globe } from "lucide-react";
 import { CrossChainBridge } from "@/components/CrossChainBridge";
 import { useQuery } from "@tanstack/react-query";
 
@@ -88,22 +88,48 @@ export default function BridgePage() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              { name: "Xphere", logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png", status: "active" },
-              { name: "Ethereum", logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png", status: "active" },
-              { name: "BNB Chain", logo: "https://cryptologos.cc/logos/binance-coin-bnb-logo.png", status: "active" },
-              { name: "Polygon", logo: "https://cryptologos.cc/logos/polygon-matic-logo.png", status: "active" },
-              { name: "Avalanche", logo: "https://cryptologos.cc/logos/avalanche-avax-logo.png", status: "active" }
-            ].map((network) => (
-              <div key={network.name} className="flex items-center gap-3 p-3 border rounded-lg">
-                <img src={network.logo} alt={network.name} className="w-8 h-8 rounded-full" />
-                <div>
-                  <div className="font-medium">{network.name}</div>
-                  <Badge variant="secondary" className="text-green-600">
-                    {network.status}
-                  </Badge>
+              { name: "Xphere", chainId: 20250217, status: "active" },
+              { name: "Ethereum", chainId: 1, status: "active" },
+              { name: "BNB Chain", chainId: 56, status: "active" },
+              { name: "Polygon", chainId: 137, status: "active" },
+              { name: "Avalanche", chainId: 43114, status: "active" }
+            ].map((network) => {
+              const NetworkIcon = ({ chainId, name }: { chainId: number; name: string }) => {
+                const [hasError, setHasError] = useState(false);
+                const logoMap: { [key: number]: string } = {
+                  1: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+                  56: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
+                  137: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png",
+                  43114: "https://s2.coinmarketcap.com/static/img/coins/64x64/5805.png",
+                  20250217: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
+                };
+                
+                if (hasError) {
+                  return <Globe className="w-8 h-8 text-muted-foreground" />;
+                }
+                
+                return (
+                  <img 
+                    src={logoMap[chainId]} 
+                    alt={name} 
+                    className="w-8 h-8 rounded-full" 
+                    onError={() => setHasError(true)}
+                  />
+                );
+              };
+              
+              return (
+                <div key={network.name} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <NetworkIcon chainId={network.chainId} name={network.name} />
+                  <div>
+                    <div className="font-medium">{network.name}</div>
+                    <Badge variant="secondary" className="text-green-600">
+                      {network.status}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
