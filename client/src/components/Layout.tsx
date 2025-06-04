@@ -48,9 +48,11 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center space-x-8">
               <Link href="/">
                 <div className="flex items-center space-x-3 cursor-pointer">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-                    <Activity className="w-4 h-4 text-white" />
-                  </div>
+                  <img 
+                    src="/attached_assets/099de283d41a405f8fa1652d4c6c8ccc.png" 
+                    alt="Xphere" 
+                    className="w-8 h-8 rounded-lg"
+                  />
                   <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                     XpSwap
                   </span>

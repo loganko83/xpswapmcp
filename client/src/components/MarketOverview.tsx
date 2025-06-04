@@ -1,20 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MarketStats } from "@/types";
-
-// Mock market stats
-const mockStats: MarketStats = {
-  totalValueLocked: "12400000",
-  volume24h: "2800000",
-  activePairs: 126,
-  xpPrice: "0.0842",
-  marketCap: "45200000",
-  circulatingSupply: "537000000",
-  high24h: "0.0865",
-  low24h: "0.0798",
-};
+import { useTokenPrices } from "@/hooks/useTokenPrices";
+import { useQuery } from "@tanstack/react-query";
 
 export function MarketOverview() {
+  const { data: tokenPrices } = useTokenPrices(["XP"]);
+  
+  const { data: marketStats } = useQuery({
+    queryKey: ["/api/market-stats"],
+    enabled: true,
+  });
+
+  const xpPrice = tokenPrices?.XP?.price || 0;
+  const priceChange = tokenPrices?.XP?.change24h || 0;
   const formatCurrency = (amount: string, decimals = 2) => {
     const num = parseFloat(amount);
     if (num >= 1000000) {
@@ -49,41 +48,58 @@ export function MarketOverview() {
           </div>
         </div>
 
+        {/* XP Price Section with Icon */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-4 rounded-lg mb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <img 
+              src="/attached_assets/099de283d41a405f8fa1652d4c6c8ccc.png" 
+              alt="Xphere" 
+              className="w-8 h-8 rounded-full"
+            />
+            <div>
+              <h3 className="font-semibold text-lg">XP Price</h3>
+              <p className="text-sm text-muted-foreground">Xphere</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold">
+              ${xpPrice.toFixed(6)}
+            </span>
+            <Badge 
+              variant="outline" 
+              className={priceChange >= 0 ? "text-green-600 border-green-200" : "text-red-600 border-red-200"}
+            >
+              {priceChange >= 0 ? "+" : ""}{priceChange.toFixed(2)}%
+            </Badge>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              Market Cap
+              Total Value Locked
             </span>
             <span className="font-semibold">
-              {formatCurrency(mockStats.marketCap)}
+              {formatCurrency(marketStats?.totalValueLocked || "12400000")}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              Circulating Supply
+              24h Volume
             </span>
             <span className="font-semibold">
-              {formatSupply(mockStats.circulatingSupply)}
+              {formatCurrency(marketStats?.volume24h || "2800000")}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              24h High
+              Active Pairs
             </span>
-            <Badge variant="outline" className="text-green-600 border-green-200">
-              {formatCurrency(mockStats.high24h, 4)}
-            </Badge>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              24h Low
+            <span className="font-semibold">
+              {marketStats?.activePairs || 126}
             </span>
-            <Badge variant="outline" className="text-red-600 border-red-200">
-              {formatCurrency(mockStats.low24h, 4)}
-            </Badge>
           </div>
         </div>
       </CardContent>
