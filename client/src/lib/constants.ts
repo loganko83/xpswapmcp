@@ -2,14 +2,14 @@ import { NetworkConfig } from "@/types";
 
 export const XPHERE_NETWORK: NetworkConfig = {
   chainId: 20250217,
-  chainName: "Xphere Network",
+  chainName: "XPHERE 2.0",
   nativeCurrency: {
     name: "XP",
     symbol: "XP",
     decimals: 18,
   },
-  rpcUrls: ["https://rpc.x-phere.com"],
-  blockExplorerUrls: ["https://explorer.x-phere.com"],
+  rpcUrls: ["https://en-bkk.x-phere.com"],
+  blockExplorerUrls: ["https://xp.tamsa.io/main"],
 };
 
 export const DEFAULT_TOKENS = [

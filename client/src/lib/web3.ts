@@ -8,15 +8,15 @@ declare global {
 }
 
 export class Web3Service {
-  private provider: ethers.providers.Web3Provider | null = null;
-  private signer: ethers.Signer | null = null;
+  private provider: ethers.BrowserProvider | null = null;
+  private signer: ethers.JsonRpcSigner | null = null;
 
   async isMetaMaskInstalled(): Promise<boolean> {
     return typeof window.ethereum !== "undefined";
   }
 
   async connectWallet(): Promise<string> {
-    if (!this.isMetaMaskInstalled()) {
+    if (!await this.isMetaMaskInstalled()) {
       throw new Error("MetaMask is not installed");
     }
 
@@ -29,8 +29,8 @@ export class Web3Service {
         throw new Error("No accounts found");
       }
 
-      this.provider = new ethers.providers.Web3Provider(window.ethereum);
-      this.signer = this.provider.getSigner();
+      this.provider = new ethers.BrowserProvider(window.ethereum);
+      this.signer = await this.provider.getSigner();
 
       return accounts[0];
     } catch (error) {
@@ -86,7 +86,7 @@ export class Web3Service {
     }
 
     const balance = await this.provider.getBalance(address);
-    return ethers.utils.formatEther(balance);
+    return ethers.formatEther(balance);
   }
 
   async getChainId(): Promise<number> {
@@ -95,7 +95,7 @@ export class Web3Service {
     }
 
     const network = await this.provider.getNetwork();
-    return network.chainId;
+    return Number(network.chainId);
   }
 
   async getGasPrice(): Promise<string> {
@@ -103,8 +103,8 @@ export class Web3Service {
       throw new Error("Provider not initialized");
     }
 
-    const gasPrice = await this.provider.getGasPrice();
-    return ethers.utils.formatUnits(gasPrice, "gwei");
+    const feeData = await this.provider.getFeeData();
+    return ethers.formatUnits(feeData.gasPrice || 0n, "gwei");
   }
 
   async estimateGas(transaction: any): Promise<string> {

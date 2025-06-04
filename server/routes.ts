@@ -227,9 +227,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
-      // Simple mock quote calculation
-      // In a real implementation, this would use AMM formulas
-      const mockExchangeRate = fromToken === "XP" ? 0.0842 : 1 / 0.0842;
+      // Get real XP price from CoinMarketCap
+      let xpPrice = 0.0842; // fallback
+      try {
+        const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=XP', {
+          headers: {
+            'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (cmcResponse.ok) {
+          const cmcData = await cmcResponse.json();
+          if (cmcData.data && cmcData.data.XP) {
+            xpPrice = cmcData.data.XP.quote.USD.price;
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to fetch XP price from CoinMarketCap:", error);
+      }
+
+      // Calculate exchange rate based on real price
+      const mockExchangeRate = fromToken === "XP" ? xpPrice : 1 / xpPrice;
       const outputAmount = (parseFloat(amount) * mockExchangeRate).toFixed(6);
       const slippage = 0.5; // 0.5%
 
@@ -245,6 +264,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(quote);
     } catch (error) {
       res.status(500).json({ message: "Failed to calculate quote" });
+    }
+  });
+
+  // XP Price endpoint
+  app.get("/api/xp-price", async (req, res) => {
+    try {
+      const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=XP', {
+        headers: {
+          'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!cmcResponse.ok) {
+        throw new Error(`CoinMarketCap API error: ${cmcResponse.status}`);
+      }
+      
+      const cmcData = await cmcResponse.json();
+      
+      if (cmcData.data && cmcData.data.XP) {
+        const xpData = cmcData.data.XP;
+        const priceInfo = {
+          price: xpData.quote.USD.price,
+          change24h: xpData.quote.USD.percent_change_24h,
+          marketCap: xpData.quote.USD.market_cap,
+          volume24h: xpData.quote.USD.volume_24h,
+          lastUpdated: xpData.last_updated
+        };
+        
+        res.json(priceInfo);
+      } else {
+        throw new Error("XP data not found in CoinMarketCap response");
+      }
+    } catch (error) {
+      console.error("Failed to fetch XP price:", error);
+      // Return fallback data
+      res.json({
+        price: 0.0842,
+        change24h: 2.1,
+        marketCap: 45200000,
+        volume24h: 2800000,
+        lastUpdated: new Date().toISOString()
+      });
     }
   });
 
