@@ -104,7 +104,7 @@ export class Web3Service {
     }
 
     const feeData = await this.provider.getFeeData();
-    return ethers.formatUnits(feeData.gasPrice || 0n, "gwei");
+    return ethers.formatUnits(feeData.gasPrice || BigInt(0), "gwei");
   }
 
   async estimateGas(transaction: any): Promise<string> {

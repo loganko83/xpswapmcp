@@ -64,25 +64,25 @@ export default function SwapPage() {
 
               <nav className="hidden md:flex space-x-6">
                 <a
-                  href="#"
+                  href="/"
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Swap
                 </a>
                 <a
-                  href="#"
+                  href="/pool"
                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                 >
                   Pool
                 </a>
                 <a
-                  href="#"
+                  href="/farm"
                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                 >
                   Farm
                 </a>
                 <a
-                  href="#"
+                  href="/analytics"
                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                 >
                   Analytics

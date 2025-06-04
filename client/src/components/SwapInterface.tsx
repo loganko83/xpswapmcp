@@ -9,6 +9,7 @@ import { TokenSelector } from "./TokenSelector";
 import { Token, SwapQuote } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { useWeb3 } from "@/hooks/useWeb3";
+import { useQuery } from "@tanstack/react-query";
 
 export function SwapInterface() {
   const { wallet, isXphereNetwork, switchToXphere } = useWeb3();
@@ -29,6 +30,12 @@ export function SwapInterface() {
   const [slippage, setSlippage] = useState(0.5);
   const [quote, setQuote] = useState<SwapQuote | null>(null);
   const [isSwapping, setIsSwapping] = useState(false);
+
+  // Fetch real-time XP price
+  const { data: xpPrice } = useQuery({
+    queryKey: ['/api/xp-price'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   const openTokenSelector = (type: "from" | "to") => {
     setSelectorType(type);
@@ -59,12 +66,12 @@ export function SwapInterface() {
       return;
     }
 
-    // Mock price calculation
-    const exchangeRate = fromToken.symbol === "XP" ? 0.0842 : 1 / 0.0842;
+    // Use real XP price from CoinMarketCap
+    const currentXpPrice = xpPrice?.price || 0.0842;
+    const exchangeRate = fromToken.symbol === "XP" ? currentXpPrice : 1 / currentXpPrice;
     const outputAmount = (parseFloat(amount) * exchangeRate).toFixed(6);
     setToAmount(outputAmount);
 
-    // Mock quote
     setQuote({
       inputAmount: amount,
       outputAmount,
@@ -139,7 +146,7 @@ export function SwapInterface() {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">From</span>
               <span className="text-muted-foreground">
-                Balance: {wallet.isConnected ? "1,234.56" : "0.00"}
+                Balance: {wallet.isConnected ? parseFloat(wallet.balance).toFixed(4) : "0.00"} {fromToken.symbol}
               </span>
             </div>
             <div className="relative bg-muted/50 rounded-lg p-4 border">
@@ -164,7 +171,7 @@ export function SwapInterface() {
                 </Button>
               </div>
               <div className="text-sm text-muted-foreground mt-2">
-                ≈ ${fromAmount ? (parseFloat(fromAmount) * 0.0842).toFixed(2) : "0.00"}
+                ≈ ${fromAmount ? (parseFloat(fromAmount) * (xpPrice?.price || 0.0842)).toFixed(2) : "0.00"}
               </div>
             </div>
           </div>
