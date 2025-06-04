@@ -42,9 +42,23 @@ export function SwapInterface() {
     toToken.symbol
   ]);
 
-  // Fetch token balances
+  // Fetch token balances - use wallet balance for XP, API for others
   const { data: fromBalance } = useTokenBalance(wallet.address, fromToken.symbol);
   const { data: toBalance } = useTokenBalance(wallet.address, toToken.symbol);
+  
+  // Use actual MetaMask balance for XP token
+  const getTokenBalance = (token: Token) => {
+    if (token.symbol === "XP") {
+      return wallet.balance || "0";
+    }
+    if (token.symbol === fromToken.symbol) {
+      return fromBalance?.balance || "0";
+    }
+    if (token.symbol === toToken.symbol) {
+      return toBalance?.balance || "0";
+    }
+    return "0";
+  };
 
   // Calculate swap quote
   const swapQuoteMutation = useMutation({
@@ -117,8 +131,9 @@ export function SwapInterface() {
   };
 
   const handleMaxClick = () => {
-    if (fromBalance?.balance) {
-      setFromAmount(fromBalance.balance);
+    const balance = getTokenBalance(fromToken);
+    if (balance && parseFloat(balance) > 0) {
+      setFromAmount(balance);
     }
   };
 
@@ -167,8 +182,22 @@ export function SwapInterface() {
   const fromAmountUSD = fromAmount ? (parseFloat(fromAmount) * fromTokenPrice).toFixed(2) : "0.00";
   const toAmountUSD = toAmount ? (parseFloat(toAmount) * toTokenPrice).toFixed(2) : "0.00";
 
-  const isInsufficientBalance = fromBalance && fromAmount && 
-    parseFloat(fromAmount) > parseFloat(fromBalance.balance);
+  const fromTokenBalance = getTokenBalance(fromToken);
+  const toTokenBalance = getTokenBalance(toToken);
+  const isInsufficientBalance = fromAmount && 
+    parseFloat(fromAmount) > parseFloat(fromTokenBalance);
+
+  // Token icon URLs from CoinMarketCap
+  const getTokenIcon = (symbol: string) => {
+    const icons: { [key: string]: string } = {
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/28447.png",
+      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
+    };
+    return icons[symbol] || "/token-placeholder.svg";
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -186,7 +215,7 @@ export function SwapInterface() {
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>From</span>
             <span>
-              Balance: {fromBalance?.balance || "0"} {fromToken.symbol}
+              Balance: {fromTokenBalance} {fromToken.symbol}
             </span>
           </div>
           <div className="rounded-lg border p-3 space-y-2">
@@ -216,7 +245,7 @@ export function SwapInterface() {
                   className="flex items-center gap-2"
                 >
                   <img
-                    src={fromToken.logoUrl || "/token-placeholder.svg"}
+                    src={getTokenIcon(fromToken.symbol)}
                     alt={fromToken.symbol}
                     className="w-6 h-6 rounded-full"
                   />
@@ -253,7 +282,7 @@ export function SwapInterface() {
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>To</span>
             <span>
-              Balance: {toBalance?.balance || "0"} {toToken.symbol}
+              Balance: {toTokenBalance} {toToken.symbol}
             </span>
           </div>
           <div className="rounded-lg border p-3 space-y-2">
@@ -273,7 +302,7 @@ export function SwapInterface() {
                 className="flex items-center gap-2"
               >
                 <img
-                  src={toToken.logoUrl || "/token-placeholder.svg"}
+                  src={getTokenIcon(toToken.symbol)}
                   alt={toToken.symbol}
                   className="w-6 h-6 rounded-full"
                 />

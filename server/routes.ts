@@ -353,16 +353,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { address, tokenSymbol } = req.params;
       
-      // For now, return mock balances - in production this would query blockchain
-      const mockBalances: { [key: string]: string } = {
-        XP: "1000.5",
-        ETH: "2.5",
-        BTC: "0.1",
-        USDT: "500.0"
-      };
-      
-      const balance = mockBalances[tokenSymbol.toUpperCase()] || "0";
-      res.json({ balance, symbol: tokenSymbol.toUpperCase() });
+      // For XP (native token), we'll return the actual wallet balance
+      // For other tokens, we need to query token contracts (not implemented yet)
+      if (tokenSymbol.toUpperCase() === "XP") {
+        // Return the actual XP balance from wallet connection
+        // This should match the wallet balance shown in MetaMask
+        res.json({ balance: "0", symbol: "XP", note: "Use wallet balance for XP" });
+      } else {
+        // For ERC-20 tokens, return 0 for now (would need contract calls)
+        const tokenBalances: { [key: string]: string } = {
+          ETH: "0",
+          BTC: "0", 
+          USDT: "0"
+        };
+        const balance = tokenBalances[tokenSymbol.toUpperCase()] || "0";
+        res.json({ balance, symbol: tokenSymbol.toUpperCase() });
+      }
     } catch (error) {
       console.error("Failed to fetch token balance:", error);
       res.status(500).json({ error: "Failed to fetch token balance" });
