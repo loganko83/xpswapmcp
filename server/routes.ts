@@ -227,10 +227,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
-      // Get real XP price from CoinMarketCap
+      // Get real Xphere price from CoinMarketCap using ID 28447
       let xpPrice = 0.0842; // fallback
       try {
-        const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=XP', {
+        const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=28447', {
           headers: {
             'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
             'Accept': 'application/json'
@@ -239,12 +239,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (cmcResponse.ok) {
           const cmcData = await cmcResponse.json();
-          if (cmcData.data && cmcData.data.XP) {
-            xpPrice = cmcData.data.XP.quote.USD.price;
+          if (cmcData.data && cmcData.data['28447']) {
+            xpPrice = cmcData.data['28447'].quote.USD.price;
           }
         }
       } catch (error) {
-        console.warn("Failed to fetch XP price from CoinMarketCap:", error);
+        console.warn("Failed to fetch Xphere price from CoinMarketCap:", error);
       }
 
       // Calculate exchange rate based on real price

@@ -57,7 +57,7 @@ export default function PoolPage() {
 
   const getTokenIcon = (symbol: string) => {
     const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/28447.png",
+      XP: "/attached_assets/099de283d41a405f8fa1652d4c6c8ccc.png",
       USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
       ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
       BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
