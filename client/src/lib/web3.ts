@@ -143,15 +143,15 @@ export class Web3Service {
   }
 
   async waitForTransaction(hash: string): Promise<any> {
-    if (!this.provider) {
+    if (!this._provider) {
       throw new Error("Provider not initialized");
     }
 
-    return await this.provider.waitForTransaction(hash);
+    return await this._provider.waitForTransaction(hash);
   }
 
   disconnect(): void {
-    this.provider = null;
+    this._provider = null;
     this.signer = null;
   }
 }
