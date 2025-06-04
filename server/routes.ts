@@ -1537,6 +1537,386 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced Analytics APIs
+  app.get("/api/analytics/metrics", async (req, res) => {
+    try {
+      const { timeframe = '24h' } = req.query;
+      
+      const metrics = {
+        totalVolume: "45200000", // $45.2M
+        volume24h: "3850000", // $3.85M
+        volumeChange: "+12.5",
+        totalTrades: 28540,
+        trades24h: 2847,
+        averageTradeSize: "1352.50",
+        totalFees: "135000", // $135K
+        fees24h: "11250", // $11.25K
+        uniqueTraders: 8429,
+        activeTraders24h: 1247
+      };
+      
+      res.json(metrics);
+    } catch (error) {
+      console.error("Failed to fetch analytics metrics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics metrics" });
+    }
+  });
+
+  app.get("/api/analytics/volume", async (req, res) => {
+    try {
+      const { timeframe = '24h' } = req.query;
+      
+      // Generate sample volume data based on timeframe
+      const now = Date.now();
+      const data = [];
+      const points = timeframe === '1h' ? 12 : timeframe === '24h' ? 24 : timeframe === '7d' ? 7 : 30;
+      const interval = timeframe === '1h' ? 5 * 60 * 1000 : timeframe === '24h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+      
+      for (let i = points; i >= 0; i--) {
+        const timestamp = now - (i * interval);
+        const baseVolume = 150000 + Math.random() * 100000;
+        const baseTrades = 100 + Math.random() * 50;
+        const baseFees = baseVolume * 0.003;
+        
+        data.push({
+          timestamp,
+          volume: baseVolume,
+          trades: Math.floor(baseTrades),
+          fees: baseFees,
+          liquidity: 5200000 + Math.random() * 500000
+        });
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch volume data:", error);
+      res.status(500).json({ error: "Failed to fetch volume data" });
+    }
+  });
+
+  app.get("/api/analytics/tokens", async (req, res) => {
+    try {
+      const tokenAnalytics = [
+        {
+          symbol: "XP",
+          name: "Xphere",
+          price: 0.0152,
+          volume24h: 1850000,
+          volumeChange: 12.5,
+          marketCap: 15200000,
+          holders: 8429,
+          transactions24h: 1247,
+          liquidityUSD: 2850000,
+          priceChange24h: -1.23
+        },
+        {
+          symbol: "USDT",
+          name: "Tether USD",
+          price: 1.0001,
+          volume24h: 1200000,
+          volumeChange: 5.2,
+          marketCap: 95000000000,
+          holders: 45120,
+          transactions24h: 2847,
+          liquidityUSD: 1850000,
+          priceChange24h: 0.01
+        },
+        {
+          symbol: "ETH",
+          name: "Ethereum",
+          price: 2450.75,
+          volume24h: 850000,
+          volumeChange: -8.1,
+          marketCap: 295000000000,
+          holders: 12540,
+          transactions24h: 845,
+          liquidityUSD: 1250000,
+          priceChange24h: -2.15
+        },
+        {
+          symbol: "BTC",
+          name: "Bitcoin",
+          price: 42150.50,
+          volume24h: 650000,
+          volumeChange: -3.2,
+          marketCap: 825000000000,
+          holders: 5620,
+          transactions24h: 421,
+          liquidityUSD: 850000,
+          priceChange24h: -1.85
+        }
+      ];
+      
+      res.json(tokenAnalytics);
+    } catch (error) {
+      console.error("Failed to fetch token analytics:", error);
+      res.status(500).json({ error: "Failed to fetch token analytics" });
+    }
+  });
+
+  app.get("/api/analytics/pairs", async (req, res) => {
+    try {
+      const pairAnalytics = [
+        {
+          pairAddress: "0x1234567890123456789012345678901234567890",
+          tokenA: "XP",
+          tokenB: "USDT",
+          volume24h: 1850000,
+          volumeChange: 15.2,
+          liquidity: 2850000,
+          liquidityChange: 8.5,
+          fees24h: 5550,
+          apr: 45.2,
+          trades24h: 847
+        },
+        {
+          pairAddress: "0x2345678901234567890123456789012345678901",
+          tokenA: "XP",
+          tokenB: "ETH",
+          volume24h: 1200000,
+          volumeChange: 8.7,
+          liquidity: 1850000,
+          liquidityChange: 5.2,
+          fees24h: 3600,
+          apr: 38.5,
+          trades24h: 624
+        },
+        {
+          pairAddress: "0x3456789012345678901234567890123456789012",
+          tokenA: "ETH",
+          tokenB: "USDT",
+          volume24h: 950000,
+          volumeChange: -2.1,
+          liquidity: 1450000,
+          liquidityChange: -1.8,
+          fees24h: 2850,
+          apr: 28.7,
+          trades24h: 452
+        },
+        {
+          pairAddress: "0x4567890123456789012345678901234567890123",
+          tokenA: "BTC",
+          tokenB: "USDT",
+          volume24h: 750000,
+          volumeChange: -5.3,
+          liquidity: 1150000,
+          liquidityChange: -3.2,
+          fees24h: 2250,
+          apr: 22.1,
+          trades24h: 328
+        }
+      ];
+      
+      res.json(pairAnalytics);
+    } catch (error) {
+      console.error("Failed to fetch pair analytics:", error);
+      res.status(500).json({ error: "Failed to fetch pair analytics" });
+    }
+  });
+
+  app.get("/api/analytics/risk", async (req, res) => {
+    try {
+      const riskMetrics = {
+        liquidityRisk: 25,
+        volatilityRisk: 60,
+        smartContractRisk: 15,
+        valueAtRisk95: 2450,
+        maxDrawdown: -8.5,
+        sharpeRatio: 1.85,
+        alerts: [
+          {
+            type: "warning",
+            message: "Increased volatility detected in XP/USDT pair",
+            severity: "medium"
+          }
+        ]
+      };
+      
+      res.json(riskMetrics);
+    } catch (error) {
+      console.error("Failed to fetch risk metrics:", error);
+      res.status(500).json({ error: "Failed to fetch risk metrics" });
+    }
+  });
+
+  // Portfolio Management APIs
+  app.get("/api/portfolio/assets/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      const portfolioAssets = {
+        assets: [
+          {
+            symbol: "XP",
+            name: "Xphere",
+            balance: "15420.5000",
+            usdValue: 234.39,
+            price: 0.0152,
+            change24h: -1.23,
+            allocation: 45.2,
+            staked: "8500.0000",
+            rewards: "125.75",
+            apy: 158.3
+          },
+          {
+            symbol: "USDT",
+            name: "Tether USD",
+            balance: "1250.0000",
+            usdValue: 1250.13,
+            price: 1.0001,
+            change24h: 0.01,
+            allocation: 28.5,
+            staked: "800.0000",
+            rewards: "24.50",
+            apy: 12.5
+          },
+          {
+            symbol: "ETH",
+            name: "Ethereum",
+            balance: "0.4250",
+            usdValue: 1041.57,
+            price: 2450.75,
+            change24h: -2.15,
+            allocation: 20.8,
+            staked: "0.2000",
+            rewards: "0.0125",
+            apy: 8.2
+          },
+          {
+            symbol: "BTC",
+            name: "Bitcoin",
+            balance: "0.0125",
+            usdValue: 526.88,
+            price: 42150.50,
+            change24h: -1.85,
+            allocation: 5.5,
+            staked: "0.0000",
+            rewards: "0.0000",
+            apy: 0
+          }
+        ]
+      };
+      
+      res.json(portfolioAssets);
+    } catch (error) {
+      console.error("Failed to fetch portfolio assets:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio assets" });
+    }
+  });
+
+  app.get("/api/portfolio/metrics/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      const metrics = {
+        totalValue: 3052.97,
+        totalChange24h: -45.25,
+        totalChangePercent: -1.46,
+        totalStaked: 1890.50,
+        totalRewards: 185.75,
+        portfolioAPY: 98.7,
+        riskScore: 65,
+        diversificationScore: 78
+      };
+      
+      res.json(metrics);
+    } catch (error) {
+      console.error("Failed to fetch portfolio metrics:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio metrics" });
+    }
+  });
+
+  app.get("/api/portfolio/positions/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      const positions = [
+        {
+          type: "staking",
+          token: "XP",
+          amount: "8,500.00 XP",
+          usdValue: 129.20,
+          apy: 158.3,
+          rewards: "125.75 XP",
+          duration: "Flexible",
+          risk: "medium"
+        },
+        {
+          type: "liquidity",
+          pair: "XP/USDT",
+          token: "LP Token",
+          amount: "2,450.00 LP",
+          usdValue: 1847.50,
+          apy: 45.2,
+          rewards: "85.20 XP",
+          duration: "Ongoing",
+          risk: "low"
+        },
+        {
+          type: "farming",
+          pair: "XP/ETH",
+          token: "LP Token",
+          amount: "1,250.00 LP",
+          usdValue: 985.75,
+          apy: 78.9,
+          rewards: "42.15 XP",
+          duration: "30 days",
+          risk: "high"
+        },
+        {
+          type: "wallet",
+          token: "USDT",
+          amount: "450.00 USDT",
+          usdValue: 450.20,
+          apy: 0,
+          rewards: "0.00 USDT",
+          duration: "N/A",
+          risk: "low"
+        }
+      ];
+      
+      res.json(positions);
+    } catch (error) {
+      console.error("Failed to fetch portfolio positions:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio positions" });
+    }
+  });
+
+  app.get("/api/portfolio/history/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const { timeframe = '7d' } = req.query;
+      
+      // Generate portfolio history data
+      const now = Date.now();
+      const data = [];
+      const points = timeframe === '24h' ? 24 : timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
+      const interval = timeframe === '24h' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+      
+      let baseValue = 3052.97;
+      
+      for (let i = points; i >= 0; i--) {
+        const timestamp = now - (i * interval);
+        const volatility = 0.02 + Math.random() * 0.03; // 2-5% daily volatility
+        const change = (Math.random() - 0.5) * volatility;
+        baseValue = baseValue * (1 + change);
+        
+        const changePercent = ((baseValue - 3052.97) / 3052.97) * 100;
+        
+        data.push({
+          timestamp,
+          totalValue: Math.max(baseValue, 1000), // Minimum value
+          change: changePercent
+        });
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch portfolio history:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio history" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

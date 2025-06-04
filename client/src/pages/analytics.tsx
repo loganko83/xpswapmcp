@@ -1,6 +1,8 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
+import { PortfolioManager } from "@/components/PortfolioManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -170,8 +172,8 @@ export default function AnalyticsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Real-Time Analytics</h1>
-          <p className="text-muted-foreground">Live market data and trading insights</p>
+          <h1 className="text-3xl font-bold mb-2">Analytics & Portfolio</h1>
+          <p className="text-muted-foreground">Advanced analytics, portfolio management, and real-time market data</p>
         </div>
         <div className="flex items-center gap-4">
           <Button
@@ -253,13 +255,23 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="price" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="advanced" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="advanced">Advanced Analytics</TabsTrigger>
+          <TabsTrigger value="portfolio">Portfolio Manager</TabsTrigger>
           <TabsTrigger value="price">Price Charts</TabsTrigger>
           <TabsTrigger value="volume">Volume Analysis</TabsTrigger>
           <TabsTrigger value="pairs">Trading Pairs</TabsTrigger>
           <TabsTrigger value="liquidity">Liquidity</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="advanced">
+          <AdvancedAnalytics />
+        </TabsContent>
+
+        <TabsContent value="portfolio">
+          <PortfolioManager />
+        </TabsContent>
 
         <TabsContent value="price" className="space-y-6">
           <Card>
