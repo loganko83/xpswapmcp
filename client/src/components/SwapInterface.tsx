@@ -1,18 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpDown, Settings, ChevronDown } from "lucide-react";
+import { ArrowUpDown, Settings, ChevronDown, Loader2 } from "lucide-react";
 import { TokenSelector } from "./TokenSelector";
 import { Token, SwapQuote } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { useWeb3 } from "@/hooks/useWeb3";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTokenPrices, useTokenBalance } from "@/hooks/useTokenPrices";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export function SwapInterface() {
-  const { wallet, isXphereNetwork, switchToXphere } = useWeb3();
+  const { wallet, isXphereNetwork, switchToXphere, connectWallet } = useWeb3();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [fromToken, setFromToken] = useState<Token>({
     id: 1,
     ...DEFAULT_TOKENS[0],
@@ -29,28 +35,75 @@ export function SwapInterface() {
   const [selectorType, setSelectorType] = useState<"from" | "to">("from");
   const [slippage, setSlippage] = useState(0.5);
   const [quote, setQuote] = useState<SwapQuote | null>(null);
-  const [isSwapping, setIsSwapping] = useState(false);
 
-  // Fetch real-time XP price
-  const { data: xpPrice } = useQuery({
-    queryKey: ['/api/xp-price'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+  // Fetch real-time token prices
+  const { data: tokenPrices, isLoading: pricesLoading } = useTokenPrices([
+    fromToken.symbol, 
+    toToken.symbol
+  ]);
+
+  // Fetch token balances
+  const { data: fromBalance } = useTokenBalance(wallet.address, fromToken.symbol);
+  const { data: toBalance } = useTokenBalance(wallet.address, toToken.symbol);
+
+  // Calculate swap quote
+  const swapQuoteMutation = useMutation({
+    mutationFn: async ({ fromToken, toToken, amount }: { fromToken: string; toToken: string; amount: string }) => {
+      return apiRequest("/api/swap-quote", {
+        method: "POST",
+        body: JSON.stringify({ fromToken, toToken, amount }),
+        headers: { "Content-Type": "application/json" }
+      });
+    },
+    onSuccess: (data: SwapQuote) => {
+      setQuote(data);
+      setToAmount(data.outputAmount);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to calculate swap quote",
+        variant: "destructive",
+      });
+    }
   });
 
-  const openTokenSelector = (type: "from" | "to") => {
-    setSelectorType(type);
-    setIsTokenSelectorOpen(true);
-  };
+  // Get swap quote when amount or tokens change
+  useEffect(() => {
+    if (fromAmount && parseFloat(fromAmount) > 0 && fromToken && toToken) {
+      const timeoutId = setTimeout(() => {
+        swapQuoteMutation.mutate({
+          fromToken: fromToken.symbol,
+          toToken: toToken.symbol,
+          amount: fromAmount
+        });
+      }, 500); // Debounce for 500ms
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      setToAmount("");
+      setQuote(null);
+    }
+  }, [fromAmount, fromToken.symbol, toToken.symbol]);
 
   const handleTokenSelect = (token: Token) => {
     if (selectorType === "from") {
+      if (token.symbol === toToken.symbol) {
+        // Swap tokens if selecting the same token
+        setToToken(fromToken);
+      }
       setFromToken(token);
     } else {
+      if (token.symbol === fromToken.symbol) {
+        // Swap tokens if selecting the same token
+        setFromToken(toToken);
+      }
       setToToken(token);
     }
+    setIsTokenSelectorOpen(false);
   };
 
-  const swapTokens = () => {
+  const handleSwapTokens = () => {
     const tempToken = fromToken;
     const tempAmount = fromAmount;
     setFromToken(toToken);
@@ -59,208 +112,237 @@ export function SwapInterface() {
     setToAmount(tempAmount);
   };
 
-  const calculateQuote = async (amount: string) => {
-    if (!amount || parseFloat(amount) <= 0) {
-      setToAmount("");
-      setQuote(null);
-      return;
+  const handleMaxClick = () => {
+    if (fromBalance?.balance) {
+      setFromAmount(fromBalance.balance);
     }
-
-    // Use real XP price from CoinMarketCap
-    const currentXpPrice = xpPrice?.price || 0.0842;
-    const exchangeRate = fromToken.symbol === "XP" ? currentXpPrice : 1 / currentXpPrice;
-    const outputAmount = (parseFloat(amount) * exchangeRate).toFixed(6);
-    setToAmount(outputAmount);
-
-    setQuote({
-      inputAmount: amount,
-      outputAmount,
-      priceImpact: "0.1",
-      minimumReceived: (parseFloat(outputAmount) * (1 - slippage / 100)).toFixed(6),
-      route: [fromToken.symbol, toToken.symbol],
-      gasEstimate: "0.02",
-    });
   };
 
-  useEffect(() => {
-    if (fromAmount) {
-      calculateQuote(fromAmount);
-    }
-  }, [fromAmount, fromToken, toToken, slippage]);
-
-  const handleSwap = async () => {
+  const executeSwap = async () => {
     if (!wallet.isConnected) {
+      await connectWallet();
       return;
     }
 
     if (!isXphereNetwork) {
-      try {
-        await switchToXphere();
-      } catch (error) {
-        console.error("Failed to switch network:", error);
-        return;
-      }
+      await switchToXphere();
+      return;
     }
 
-    setIsSwapping(true);
-    try {
-      // Mock swap transaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log("Swap completed");
-    } catch (error) {
-      console.error("Swap failed:", error);
-    } finally {
-      setIsSwapping(false);
+    if (!quote || !fromAmount) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      });
+      return;
     }
+
+    toast({
+      title: "Swap Initiated",
+      description: `Swapping ${fromAmount} ${fromToken.symbol} for ${quote.outputAmount} ${toToken.symbol}`,
+    });
+
+    // In a real implementation, this would interact with smart contracts
+    // For now, we'll simulate the swap
+    setTimeout(() => {
+      toast({
+        title: "Swap Successful",
+        description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${quote.outputAmount} ${toToken.symbol}`,
+      });
+      setFromAmount("");
+      setToAmount("");
+      setQuote(null);
+      // Refetch balances
+      queryClient.invalidateQueries({ queryKey: ["/api/token-balance"] });
+    }, 2000);
   };
 
-  const getSwapButtonText = () => {
-    if (!wallet.isConnected) return "Connect Wallet";
-    if (!isXphereNetwork) return "Switch to Xphere Network";
-    if (!fromAmount || parseFloat(fromAmount) <= 0) return "Enter Amount";
-    if (isSwapping) return "Swapping...";
-    return "Swap";
-  };
+  const fromTokenPrice = tokenPrices?.[fromToken.symbol]?.price || 0;
+  const toTokenPrice = tokenPrices?.[toToken.symbol]?.price || 0;
+  const fromAmountUSD = fromAmount ? (parseFloat(fromAmount) * fromTokenPrice).toFixed(2) : "0.00";
+  const toAmountUSD = toAmount ? (parseFloat(toAmount) * toTokenPrice).toFixed(2) : "0.00";
 
-  const isSwapDisabled = () => {
-    return (
-      isSwapping ||
-      !fromAmount ||
-      parseFloat(fromAmount) <= 0 ||
-      (!wallet.isConnected && getSwapButtonText() !== "Connect Wallet")
-    );
-  };
+  const isInsufficientBalance = fromBalance && fromAmount && 
+    parseFloat(fromAmount) > parseFloat(fromBalance.balance);
 
   return (
-    <>
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>Swap Tokens</CardTitle>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          Swap
+          <Button variant="ghost" size="sm">
             <Settings className="h-4 w-4" />
           </Button>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* From Token */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">From</span>
-              <span className="text-muted-foreground">
-                Balance: {wallet.isConnected ? parseFloat(wallet.balance).toFixed(4) : "0.00"} {fromToken.symbol}
-              </span>
-            </div>
-            <div className="relative bg-muted/50 rounded-lg p-4 border">
-              <div className="flex items-center justify-between">
-                <Input
-                  type="number"
-                  placeholder="0.0"
-                  value={fromAmount}
-                  onChange={(e) => setFromAmount(e.target.value)}
-                  className="border-0 bg-transparent text-2xl font-semibold p-0 focus-visible:ring-0"
-                />
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* From Token */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>From</span>
+            <span>
+              Balance: {fromBalance?.balance || "0"} {fromToken.symbol}
+            </span>
+          </div>
+          <div className="rounded-lg border p-3 space-y-2">
+            <div className="flex justify-between items-center">
+              <Input
+                placeholder="0.0"
+                value={fromAmount}
+                onChange={(e) => setFromAmount(e.target.value)}
+                className="border-0 text-2xl font-semibold p-0 h-auto"
+                type="number"
+              />
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
-                  onClick={() => openTokenSelector("from")}
-                  className="h-auto p-2 space-x-2"
+                  size="sm"
+                  onClick={handleMaxClick}
+                  className="text-blue-500 hover:text-blue-600"
                 >
-                  <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">🔶</span>
-                  </div>
+                  MAX
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectorType("from");
+                    setIsTokenSelectorOpen(true);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <img
+                    src={fromToken.logoUrl || "/token-placeholder.svg"}
+                    alt={fromToken.symbol}
+                    className="w-6 h-6 rounded-full"
+                  />
                   <span className="font-semibold">{fromToken.symbol}</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="text-sm text-muted-foreground mt-2">
-                ≈ ${fromAmount ? (parseFloat(fromAmount) * (xpPrice?.price || 0.0842)).toFixed(2) : "0.00"}
-              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              ≈ ${fromAmountUSD}
             </div>
           </div>
-
-          {/* Swap Button */}
-          <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={swapTokens}
-              className="h-10 w-10 rounded-full bg-gradient-to-r from-primary to-primary/80 text-white hover:text-white hover:scale-110 transition-all"
-            >
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* To Token */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">To</span>
-              <span className="text-muted-foreground">
-                Balance: {wallet.isConnected ? "0.00" : "0.00"}
-              </span>
-            </div>
-            <div className="relative bg-muted/50 rounded-lg p-4 border">
-              <div className="flex items-center justify-between">
-                <Input
-                  type="number"
-                  placeholder="0.0"
-                  value={toAmount}
-                  readOnly
-                  className="border-0 bg-transparent text-2xl font-semibold p-0 focus-visible:ring-0"
-                />
-                <Button
-                  variant="ghost"
-                  onClick={() => openTokenSelector("to")}
-                  className="h-auto p-2 space-x-2"
-                >
-                  <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">💚</span>
-                  </div>
-                  <span className="font-semibold">{toToken.symbol}</span>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="text-sm text-muted-foreground mt-2">
-                ≈ ${toAmount || "0.00"}
-              </div>
-            </div>
-          </div>
-
-          {/* Swap Details */}
-          {quote && (
-            <div className="bg-muted/30 rounded-lg p-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Exchange Rate</span>
-                <span className="font-medium">
-                  1 {fromToken.symbol} = {(parseFloat(quote.outputAmount) / parseFloat(quote.inputAmount)).toFixed(6)} {toToken.symbol}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Price Impact</span>
-                <Badge variant="secondary" className="text-green-600">
-                  {quote.priceImpact}%
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Slippage Tolerance</span>
-                <span className="font-medium">{slippage}%</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Network Fee</span>
-                <Badge variant="outline" className="text-green-600">
-                  ~${quote.gasEstimate}
-                </Badge>
-              </div>
+          {isInsufficientBalance && (
+            <div className="text-sm text-red-500">
+              Insufficient {fromToken.symbol} balance
             </div>
           )}
+        </div>
 
-          {/* Swap Button */}
+        {/* Swap Button */}
+        <div className="flex justify-center">
           <Button
-            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:scale-[1.02] transition-all"
-            onClick={handleSwap}
-            disabled={isSwapDisabled()}
+            variant="ghost"
+            size="sm"
+            onClick={handleSwapTokens}
+            className="rounded-full p-2 border"
           >
-            {getSwapButtonText()}
+            <ArrowUpDown className="h-4 w-4" />
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* To Token */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>To</span>
+            <span>
+              Balance: {toBalance?.balance || "0"} {toToken.symbol}
+            </span>
+          </div>
+          <div className="rounded-lg border p-3 space-y-2">
+            <div className="flex justify-between items-center">
+              <Input
+                placeholder="0.0"
+                value={toAmount}
+                readOnly
+                className="border-0 text-2xl font-semibold p-0 h-auto"
+              />
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSelectorType("to");
+                  setIsTokenSelectorOpen(true);
+                }}
+                className="flex items-center gap-2"
+              >
+                <img
+                  src={toToken.logoUrl || "/token-placeholder.svg"}
+                  alt={toToken.symbol}
+                  className="w-6 h-6 rounded-full"
+                />
+                <span className="font-semibold">{toToken.symbol}</span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              ≈ ${toAmountUSD}
+            </div>
+          </div>
+        </div>
+
+        {/* Quote Details */}
+        {quote && (
+          <div className="space-y-2 text-sm">
+            <Separator />
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Price Impact</span>
+              <span className={parseFloat(quote.priceImpact) > 5 ? "text-red-500" : ""}>
+                {quote.priceImpact}%
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Minimum Received</span>
+              <span>{quote.minimumReceived} {toToken.symbol}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Network Fee</span>
+              <span>{quote.gasEstimate} XP</span>
+            </div>
+          </div>
+        )}
+
+        {/* Swap Button */}
+        <Button
+          onClick={executeSwap}
+          disabled={
+            !fromAmount || 
+            !toAmount || 
+            isInsufficientBalance || 
+            swapQuoteMutation.isPending ||
+            pricesLoading
+          }
+          className="w-full"
+          size="lg"
+        >
+          {swapQuoteMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : null}
+          {!wallet.isConnected
+            ? "Connect Wallet"
+            : !isXphereNetwork
+            ? "Switch to Xphere Network"
+            : isInsufficientBalance
+            ? `Insufficient ${fromToken.symbol} Balance`
+            : "Swap"}
+        </Button>
+
+        {/* Price Info */}
+        {tokenPrices && !pricesLoading && (
+          <div className="text-xs text-muted-foreground space-y-1">
+            <div className="flex justify-between">
+              <span>{fromToken.symbol} Price:</span>
+              <span>${fromTokenPrice.toFixed(6)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>{toToken.symbol} Price:</span>
+              <span>${toTokenPrice.toFixed(6)}</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
 
       <TokenSelector
         isOpen={isTokenSelectorOpen}
@@ -268,6 +350,6 @@ export function SwapInterface() {
         onSelectToken={handleTokenSelect}
         selectedToken={selectorType === "from" ? fromToken : toToken}
       />
-    </>
+    </Card>
   );
 }

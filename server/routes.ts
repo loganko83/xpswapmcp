@@ -310,6 +310,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get multiple token prices from CoinMarketCap
+  app.get("/api/token-prices", async (req, res) => {
+    try {
+      const symbols = req.query.symbols as string || "XP,BTC,ETH,USDT";
+      const cmcResponse = await fetch(
+        `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=${symbols}`,
+        {
+          headers: {
+            "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
+            "Accept": "application/json",
+          },
+        }
+      );
+
+      if (!cmcResponse.ok) {
+        throw new Error(`CoinMarketCap API error: ${cmcResponse.status}`);
+      }
+
+      const cmcData = await cmcResponse.json();
+      const prices: { [key: string]: { price: number; change24h: number } } = {};
+      
+      if (cmcData.data) {
+        Object.keys(cmcData.data).forEach(symbol => {
+          const tokenData = cmcData.data[symbol];
+          prices[symbol] = {
+            price: tokenData.quote.USD.price,
+            change24h: tokenData.quote.USD.percent_change_24h
+          };
+        });
+      }
+      
+      res.json(prices);
+    } catch (error) {
+      console.error("Failed to fetch token prices:", error);
+      res.status(500).json({ error: "Failed to fetch token prices" });
+    }
+  });
+
+  // Get token balance for a specific address and token
+  app.get("/api/token-balance/:address/:tokenSymbol", async (req, res) => {
+    try {
+      const { address, tokenSymbol } = req.params;
+      
+      // For now, return mock balances - in production this would query blockchain
+      const mockBalances: { [key: string]: string } = {
+        XP: "1000.5",
+        ETH: "2.5",
+        BTC: "0.1",
+        USDT: "500.0"
+      };
+      
+      const balance = mockBalances[tokenSymbol.toUpperCase()] || "0";
+      res.json({ balance, symbol: tokenSymbol.toUpperCase() });
+    } catch (error) {
+      console.error("Failed to fetch token balance:", error);
+      res.status(500).json({ error: "Failed to fetch token balance" });
+    }
+  });
+
+  // Calculate swap quote
+  app.post("/api/swap-quote", async (req, res) => {
+    try {
+      const { fromToken, toToken, amount } = req.body;
+      
+      // Get current prices
+      const pricesResponse = await fetch(`${req.protocol}://${req.get('host')}/api/token-prices?symbols=${fromToken},${toToken}`);
+      const prices = await pricesResponse.json();
+      
+      if (!prices[fromToken] || !prices[toToken]) {
+        throw new Error("Token prices not available");
+      }
+      
+      const fromPrice = prices[fromToken].price;
+      const toPrice = prices[toToken].price;
+      const inputAmount = parseFloat(amount);
+      
+      // Calculate output amount with 0.3% fee
+      const outputAmount = (inputAmount * fromPrice / toPrice) * 0.997;
+      const priceImpact = "0.15"; // Mock price impact
+      const minimumReceived = outputAmount * 0.995; // 0.5% slippage tolerance
+      
+      res.json({
+        inputAmount: amount,
+        outputAmount: outputAmount.toFixed(6),
+        priceImpact,
+        minimumReceived: minimumReceived.toFixed(6),
+        route: [fromToken, toToken],
+        gasEstimate: "0.002"
+      });
+    } catch (error) {
+      console.error("Failed to calculate swap quote:", error);
+      res.status(500).json({ error: "Failed to calculate swap quote" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
