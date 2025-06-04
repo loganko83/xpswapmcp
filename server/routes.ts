@@ -1222,6 +1222,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/bridge/stats", async (req, res) => {
+    try {
+      const bridgeStats = {
+        totalBridged: "42800000", // $42.8M
+        volume24h: "3200000", // $3.2M
+        avgTime: "8m 30s",
+        successRate: "99.8",
+        activeBridges: 147,
+        totalTransactions: 28540,
+        networksSupported: 5,
+        tokensSupported: 15
+      };
+      
+      res.json(bridgeStats);
+    } catch (error) {
+      console.error("Failed to fetch bridge stats:", error);
+      res.status(500).json({ error: "Failed to fetch bridge stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
