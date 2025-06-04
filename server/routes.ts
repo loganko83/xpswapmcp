@@ -267,10 +267,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // XP Price endpoint
+  // Xphere Price endpoint
   app.get("/api/xp-price", async (req, res) => {
     try {
-      const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=XP', {
+      const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=28447', {
         headers: {
           'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
           'Accept': 'application/json'
@@ -283,8 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const cmcData = await cmcResponse.json();
       
-      if (cmcData.data && cmcData.data.XP) {
-        const xpData = cmcData.data.XP;
+      if (cmcData.data && cmcData.data['28447']) {
+        const xpData = cmcData.data['28447'];
         const priceInfo = {
           price: xpData.quote.USD.price,
           change24h: xpData.quote.USD.percent_change_24h,
@@ -295,10 +295,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json(priceInfo);
       } else {
-        throw new Error("XP data not found in CoinMarketCap response");
+        throw new Error("Xphere data not found in CoinMarketCap response");
       }
     } catch (error) {
-      console.error("Failed to fetch XP price:", error);
+      console.error("Failed to fetch Xphere price:", error);
       // Return fallback data
       res.json({
         price: 0.0842,
@@ -313,7 +313,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get multiple token prices from CoinMarketCap
   app.get("/api/token-prices", async (req, res) => {
     try {
-      const symbols = req.query.symbols as string || "XP,BTC,ETH,USDT";
+      const prices: { [key: string]: { price: number; change24h: number } } = {};
+      
+      // First, get Xphere price using ID 28447
+      try {
+        const xphereResponse = await fetch(
+          'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=28447',
+          {
+            headers: {
+              "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
+              "Accept": "application/json",
+            },
+          }
+        );
+
+        if (xphereResponse.ok) {
+          const xphereData = await xphereResponse.json();
+          if (xphereData.data && xphereData.data['28447']) {
+            const tokenData = xphereData.data['28447'];
+            prices['XP'] = {
+              price: tokenData.quote.USD.price,
+              change24h: tokenData.quote.USD.percent_change_24h
+            };
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to fetch Xphere price:", error);
+      }
+
+      // Then get other tokens by symbol
+      const symbols = "BTC,ETH,USDT,BNB";
       const cmcResponse = await fetch(
         `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=${symbols}`,
         {
@@ -324,21 +353,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      if (!cmcResponse.ok) {
-        throw new Error(`CoinMarketCap API error: ${cmcResponse.status}`);
-      }
-
-      const cmcData = await cmcResponse.json();
-      const prices: { [key: string]: { price: number; change24h: number } } = {};
-      
-      if (cmcData.data) {
-        Object.keys(cmcData.data).forEach(symbol => {
-          const tokenData = cmcData.data[symbol];
-          prices[symbol] = {
-            price: tokenData.quote.USD.price,
-            change24h: tokenData.quote.USD.percent_change_24h
-          };
-        });
+      if (cmcResponse.ok) {
+        const cmcData = await cmcResponse.json();
+        if (cmcData.data) {
+          Object.keys(cmcData.data).forEach(symbol => {
+            const tokenData = cmcData.data[symbol];
+            prices[symbol] = {
+              price: tokenData.quote.USD.price,
+              change24h: tokenData.quote.USD.percent_change_24h
+            };
+          });
+        }
       }
       
       res.json(prices);
