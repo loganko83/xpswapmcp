@@ -227,10 +227,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
-      // Get real Xphere price from CoinMarketCap using ID 28447
+      // Get real Xphere price from CoinMarketCap using ID 36056
       let xpPrice = 0.0842; // fallback
       try {
-        const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=28447', {
+        const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056', {
           headers: {
             'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
             'Accept': 'application/json'
@@ -239,8 +239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (cmcResponse.ok) {
           const cmcData = await cmcResponse.json();
-          if (cmcData.data && cmcData.data['28447']) {
-            xpPrice = cmcData.data['28447'].quote.USD.price;
+          if (cmcData.data && cmcData.data['36056']) {
+            xpPrice = cmcData.data['36056'].quote.USD.price;
           }
         }
       } catch (error) {
@@ -270,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Xphere Price endpoint
   app.get("/api/xp-price", async (req, res) => {
     try {
-      const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=28447', {
+      const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056', {
         headers: {
           'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
           'Accept': 'application/json'
@@ -283,8 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const cmcData = await cmcResponse.json();
       
-      if (cmcData.data && cmcData.data['28447']) {
-        const xpData = cmcData.data['28447'];
+      if (cmcData.data && cmcData.data['36056']) {
+        const xpData = cmcData.data['36056'];
         const priceInfo = {
           price: xpData.quote.USD.price,
           change24h: xpData.quote.USD.percent_change_24h,
@@ -299,14 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Failed to fetch Xphere price:", error);
-      // Return fallback data
-      res.json({
-        price: 0.0842,
-        change24h: 2.1,
-        marketCap: 45200000,
-        volume24h: 2800000,
-        lastUpdated: new Date().toISOString()
-      });
+      res.status(500).json({ error: "Failed to fetch Xphere price from CoinMarketCap" });
     }
   });
 
@@ -315,10 +308,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const prices: { [key: string]: { price: number; change24h: number } } = {};
       
-      // First, get Xphere price using ID 28447
+      // First, get Xphere price using ID 36056
       try {
         const xphereResponse = await fetch(
-          'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=28447',
+          'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056',
           {
             headers: {
               "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
@@ -329,8 +322,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (xphereResponse.ok) {
           const xphereData = await xphereResponse.json();
-          if (xphereData.data && xphereData.data['28447']) {
-            const tokenData = xphereData.data['28447'];
+          if (xphereData.data && xphereData.data['36056']) {
+            const tokenData = xphereData.data['36056'];
             prices['XP'] = {
               price: tokenData.quote.USD.price,
               change24h: tokenData.quote.USD.percent_change_24h
