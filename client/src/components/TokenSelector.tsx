@@ -49,7 +49,7 @@ export function TokenSelector({
 
   const getTokenIcon = (symbol: string) => {
     const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/29210.png",
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/28447.png",
       USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
       ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
       BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
