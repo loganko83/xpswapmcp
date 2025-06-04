@@ -88,6 +88,13 @@ export function Layout({ children }: LayoutProps) {
                 }`}>
                   Bridge
                 </Link>
+                <Link href="/governance" className={`text-sm font-medium transition-colors ${
+                  isActivePage("/governance") 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}>
+                  Governance
+                </Link>
                 <Link href="/analytics" className={`text-sm font-medium transition-colors ${
                   isActivePage("/analytics") 
                     ? "text-primary" 

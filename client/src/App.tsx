@@ -9,6 +9,7 @@ import SwapPage from "@/pages/swap";
 import PoolPage from "@/pages/pool";
 import FarmPage from "@/pages/farm";
 import BridgePage from "@/pages/bridge";
+import GovernancePage from "@/pages/governance";
 import AnalyticsPage from "@/pages/analytics";
 import NotFound from "@/pages/not-found";
 
@@ -20,6 +21,7 @@ function Router() {
         <Route path="/pool" component={PoolPage} />
         <Route path="/farm" component={FarmPage} />
         <Route path="/bridge" component={BridgePage} />
+        <Route path="/governance" component={GovernancePage} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route component={NotFound} />
       </Switch>

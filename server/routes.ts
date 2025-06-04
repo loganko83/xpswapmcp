@@ -1242,6 +1242,301 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Governance Voting APIs
+  app.get("/api/governance/proposals", async (req, res) => {
+    try {
+      const proposals = [
+        {
+          id: 1,
+          title: "Reduce Trading Fees to 0.25%",
+          description: "Proposal to reduce the current trading fee from 0.3% to 0.25% to increase trading volume and competitiveness",
+          proposer: "0x1234567890123456789012345678901234567890",
+          status: "active",
+          type: "parameter",
+          votingPower: "50000",
+          votesFor: "125000.50",
+          votesAgainst: "45000.25",
+          totalVotes: "170000.75",
+          quorum: "100000",
+          startTime: Date.now() - (2 * 24 * 60 * 60 * 1000), // 2 days ago
+          endTime: Date.now() + (5 * 24 * 60 * 60 * 1000), // 5 days from now
+          details: {
+            currentValue: "0.3%",
+            proposedValue: "0.25%",
+            impact: "Increased trading volume, reduced revenue per trade",
+            implementation: "Smart contract parameter update"
+          },
+          userVote: null,
+          userVotingPower: "0"
+        },
+        {
+          id: 2,
+          title: "Add Support for Arbitrum Network",
+          description: "Proposal to integrate Arbitrum network support for cross-chain bridging and expand ecosystem reach",
+          proposer: "0x2345678901234567890123456789012345678901",
+          status: "active",
+          type: "upgrade",
+          votingPower: "75000",
+          votesFor: "89000.75",
+          votesAgainst: "32000.50",
+          totalVotes: "121001.25",
+          quorum: "100000",
+          startTime: Date.now() - (1 * 24 * 60 * 60 * 1000), // 1 day ago
+          endTime: Date.now() + (6 * 24 * 60 * 60 * 1000), // 6 days from now
+          details: {
+            currentValue: "5 supported networks",
+            proposedValue: "6 supported networks (+ Arbitrum)",
+            impact: "Expanded user base, increased bridge volume",
+            implementation: "Smart contract deployment and integration"
+          },
+          userVote: null,
+          userVotingPower: "0"
+        },
+        {
+          id: 3,
+          title: "Increase Staking Rewards by 20%",
+          description: "Proposal to increase XP staking rewards from current rate to attract more liquidity providers",
+          proposer: "0x3456789012345678901234567890123456789012",
+          status: "passed",
+          type: "parameter",
+          votingPower: "80000",
+          votesFor: "195000.00",
+          votesAgainst: "65000.25",
+          totalVotes: "260000.25",
+          quorum: "150000",
+          startTime: Date.now() - (10 * 24 * 60 * 60 * 1000), // 10 days ago
+          endTime: Date.now() - (3 * 24 * 60 * 60 * 1000), // 3 days ago
+          executionTime: Date.now() - (1 * 24 * 60 * 60 * 1000), // 1 day ago
+          details: {
+            currentValue: "158.3% APR",
+            proposedValue: "190.0% APR",
+            impact: "Higher rewards for stakers, increased token inflation",
+            implementation: "Staking contract parameter update"
+          },
+          userVote: "for",
+          userVotingPower: "1250.50"
+        },
+        {
+          id: 4,
+          title: "Treasury Allocation for Marketing",
+          description: "Allocate 5% of treasury funds for marketing initiatives and ecosystem growth",
+          proposer: "0x4567890123456789012345678901234567890123",
+          status: "rejected",
+          type: "treasury",
+          votingPower: "60000",
+          votesFor: "85000.25",
+          votesAgainst: "135000.75",
+          totalVotes: "220001.00",
+          quorum: "150000",
+          startTime: Date.now() - (15 * 24 * 60 * 60 * 1000), // 15 days ago
+          endTime: Date.now() - (8 * 24 * 60 * 60 * 1000), // 8 days ago
+          details: {
+            currentValue: "0% allocated to marketing",
+            proposedValue: "5% of treasury for marketing",
+            impact: "Increased brand awareness, reduced treasury reserves",
+            implementation: "Treasury smart contract modification"
+          },
+          userVote: "against",
+          userVotingPower: "1250.50"
+        },
+        {
+          id: 5,
+          title: "Implement Dynamic Fee Structure",
+          description: "Introduce a dynamic fee structure based on trading volume and market volatility",
+          proposer: "0x5678901234567890123456789012345678901234",
+          status: "pending",
+          type: "upgrade",
+          votingPower: "45000",
+          votesFor: "0",
+          votesAgainst: "0",
+          totalVotes: "0",
+          quorum: "100000",
+          startTime: Date.now() + (2 * 24 * 60 * 60 * 1000), // 2 days from now
+          endTime: Date.now() + (9 * 24 * 60 * 60 * 1000), // 9 days from now
+          details: {
+            currentValue: "Fixed 0.3% fee",
+            proposedValue: "Dynamic 0.15% - 0.5% fee",
+            impact: "More competitive pricing, complex implementation",
+            implementation: "New smart contract with oracle integration"
+          },
+          userVote: null,
+          userVotingPower: "0"
+        }
+      ];
+      
+      res.json(proposals);
+    } catch (error) {
+      console.error("Failed to fetch governance proposals:", error);
+      res.status(500).json({ error: "Failed to fetch governance proposals" });
+    }
+  });
+
+  app.get("/api/governance/stats", async (req, res) => {
+    try {
+      const stats = {
+        totalProposals: 5,
+        activeProposals: 2,
+        participationRate: 73.5,
+        successRate: 60.0,
+        totalVoters: 1247,
+        totalVotingPower: "2500000",
+        quorumThreshold: "100000"
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Failed to fetch governance stats:", error);
+      res.status(500).json({ error: "Failed to fetch governance stats" });
+    }
+  });
+
+  app.post("/api/governance/vote", async (req, res) => {
+    try {
+      const { proposalId, vote, reason, userAddress } = req.body;
+      
+      // Simulate vote submission
+      const voteResponse = {
+        success: true,
+        proposalId,
+        vote,
+        votingPower: "1250.50", // User's voting power based on XP holdings
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        timestamp: Date.now()
+      };
+      
+      res.json(voteResponse);
+    } catch (error) {
+      console.error("Failed to submit vote:", error);
+      res.status(500).json({ error: "Failed to submit vote" });
+    }
+  });
+
+  app.post("/api/governance/create-proposal", async (req, res) => {
+    try {
+      const { type, title, description, details, proposer } = req.body;
+      
+      // Simulate proposal creation
+      const proposalId = Math.floor(Math.random() * 1000) + 6;
+      
+      const newProposal = {
+        id: proposalId,
+        title,
+        description,
+        proposer,
+        status: "pending",
+        type,
+        votingPower: "10000", // Minimum required
+        votesFor: "0",
+        votesAgainst: "0",
+        totalVotes: "0",
+        quorum: "100000",
+        startTime: Date.now() + (24 * 60 * 60 * 1000), // Starts in 24 hours
+        endTime: Date.now() + (8 * 24 * 60 * 60 * 1000), // Ends in 8 days
+        details,
+        userVote: null,
+        userVotingPower: "0",
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64)
+      };
+      
+      res.json({
+        success: true,
+        proposal: newProposal
+      });
+    } catch (error) {
+      console.error("Failed to create proposal:", error);
+      res.status(500).json({ error: "Failed to create proposal" });
+    }
+  });
+
+  // Social Sharing APIs
+  app.post("/api/social/share", async (req, res) => {
+    try {
+      const { platform, content, insightType, userAddress } = req.body;
+      
+      // Track social sharing for analytics
+      const shareData = {
+        id: Math.random().toString(36).substr(2, 9),
+        platform,
+        insightType,
+        userAddress,
+        timestamp: Date.now(),
+        content: content.substring(0, 100) + "..." // Store truncated version
+      };
+      
+      res.json({
+        success: true,
+        shareId: shareData.id,
+        message: `Successfully shared to ${platform}`
+      });
+    } catch (error) {
+      console.error("Failed to track social share:", error);
+      res.status(500).json({ error: "Failed to track social share" });
+    }
+  });
+
+  app.get("/api/social/insights/:userAddress", async (req, res) => {
+    try {
+      const { userAddress } = req.params;
+      
+      // Generate trading insights for sharing
+      const insights = [
+        {
+          id: "trade_001",
+          type: "trade",
+          title: "Successful XP/USDT Swap",
+          description: "Executed profitable swap with 2.3% gain",
+          data: {
+            tokenA: "XP",
+            tokenB: "USDT",
+            amount: "1000.0",
+            price: "0.0152",
+            change: "+2.3"
+          },
+          timestamp: Date.now() - (30 * 60 * 1000),
+          performance: {
+            roi: "2.3",
+            timeframe: "30m"
+          }
+        },
+        {
+          id: "pool_001",
+          type: "pool",
+          title: "Liquidity Provision Success",
+          description: "Added liquidity to XP/USDT pool earning 45.2% APR",
+          data: {
+            tokenA: "XP",
+            tokenB: "USDT",
+            amount: "500.0",
+            apy: "45.2",
+            tvl: "5,200,000"
+          },
+          timestamp: Date.now() - (2 * 60 * 60 * 1000)
+        },
+        {
+          id: "farm_001",
+          type: "farm",
+          title: "Yield Farming Achievement",
+          description: "Staking rewards generating 158.3% APR",
+          data: {
+            tokenA: "XP",
+            amount: "2500.0",
+            apy: "158.3"
+          },
+          timestamp: Date.now() - (24 * 60 * 60 * 1000),
+          performance: {
+            roi: "12.5",
+            timeframe: "7d"
+          }
+        }
+      ];
+      
+      res.json(insights);
+    } catch (error) {
+      console.error("Failed to fetch trading insights:", error);
+      res.status(500).json({ error: "Failed to fetch trading insights" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
