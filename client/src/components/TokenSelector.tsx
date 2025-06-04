@@ -49,12 +49,13 @@ export function TokenSelector({
 
   const getTokenIcon = (symbol: string) => {
     const iconMap: { [key: string]: string } = {
-      XP: "🔶",
-      USDT: "💚",
-      ETH: "💎",
-      BNB: "🟡",
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/29210.png",
+      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
     };
-    return iconMap[symbol] || "⚪";
+    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
   };
 
   return (
@@ -90,7 +91,15 @@ export function TokenSelector({
                       className="h-auto p-2"
                       disabled={selectedToken?.id === token.id}
                     >
-                      <span className="mr-2">{getTokenIcon(token.symbol)}</span>
+                      <img 
+                        src={getTokenIcon(token.symbol)} 
+                        alt={token.symbol}
+                        className="w-4 h-4 mr-2 rounded-full"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
                       {token.symbol}
                     </Button>
                   ))}
@@ -116,10 +125,16 @@ export function TokenSelector({
                       disabled={selectedToken?.id === token.id}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
-                          <span className="text-lg">
-                            {getTokenIcon(token.symbol)}
-                          </span>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                          <img 
+                            src={getTokenIcon(token.symbol)} 
+                            alt={token.symbol}
+                            className="w-8 h-8 rounded-full"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
                         </div>
                         <div className="text-left">
                           <div className="font-medium">{token.symbol}</div>

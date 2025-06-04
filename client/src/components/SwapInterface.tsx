@@ -190,13 +190,13 @@ export function SwapInterface() {
   // Token icon URLs from CoinMarketCap
   const getTokenIcon = (symbol: string) => {
     const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/28447.png",
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/29210.png",
       BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
       ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
       USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
       BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
     };
-    return icons[symbol] || "/token-placeholder.svg";
+    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
   };
 
   return (
