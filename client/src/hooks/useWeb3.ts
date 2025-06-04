@@ -67,6 +67,7 @@ export function useWeb3() {
       balance: "0",
       chainId: null,
     });
+    setError(null);
   }, []);
 
   const switchToXphere = useCallback(async () => {

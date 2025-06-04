@@ -49,11 +49,15 @@ export function SwapInterface() {
   // Calculate swap quote
   const swapQuoteMutation = useMutation({
     mutationFn: async ({ fromToken, toToken, amount }: { fromToken: string; toToken: string; amount: string }) => {
-      return apiRequest("/api/swap-quote", {
+      const response = await fetch("/api/swap-quote", {
         method: "POST",
         body: JSON.stringify({ fromToken, toToken, amount }),
         headers: { "Content-Type": "application/json" }
       });
+      if (!response.ok) {
+        throw new Error("Failed to get swap quote");
+      }
+      return response.json();
     },
     onSuccess: (data: SwapQuote) => {
       setQuote(data);
