@@ -57,12 +57,13 @@ export default function PoolPage() {
 
   const getTokenIcon = (symbol: string) => {
     const iconMap: { [key: string]: string } = {
-      XP: "🔶",
-      USDT: "💚",
-      ETH: "💎",
-      BNB: "🟡",
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/29210.png",
+      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
     };
-    return iconMap[symbol] || "⚪";
+    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
   };
 
   const formatCurrency = (amount: string) => {
@@ -165,11 +166,27 @@ export default function PoolPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center -space-x-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full border-2 border-background flex items-center justify-center">
-                          <span className="text-sm">{getTokenIcon(pool.tokenA.symbol)}</span>
+                        <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
+                          <img 
+                            src={getTokenIcon(pool.tokenA.symbol)} 
+                            alt={pool.tokenA.symbol}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full border-2 border-background flex items-center justify-center">
-                          <span className="text-sm">{getTokenIcon(pool.tokenB.symbol)}</span>
+                        <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
+                          <img 
+                            src={getTokenIcon(pool.tokenB.symbol)} 
+                            alt={pool.tokenB.symbol}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
                         </div>
                       </div>
                       <div>

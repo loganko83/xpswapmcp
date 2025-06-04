@@ -44,6 +44,17 @@ export default function AnalyticsPage() {
 
   const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444'];
 
+  const getTokenIcon = (symbol: string) => {
+    const iconMap: { [key: string]: string } = {
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/29210.png",
+      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
+    };
+    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
+  };
+
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000000) {
       return `$${(amount / 1000000000).toFixed(1)}B`;
