@@ -1918,6 +1918,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real-Time Analytics APIs
+  app.get("/api/analytics/realtime", async (req, res) => {
+    try {
+      const { range = '15m' } = req.query;
+      
+      // Generate real-time analytics data
+      const now = Date.now();
+      const data = [];
+      const points = range === '1m' ? 60 : range === '5m' ? 300 : range === '15m' ? 900 : range === '1h' ? 3600 : 14400;
+      const interval = range === '1m' ? 1000 : range === '5m' ? 1000 : range === '15m' ? 1000 : 1000;
+      
+      let basePrice = 0.015187;
+      let baseVolume = 35000;
+      let baseLiquidity = 5200000;
+      
+      for (let i = points; i >= 0; i--) {
+        const timestamp = now - (i * interval);
+        const volatility = 0.02;
+        const priceChange = (Math.random() - 0.5) * volatility;
+        const newPrice = basePrice * (1 + priceChange);
+        const volumeChange = (Math.random() - 0.5) * 0.1;
+        const newVolume = baseVolume * (1 + volumeChange);
+        
+        data.push({
+          timestamp,
+          price: newPrice,
+          volume: Math.max(newVolume, 1000),
+          trades: Math.floor(Math.random() * 15) + 3,
+          liquidity: baseLiquidity + (Math.random() - 0.5) * 200000,
+          volatility: Math.abs(priceChange) * 100,
+          marketCap: newPrice * 1000000000,
+          change: ((newPrice - basePrice) / basePrice) * 100
+        });
+        
+        basePrice = newPrice;
+        baseVolume = newVolume;
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch real-time analytics:", error);
+      res.status(500).json({ error: "Failed to fetch real-time analytics" });
+    }
+  });
+
+  app.get("/api/analytics/live-trades", async (req, res) => {
+    try {
+      const pairs = ['XP/USDT', 'XP/ETH', 'XP/BTC', 'XP/BNB'];
+      const types = ['buy', 'sell'];
+      const trades = [];
+      
+      // Generate 20 recent trades
+      for (let i = 0; i < 20; i++) {
+        const timestamp = Date.now() - (i * Math.random() * 300000); // Last 5 minutes
+        const pair = pairs[Math.floor(Math.random() * pairs.length)];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const amount = Math.random() * 10000 + 100;
+        const price = 0.015187 * (1 + (Math.random() - 0.5) * 0.01);
+        
+        trades.push({
+          id: Math.random().toString(36).substr(2, 9),
+          timestamp,
+          pair,
+          type,
+          amount,
+          price,
+          value: amount * price,
+          user: `0x${Math.random().toString(16).substr(2, 8)}...`
+        });
+      }
+      
+      // Sort by timestamp descending
+      trades.sort((a, b) => b.timestamp - a.timestamp);
+      
+      res.json(trades);
+    } catch (error) {
+      console.error("Failed to fetch live trades:", error);
+      res.status(500).json({ error: "Failed to fetch live trades" });
+    }
+  });
+
+  app.get("/api/analytics/liquidity-flows", async (req, res) => {
+    try {
+      const now = Date.now();
+      const data = [];
+      
+      // Generate 50 data points for the last hour
+      for (let i = 50; i >= 0; i--) {
+        const timestamp = now - (i * 60000); // 1-minute intervals
+        const baseInflow = 50000;
+        const baseOutflow = 45000;
+        
+        const inflow = baseInflow + (Math.random() - 0.5) * 20000;
+        const outflow = baseOutflow + (Math.random() - 0.5) * 15000;
+        
+        data.push({
+          timestamp,
+          inflow: Math.max(inflow, 0),
+          outflow: Math.max(outflow, 0),
+          net: inflow - outflow,
+          pools: ['XP/USDT', 'XP/ETH', 'XP/BTC']
+        });
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch liquidity flows:", error);
+      res.status(500).json({ error: "Failed to fetch liquidity flows" });
+    }
+  });
+
+  app.get("/api/analytics/market-depth", async (req, res) => {
+    try {
+      const currentPrice = 0.015187;
+      const bids = [];
+      const asks = [];
+      
+      // Generate market depth data
+      for (let i = 1; i <= 20; i++) {
+        const bidPrice = currentPrice - (i * 0.000001);
+        const askPrice = currentPrice + (i * 0.000001);
+        const bidSize = Math.random() * 10000 + 1000;
+        const askSize = Math.random() * 10000 + 1000;
+        
+        bids.push({
+          price: bidPrice,
+          size: bidSize,
+          total: bidSize * bidPrice
+        });
+        
+        asks.push({
+          price: askPrice,
+          size: askSize,
+          total: askSize * askPrice
+        });
+      }
+      
+      res.json({
+        bids: bids.reverse(), // Highest bid first
+        asks: asks, // Lowest ask first
+        spread: asks[0].price - bids[0].price,
+        spreadPercent: ((asks[0].price - bids[0].price) / currentPrice) * 100
+      });
+    } catch (error) {
+      console.error("Failed to fetch market depth:", error);
+      res.status(500).json({ error: "Failed to fetch market depth" });
+    }
+  });
+
+  app.get("/api/analytics/network-stats", async (req, res) => {
+    try {
+      const stats = {
+        blockHeight: 2847592,
+        blockTime: 2.1, // seconds
+        activeValidators: 127,
+        networkHashrate: "245.7 TH/s",
+        difficulty: "28.5T",
+        mempool: {
+          size: 2847,
+          bytes: 1254780,
+          fee: "0.00001250"
+        },
+        nodes: {
+          total: 1247,
+          reachable: 1186,
+          unreachable: 61
+        },
+        transactions: {
+          pending: 156,
+          confirmed24h: 45892,
+          volume24h: 2847592.50
+        }
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Failed to fetch network stats:", error);
+      res.status(500).json({ error: "Failed to fetch network stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

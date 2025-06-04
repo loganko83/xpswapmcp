@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { PortfolioManager } from "@/components/PortfolioManager";
+import { RealTimeAnalyticsDashboard } from "@/components/RealTimeAnalyticsDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -255,8 +256,9 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="advanced" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+      <Tabs defaultValue="realtime" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="realtime">Real-Time</TabsTrigger>
           <TabsTrigger value="advanced">Advanced Analytics</TabsTrigger>
           <TabsTrigger value="portfolio">Portfolio Manager</TabsTrigger>
           <TabsTrigger value="price">Price Charts</TabsTrigger>
@@ -264,6 +266,10 @@ export default function AnalyticsPage() {
           <TabsTrigger value="pairs">Trading Pairs</TabsTrigger>
           <TabsTrigger value="liquidity">Liquidity</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="realtime">
+          <RealTimeAnalyticsDashboard />
+        </TabsContent>
 
         <TabsContent value="advanced">
           <AdvancedAnalytics />
