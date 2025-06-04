@@ -11,7 +11,6 @@ import { DEFAULT_TOKENS } from "@/lib/constants";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
-import { useXphereContracts } from "@/hooks/useXphereContracts";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,16 +18,6 @@ export function SwapInterface() {
   const { wallet, isXphereNetwork, switchToXphere, connectWallet } = useWeb3();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Initialize smart contract integration
-  const {
-    isInitialized,
-    useTokenBalance,
-    useSwapQuote,
-    useTokenApproval,
-    useSwapExecution,
-    contractAddresses
-  } = useXphereContracts();
   
   const [fromToken, setFromToken] = useState<Token>({
     id: 1,
@@ -42,10 +31,10 @@ export function SwapInterface() {
   });
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
-  const [isTokenSelectorOpen, setIsTokenSelectorOpen] = useState(false);
-  const [selectorType, setSelectorType] = useState<"from" | "to">("from");
   const [slippage, setSlippage] = useState(0.5);
-  const [quote, setQuote] = useState<SwapQuote | null>(null);
+  const [isFromSelectorOpen, setIsFromSelectorOpen] = useState(false);
+  const [isToSelectorOpen, setIsToSelectorOpen] = useState(false);
+  const [swapQuote, setSwapQuote] = useState<SwapQuote | null>(null);
 
   // Fetch real-time token prices
   const { data: tokenPrices, isLoading: pricesLoading } = useTokenPrices([
@@ -53,21 +42,12 @@ export function SwapInterface() {
     toToken.symbol
   ]);
 
-  // Fetch token balances - use wallet balance for XP, API for others
-  const { data: fromBalance } = useTokenBalance(wallet.address, fromToken.symbol);
-  const { data: toBalance } = useTokenBalance(wallet.address, toToken.symbol);
-  
-  // Use actual MetaMask balance for XP token
+  // Get token balance function using actual MetaMask balance for XP
   const getTokenBalance = (token: Token) => {
     if (token.symbol === "XP") {
       return wallet.balance || "0";
     }
-    if (token.symbol === fromToken.symbol) {
-      return fromBalance?.balance || "0";
-    }
-    if (token.symbol === toToken.symbol) {
-      return toBalance?.balance || "0";
-    }
+    // For other tokens, return 0 until smart contract integration is complete
     return "0";
   };
 
@@ -79,25 +59,67 @@ export function SwapInterface() {
         body: JSON.stringify({ fromToken, toToken, amount }),
         headers: { "Content-Type": "application/json" }
       });
+      
       if (!response.ok) {
         throw new Error("Failed to get swap quote");
       }
+      
       return response.json();
     },
     onSuccess: (data: SwapQuote) => {
-      setQuote(data);
+      setSwapQuote(data);
       setToAmount(data.outputAmount);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error getting swap quote:", error);
       toast({
         title: "Error",
-        description: "Failed to calculate swap quote",
+        description: "Failed to get swap quote. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  // Get swap quote when amount or tokens change
+  // Execute swap
+  const executeSwapMutation = useMutation({
+    mutationFn: async () => {
+      if (!wallet.isConnected || !wallet.address) {
+        throw new Error("Wallet not connected");
+      }
+
+      return apiRequest("/api/execute-swap", {
+        method: "POST",
+        body: {
+          fromToken: fromToken.symbol,
+          toToken: toToken.symbol,
+          fromAmount,
+          toAmount,
+          userAddress: wallet.address,
+          slippage
+        },
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Swap Executed",
+        description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`,
+      });
+      setFromAmount("");
+      setToAmount("");
+      setSwapQuote(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/token-balance"] });
+    },
+    onError: (error) => {
+      console.error("Error executing swap:", error);
+      toast({
+        title: "Swap Failed",
+        description: "Failed to execute swap. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update swap quote when amount changes
   useEffect(() => {
     if (fromAmount && parseFloat(fromAmount) > 0 && fromToken && toToken) {
       const timeoutId = setTimeout(() => {
@@ -106,35 +128,37 @@ export function SwapInterface() {
           toToken: toToken.symbol,
           amount: fromAmount
         });
-      }, 500); // Debounce for 500ms
+      }, 500);
 
       return () => clearTimeout(timeoutId);
     } else {
       setToAmount("");
-      setQuote(null);
+      setSwapQuote(null);
     }
   }, [fromAmount, fromToken.symbol, toToken.symbol]);
 
   const handleTokenSelect = (token: Token) => {
-    if (selectorType === "from") {
+    if (isFromSelectorOpen) {
       if (token.symbol === toToken.symbol) {
         // Swap tokens if selecting the same token
         setToToken(fromToken);
       }
       setFromToken(token);
-    } else {
+      setIsFromSelectorOpen(false);
+    } else if (isToSelectorOpen) {
       if (token.symbol === fromToken.symbol) {
         // Swap tokens if selecting the same token
         setFromToken(toToken);
       }
       setToToken(token);
+      setIsToSelectorOpen(false);
     }
-    setIsTokenSelectorOpen(false);
   };
 
   const handleSwapTokens = () => {
     const tempToken = fromToken;
     const tempAmount = fromAmount;
+    
     setFromToken(toToken);
     setToToken(tempToken);
     setFromAmount(toAmount);
@@ -143,53 +167,20 @@ export function SwapInterface() {
 
   const handleMaxClick = () => {
     const balance = getTokenBalance(fromToken);
-    if (balance && parseFloat(balance) > 0) {
+    if (fromToken.symbol === "XP") {
+      // Leave some XP for gas fees
+      const maxAmount = Math.max(0, parseFloat(balance) - 0.01).toFixed(6);
+      setFromAmount(maxAmount);
+    } else {
       setFromAmount(balance);
     }
   };
 
-  const executeSwap = async () => {
-    if (!wallet.isConnected) {
-      await connectWallet();
-      return;
-    }
-
-    if (!isXphereNetwork) {
-      await switchToXphere();
-      return;
-    }
-
-    if (!quote || !fromAmount) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid amount",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Swap Initiated",
-      description: `Swapping ${fromAmount} ${fromToken.symbol} for ${quote.outputAmount} ${toToken.symbol}`,
-    });
-
-    // In a real implementation, this would interact with smart contracts
-    // For now, we'll simulate the swap
-    setTimeout(() => {
-      toast({
-        title: "Swap Successful",
-        description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${quote.outputAmount} ${toToken.symbol}`,
-      });
-      setFromAmount("");
-      setToAmount("");
-      setQuote(null);
-      // Refetch balances
-      queryClient.invalidateQueries({ queryKey: ["/api/token-balance"] });
-    }, 2000);
-  };
-
+  // Get token prices
   const fromTokenPrice = tokenPrices?.[fromToken.symbol]?.price || 0;
   const toTokenPrice = tokenPrices?.[toToken.symbol]?.price || 0;
+  
+  // Calculate USD values
   const fromAmountUSD = fromAmount ? (parseFloat(fromAmount) * fromTokenPrice).toFixed(2) : "0.00";
   const toAmountUSD = toAmount ? (parseFloat(toAmount) * toTokenPrice).toFixed(2) : "0.00";
 
@@ -243,20 +234,17 @@ export function SwapInterface() {
                   variant="ghost"
                   size="sm"
                   onClick={handleMaxClick}
-                  className="text-blue-500 hover:text-blue-600"
+                  className="text-xs"
                 >
                   MAX
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => {
-                    setSelectorType("from");
-                    setIsTokenSelectorOpen(true);
-                  }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 p-2"
+                  onClick={() => setIsFromSelectorOpen(true)}
                 >
-                  <img
-                    src={getTokenIcon(fromToken.symbol)}
+                  <img 
+                    src={getTokenIcon(fromToken.symbol)} 
                     alt={fromToken.symbol}
                     className="w-6 h-6 rounded-full"
                   />
@@ -266,14 +254,9 @@ export function SwapInterface() {
               </div>
             </div>
             <div className="text-sm text-muted-foreground">
-              ≈ ${fromAmountUSD}
+              ${fromAmountUSD}
             </div>
           </div>
-          {isInsufficientBalance && (
-            <div className="text-sm text-red-500">
-              Insufficient {fromToken.symbol} balance
-            </div>
-          )}
         </div>
 
         {/* Swap Button */}
@@ -281,8 +264,8 @@ export function SwapInterface() {
           <Button
             variant="ghost"
             size="sm"
+            className="rounded-full p-2"
             onClick={handleSwapTokens}
-            className="rounded-full p-2 border"
           >
             <ArrowUpDown className="h-4 w-4" />
           </Button>
@@ -306,14 +289,11 @@ export function SwapInterface() {
               />
               <Button
                 variant="ghost"
-                onClick={() => {
-                  setSelectorType("to");
-                  setIsTokenSelectorOpen(true);
-                }}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 p-2"
+                onClick={() => setIsToSelectorOpen(true)}
               >
-                <img
-                  src={getTokenIcon(toToken.symbol)}
+                <img 
+                  src={getTokenIcon(toToken.symbol)} 
                   alt={toToken.symbol}
                   className="w-6 h-6 rounded-full"
                 />
@@ -322,77 +302,89 @@ export function SwapInterface() {
               </Button>
             </div>
             <div className="text-sm text-muted-foreground">
-              ≈ ${toAmountUSD}
+              ${toAmountUSD}
             </div>
           </div>
         </div>
 
-        {/* Quote Details */}
-        {quote && (
-          <div className="space-y-2 text-sm">
-            <Separator />
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Price Impact</span>
-              <span className={parseFloat(quote.priceImpact) > 5 ? "text-red-500" : ""}>
-                {quote.priceImpact}%
-              </span>
+        {/* Swap Quote Info */}
+        {swapQuote && (
+          <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+            <div className="flex justify-between text-sm">
+              <span>Price Impact</span>
+              <span className="text-green-600">{swapQuote.priceImpact}%</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Minimum Received</span>
-              <span>{quote.minimumReceived} {toToken.symbol}</span>
+            <div className="flex justify-between text-sm">
+              <span>Minimum Received</span>
+              <span>{swapQuote.minimumReceived} {toToken.symbol}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Network Fee</span>
-              <span>{quote.gasEstimate} XP</span>
+            <div className="flex justify-between text-sm">
+              <span>Gas Estimate</span>
+              <span>{swapQuote.gasEstimate} XP</span>
             </div>
           </div>
         )}
 
-        {/* Swap Button */}
-        <Button
-          onClick={executeSwap}
-          disabled={
-            !fromAmount || 
-            !toAmount || 
-            isInsufficientBalance || 
-            swapQuoteMutation.isPending ||
-            pricesLoading
-          }
-          className="w-full"
-          size="lg"
-        >
-          {swapQuoteMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : null}
-          {!wallet.isConnected
-            ? "Connect Wallet"
-            : !isXphereNetwork
-            ? "Switch to Xphere Network"
-            : isInsufficientBalance
-            ? `Insufficient ${fromToken.symbol} Balance`
-            : "Swap"}
-        </Button>
-
-        {/* Price Info */}
-        {tokenPrices && !pricesLoading && (
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div className="flex justify-between">
-              <span>{fromToken.symbol} Price:</span>
-              <span>${fromTokenPrice.toFixed(6)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>{toToken.symbol} Price:</span>
-              <span>${toTokenPrice.toFixed(6)}</span>
-            </div>
-          </div>
-        )}
+        {/* Action Button */}
+        <div className="space-y-2">
+          {!wallet.isConnected ? (
+            <Button 
+              className="w-full" 
+              onClick={connectWallet}
+            >
+              Connect Wallet
+            </Button>
+          ) : !isXphereNetwork ? (
+            <Button 
+              className="w-full" 
+              onClick={switchToXphere}
+              variant="outline"
+            >
+              Switch to Xphere Network
+            </Button>
+          ) : isInsufficientBalance ? (
+            <Button className="w-full" disabled>
+              Insufficient Balance
+            </Button>
+          ) : !fromAmount || parseFloat(fromAmount) === 0 ? (
+            <Button className="w-full" disabled>
+              Enter Amount
+            </Button>
+          ) : swapQuoteMutation.isPending ? (
+            <Button className="w-full" disabled>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Getting Quote...
+            </Button>
+          ) : executeSwapMutation.isPending ? (
+            <Button className="w-full" disabled>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Swapping...
+            </Button>
+          ) : (
+            <Button 
+              className="w-full" 
+              onClick={() => executeSwapMutation.mutate()}
+              disabled={!swapQuote}
+            >
+              Swap {fromToken.symbol} for {toToken.symbol}
+            </Button>
+          )}
+        </div>
       </CardContent>
 
+      {/* Token Selectors */}
       <TokenSelector
-        isOpen={isTokenSelectorOpen}
-        onClose={() => setIsTokenSelectorOpen(false)}
+        isOpen={isFromSelectorOpen}
+        onClose={() => setIsFromSelectorOpen(false)}
         onSelectToken={handleTokenSelect}
-        selectedToken={selectorType === "from" ? fromToken : toToken}
+        selectedToken={fromToken}
+      />
+      
+      <TokenSelector
+        isOpen={isToSelectorOpen}
+        onClose={() => setIsToSelectorOpen(false)}
+        onSelectToken={handleTokenSelect}
+        selectedToken={toToken}
       />
     </Card>
   );
