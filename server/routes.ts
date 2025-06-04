@@ -655,6 +655,283 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced Liquidity Pool Management APIs
+  app.post("/api/add-liquidity", async (req, res) => {
+    try {
+      const { poolId, amountA, amountB, slippage, userAddress } = req.body;
+      
+      // Simulate add liquidity transaction
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        lpTokensReceived: (parseFloat(amountA) * 0.5 + parseFloat(amountB) * 0.5).toFixed(6),
+        poolShare: "0.01",
+        gasUsed: "0.002"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to add liquidity:", error);
+      res.status(500).json({ error: "Failed to add liquidity" });
+    }
+  });
+
+  app.post("/api/remove-liquidity", async (req, res) => {
+    try {
+      const { poolId, percentage, userAddress } = req.body;
+      
+      // Simulate remove liquidity transaction
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        amountA: (Math.random() * 100).toFixed(6),
+        amountB: (Math.random() * 100).toFixed(6),
+        gasUsed: "0.003"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to remove liquidity:", error);
+      res.status(500).json({ error: "Failed to remove liquidity" });
+    }
+  });
+
+  // Yield Farming and Staking APIs
+  app.get("/api/farms", async (req, res) => {
+    try {
+      const farms = [
+        {
+          id: 1,
+          name: "XP-USDT LP Farm",
+          stakingToken: { symbol: "XP-USDT", name: "XP-USDT LP", address: "0x1111" },
+          rewardToken: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          apr: "245.8",
+          tvl: "8,500,000",
+          multiplier: "5.0",
+          lockPeriod: 30,
+          userStaked: "0",
+          userRewards: "0",
+          totalStaked: "2,500,000",
+          rewardPerBlock: "2.5",
+          startBlock: 1000000,
+          endBlock: 2000000,
+          isActive: true,
+          poolWeight: 35
+        },
+        {
+          id: 2,
+          name: "XP Single Stake",
+          stakingToken: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          rewardToken: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          apr: "158.3",
+          tvl: "12,300,000",
+          multiplier: "3.0",
+          lockPeriod: 7,
+          userStaked: "0",
+          userRewards: "0",
+          totalStaked: "5,200,000",
+          rewardPerBlock: "1.8",
+          startBlock: 1000000,
+          endBlock: 2000000,
+          isActive: true,
+          poolWeight: 25
+        },
+        {
+          id: 3,
+          name: "ETH-XP LP Farm",
+          stakingToken: { symbol: "ETH-XP", name: "ETH-XP LP", address: "0x2222" },
+          rewardToken: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          apr: "189.7",
+          tvl: "6,800,000",
+          multiplier: "4.0",
+          lockPeriod: 60,
+          userStaked: "0",
+          userRewards: "0",
+          totalStaked: "1,800,000",
+          rewardPerBlock: "3.2",
+          startBlock: 1000000,
+          endBlock: 2000000,
+          isActive: true,
+          poolWeight: 20
+        },
+        {
+          id: 4,
+          name: "BTC-USDT LP Farm",
+          stakingToken: { symbol: "BTC-USDT", name: "BTC-USDT LP", address: "0x3333" },
+          rewardToken: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          apr: "124.5",
+          tvl: "4,200,000",
+          multiplier: "2.5",
+          lockPeriod: 90,
+          userStaked: "0",
+          userRewards: "0",
+          totalStaked: "1,200,000",
+          rewardPerBlock: "1.5",
+          startBlock: 1000000,
+          endBlock: 2000000,
+          isActive: true,
+          poolWeight: 15
+        },
+        {
+          id: 5,
+          name: "BNB-XP LP Farm",
+          stakingToken: { symbol: "BNB-XP", name: "BNB-XP LP", address: "0x4444" },
+          rewardToken: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          apr: "167.2",
+          tvl: "3,600,000",
+          multiplier: "3.5",
+          lockPeriod: 45,
+          userStaked: "0",
+          userRewards: "0",
+          totalStaked: "980,000",
+          rewardPerBlock: "2.1",
+          startBlock: 1000000,
+          endBlock: 2000000,
+          isActive: true,
+          poolWeight: 18
+        }
+      ];
+      
+      res.json(farms);
+    } catch (error) {
+      console.error("Failed to fetch farms:", error);
+      res.status(500).json({ error: "Failed to fetch farms" });
+    }
+  });
+
+  app.post("/api/stake-tokens", async (req, res) => {
+    try {
+      const { farmId, amount, lockPeriod, userAddress } = req.body;
+      
+      // Simulate staking transaction
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        stakedAmount: amount,
+        lockPeriod,
+        estimatedRewards: (parseFloat(amount) * 0.15).toFixed(6), // 15% estimated yearly
+        gasUsed: "0.0015"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to stake tokens:", error);
+      res.status(500).json({ error: "Failed to stake tokens" });
+    }
+  });
+
+  app.post("/api/unstake-tokens", async (req, res) => {
+    try {
+      const { farmId, amount, userAddress } = req.body;
+      
+      // Simulate unstaking transaction
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        unstakedAmount: amount,
+        penalties: "0", // No penalties for this example
+        gasUsed: "0.002"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to unstake tokens:", error);
+      res.status(500).json({ error: "Failed to unstake tokens" });
+    }
+  });
+
+  app.post("/api/claim-rewards", async (req, res) => {
+    try {
+      const { farmId, userAddress } = req.body;
+      
+      // Simulate claim rewards transaction
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        rewardsClaimed: (Math.random() * 50 + 10).toFixed(6),
+        gasUsed: "0.0012"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to claim rewards:", error);
+      res.status(500).json({ error: "Failed to claim rewards" });
+    }
+  });
+
+  // Enhanced Liquidity Pool Data
+  app.get("/api/pools", async (req, res) => {
+    try {
+      const pools = [
+        {
+          id: 1,
+          tokenA: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          tokenB: { symbol: "USDT", name: "Tether USD", address: "0x1111" },
+          tvl: "5,200,000",
+          apr: "45.2",
+          volume24h: "2,100,000",
+          fees24h: "6,300",
+          userLiquidity: "0",
+          userRewards: "0",
+          reserveA: "342,500,000",
+          reserveB: "5,200,000",
+          lpTokens: "0",
+          feeRate: "0.3"
+        },
+        {
+          id: 2,
+          tokenA: { symbol: "ETH", name: "Ethereum", address: "0x2222" },
+          tokenB: { symbol: "XP", name: "Xphere", address: "0x0000" },
+          tvl: "3,100,000",
+          apr: "32.8",
+          volume24h: "890,000",
+          fees24h: "2,670",
+          userLiquidity: "0",
+          userRewards: "0",
+          reserveA: "1,250",
+          reserveB: "204,166,667",
+          lpTokens: "0",
+          feeRate: "0.3"
+        },
+        {
+          id: 3,
+          tokenA: { symbol: "BTC", name: "Bitcoin", address: "0x3333" },
+          tokenB: { symbol: "USDT", name: "Tether USD", address: "0x1111" },
+          tvl: "4,500,000",
+          apr: "28.7",
+          volume24h: "1,200,000",
+          fees24h: "3,600",
+          userLiquidity: "0",
+          userRewards: "0",
+          reserveA: "45",
+          reserveB: "4,500,000",
+          lpTokens: "0",
+          feeRate: "0.3"
+        },
+        {
+          id: 4,
+          tokenA: { symbol: "BNB", name: "Binance Coin", address: "0x4444" },
+          tokenB: { symbol: "USDT", name: "Tether USD", address: "0x1111" },
+          tvl: "1,800,000",
+          apr: "28.5",
+          volume24h: "654,000",
+          fees24h: "1,962",
+          userLiquidity: "0",
+          userRewards: "0",
+          reserveA: "2,769",
+          reserveB: "1,800,000",
+          lpTokens: "0",
+          feeRate: "0.3"
+        }
+      ];
+      
+      res.json(pools);
+    } catch (error) {
+      console.error("Failed to fetch pools:", error);
+      res.status(500).json({ error: "Failed to fetch pools" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

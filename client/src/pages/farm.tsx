@@ -5,68 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Sprout, TrendingUp, Search, Lock, Unlock } from "lucide-react";
+import { Sprout, TrendingUp, Search, Lock, Unlock, Zap } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
+import { useQuery } from "@tanstack/react-query";
+import { YieldFarmingManager } from "@/components/YieldFarmingManager";
 
 export default function FarmPage() {
   const { wallet } = useWeb3();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Mock farm data
-  const farms = [
-    {
-      id: 1,
-      tokenA: { symbol: "XP", name: "Xphere" },
-      tokenB: { symbol: "USDT", name: "Tether USD" },
-      apr: "125.5",
-      tvl: "2,400,000",
-      multiplier: "10x",
-      status: "active",
-      rewardToken: "XP",
-      userStaked: "0",
-      pendingRewards: "0",
-      lockPeriod: "0 days"
-    },
-    {
-      id: 2,
-      tokenA: { symbol: "ETH", name: "Ethereum" },
-      tokenB: { symbol: "XP", name: "Xphere" },
-      apr: "89.2",
-      tvl: "1,800,000",
-      multiplier: "8x",
-      status: "active",
-      rewardToken: "XP",
-      userStaked: "0",
-      pendingRewards: "0",
-      lockPeriod: "0 days"
-    },
-    {
-      id: 3,
-      tokenA: { symbol: "BNB", name: "Binance Coin" },
-      tokenB: { symbol: "USDT", name: "Tether USD" },
-      apr: "67.8",
-      tvl: "1,200,000",
-      multiplier: "5x",
-      status: "active",
-      rewardToken: "XP",
-      userStaked: "0",
-      pendingRewards: "0",
-      lockPeriod: "7 days"
-    },
-    {
-      id: 4,
-      tokenA: { symbol: "XP", name: "Xphere" },
-      tokenB: { symbol: "XP", name: "Xphere" },
-      apr: "45.3",
-      tvl: "3,600,000",
-      multiplier: "3x",
-      status: "ended",
-      rewardToken: "XP",
-      userStaked: "0",
-      pendingRewards: "0",
-      lockPeriod: "30 days"
+  // Fetch real farm data from API
+  const { data: farms = [], isLoading: farmsLoading } = useQuery({
+    queryKey: ["/api/farms"],
+    queryFn: async () => {
+      const response = await fetch("/api/farms");
+      if (!response.ok) throw new Error("Failed to fetch farms");
+      return response.json();
     }
-  ];
+  });
 
   const filteredFarms = farms.filter(farm =>
     farm.tokenA.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||

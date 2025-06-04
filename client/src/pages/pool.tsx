@@ -6,47 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Minus, TrendingUp, Search } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
+import { useQuery } from "@tanstack/react-query";
+import { AdvancedLiquidityPoolManager } from "@/components/LiquidityPoolManager";
 
 export default function PoolPage() {
   const { wallet } = useWeb3();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Mock pool data
-  const pools = [
-    {
-      id: 1,
-      tokenA: { symbol: "XP", name: "Xphere" },
-      tokenB: { symbol: "USDT", name: "Tether USD" },
-      tvl: "5,200,000",
-      apr: "45.2",
-      volume24h: "2,100,000",
-      fees24h: "6,300",
-      userLiquidity: "0",
-      userRewards: "0"
-    },
-    {
-      id: 2,
-      tokenA: { symbol: "ETH", name: "Ethereum" },
-      tokenB: { symbol: "XP", name: "Xphere" },
-      tvl: "3,100,000",
-      apr: "32.8",
-      volume24h: "890,000",
-      fees24h: "2,670",
-      userLiquidity: "0",
-      userRewards: "0"
-    },
-    {
-      id: 3,
-      tokenA: { symbol: "BNB", name: "Binance Coin" },
-      tokenB: { symbol: "USDT", name: "Tether USD" },
-      tvl: "1,800,000",
-      apr: "28.5",
-      volume24h: "654,000",
-      fees24h: "1,962",
-      userLiquidity: "0",
-      userRewards: "0"
+  // Fetch real pool data from API
+  const { data: pools = [], isLoading: poolsLoading } = useQuery({
+    queryKey: ["/api/pools"],
+    queryFn: async () => {
+      const response = await fetch("/api/pools");
+      if (!response.ok) throw new Error("Failed to fetch pools");
+      return response.json();
     }
-  ];
+  });
 
   const filteredPools = pools.filter(pool =>
     pool.tokenA.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -158,78 +133,12 @@ export default function PoolPage() {
             />
           </div>
 
-          {/* Pool List */}
-          <div className="space-y-4">
-            {filteredPools.map((pool) => (
-              <Card key={pool.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center -space-x-2">
-                        <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
-                          <img 
-                            src={getTokenIcon(pool.tokenA.symbol)} 
-                            alt={pool.tokenA.symbol}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                        <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
-                          <img 
-                            src={getTokenIcon(pool.tokenB.symbol)} 
-                            alt={pool.tokenB.symbol}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold">
-                          {pool.tokenA.symbol}/{pool.tokenB.symbol}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {pool.tokenA.name} - {pool.tokenB.name}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-8 text-right">
-                      <div>
-                        <p className="text-sm text-muted-foreground">TVL</p>
-                        <p className="font-semibold">{formatCurrency(pool.tvl)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">APR</p>
-                        <Badge variant="secondary" className="text-green-600">
-                          {pool.apr}%
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">24h Volume</p>
-                        <p className="font-semibold">{formatCurrency(pool.volume24h)}</p>
-                      </div>
-                      <div className="space-x-2">
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Minus className="w-4 h-4 mr-1" />
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {/* Advanced Pool Management */}
+          {poolsLoading ? (
+            <div className="text-center py-8">Loading pools...</div>
+          ) : (
+            <AdvancedLiquidityPoolManager pools={filteredPools} />
+          )}
         </TabsContent>
 
         <TabsContent value="my-liquidity" className="space-y-6">
