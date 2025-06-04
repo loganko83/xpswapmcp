@@ -49,7 +49,7 @@ export function Layout({ children }: LayoutProps) {
               <Link href="/">
                 <div className="flex items-center space-x-3 cursor-pointer">
                   <img 
-                    src="/attached_assets/099de283d41a405f8fa1652d4c6c8ccc.png" 
+                    src="https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png" 
                     alt="Xphere" 
                     className="w-8 h-8 rounded-lg"
                   />

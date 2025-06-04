@@ -52,7 +52,7 @@ export function MarketOverview() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-4 rounded-lg mb-4">
           <div className="flex items-center gap-3 mb-2">
             <img 
-              src="/attached_assets/099de283d41a405f8fa1652d4c6c8ccc.png" 
+              src="https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png" 
               alt="Xphere" 
               className="w-8 h-8 rounded-full"
             />

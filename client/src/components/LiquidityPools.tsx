@@ -75,7 +75,7 @@ const mockPools: LiquidityPool[] = [
 export function LiquidityPools() {
   const getTokenIcon = (symbol: string) => {
     const iconMap: { [key: string]: string } = {
-      XP: "/attached_assets/099de283d41a405f8fa1652d4c6c8ccc.png",
+      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
       USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
       ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
       BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
