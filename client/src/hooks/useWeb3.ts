@@ -15,6 +15,11 @@ export function useWeb3() {
 
   const updateWalletInfo = useCallback(async (address: string) => {
     try {
+      // Initialize provider first if not already done
+      if (!web3Service.provider && window.ethereum) {
+        await web3Service.initializeProvider();
+      }
+      
       const balance = await web3Service.getBalance(address);
       const chainId = await web3Service.getChainId();
       
@@ -24,6 +29,8 @@ export function useWeb3() {
         balance,
         chainId,
       });
+      
+      console.log("Wallet info updated successfully:", { address, balance, chainId });
     } catch (err) {
       console.error("Failed to update wallet info:", err);
       setError("Failed to update wallet information");

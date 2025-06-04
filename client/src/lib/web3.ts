@@ -8,11 +8,28 @@ declare global {
 }
 
 export class Web3Service {
-  private provider: ethers.BrowserProvider | null = null;
+  private _provider: ethers.BrowserProvider | null = null;
   private signer: ethers.JsonRpcSigner | null = null;
+
+  get provider() {
+    return this._provider;
+  }
 
   async isMetaMaskInstalled(): Promise<boolean> {
     return typeof window.ethereum !== "undefined";
+  }
+
+  async initializeProvider(): Promise<void> {
+    if (!window.ethereum) {
+      throw new Error("MetaMask is not installed");
+    }
+    
+    this._provider = new ethers.BrowserProvider(window.ethereum);
+    try {
+      this.signer = await this._provider.getSigner();
+    } catch (error) {
+      console.warn("Could not get signer, user may not be connected:", error);
+    }
   }
 
   async connectWallet(): Promise<string> {
@@ -29,8 +46,8 @@ export class Web3Service {
         throw new Error("No accounts found");
       }
 
-      this.provider = new ethers.BrowserProvider(window.ethereum);
-      this.signer = await this.provider.getSigner();
+      this._provider = new ethers.BrowserProvider(window.ethereum);
+      this.signer = await this._provider.getSigner();
 
       return accounts[0];
     } catch (error) {
@@ -81,38 +98,38 @@ export class Web3Service {
   }
 
   async getBalance(address: string): Promise<string> {
-    if (!this.provider) {
+    if (!this._provider) {
       throw new Error("Provider not initialized");
     }
 
-    const balance = await this.provider.getBalance(address);
+    const balance = await this._provider.getBalance(address);
     return ethers.formatEther(balance);
   }
 
   async getChainId(): Promise<number> {
-    if (!this.provider) {
+    if (!this._provider) {
       throw new Error("Provider not initialized");
     }
 
-    const network = await this.provider.getNetwork();
+    const network = await this._provider.getNetwork();
     return Number(network.chainId);
   }
 
   async getGasPrice(): Promise<string> {
-    if (!this.provider) {
+    if (!this._provider) {
       throw new Error("Provider not initialized");
     }
 
-    const feeData = await this.provider.getFeeData();
+    const feeData = await this._provider.getFeeData();
     return ethers.formatUnits(feeData.gasPrice || BigInt(0), "gwei");
   }
 
   async estimateGas(transaction: any): Promise<string> {
-    if (!this.provider) {
+    if (!this._provider) {
       throw new Error("Provider not initialized");
     }
 
-    const estimate = await this.provider.estimateGas(transaction);
+    const estimate = await this._provider.estimateGas(transaction);
     return estimate.toString();
   }
 
