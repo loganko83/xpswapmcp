@@ -44,12 +44,26 @@ export function SwapInterface() {
 
   // Get token balance function using actual MetaMask balance for XP
   const getTokenBalance = (token: Token) => {
+    // Only show balance if wallet is connected
+    if (!wallet.isConnected || !wallet.address) {
+      return "0";
+    }
+    
     if (token.symbol === "XP") {
       return wallet.balance || "0";
     }
     // For other tokens, return 0 until smart contract integration is complete
     return "0";
   };
+
+  // Clear inputs when wallet disconnects
+  useEffect(() => {
+    if (!wallet.isConnected) {
+      setFromAmount("");
+      setToAmount("");
+      setSwapQuote(null);
+    }
+  }, [wallet.isConnected]);
 
   // Calculate swap quote
   const swapQuoteMutation = useMutation({
