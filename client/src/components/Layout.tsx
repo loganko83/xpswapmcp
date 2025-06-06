@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Menu, Wallet, Activity } from "lucide-react";
+import { Moon, Sun, Menu, Wallet, Activity, X } from "lucide-react";
 import { WalletConnect } from "@/components/WalletConnect";
 import { useTheme } from "@/components/ThemeProvider";
 import { useWeb3 } from "@/hooks/useWeb3";
@@ -14,6 +14,7 @@ export function Layout({ children }: LayoutProps) {
   const { theme, setTheme } = useTheme();
   const { wallet, connectWallet, disconnectWallet } = useWeb3();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
 
   const toggleTheme = () => {
@@ -37,6 +38,11 @@ export function Layout({ children }: LayoutProps) {
     if (path !== "/" && location.startsWith(path)) return true;
     return false;
   };
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,12 +138,100 @@ export function Layout({ children }: LayoutProps) {
               </Button>
 
               {/* Mobile Menu */}
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-background border-t">
+            <div className="px-4 py-4 space-y-4">
+              {/* Network Indicator - Mobile */}
+              <div className="flex items-center space-x-2 px-3 py-2 bg-muted rounded-lg mb-4">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-sm font-medium">Xphere Network</span>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="space-y-2">
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Swap
+                  </div>
+                </Link>
+                <Link href="/pool" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/pool") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Pool
+                  </div>
+                </Link>
+                <Link href="/farm" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/farm") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Farm
+                  </div>
+                </Link>
+                <Link href="/bridge" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/bridge") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Bridge
+                  </div>
+                </Link>
+                <Link href="/governance" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/governance") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Governance
+                  </div>
+                </Link>
+                <Link href="/analytics" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/analytics") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Analytics
+                  </div>
+                </Link>
+              </nav>
+
+              {/* Mobile Actions */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Theme</span>
+                  <Button variant="outline" size="sm" onClick={toggleTheme}>
+                    <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="ml-2">{theme === "dark" ? "Light" : "Dark"}</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
