@@ -303,34 +303,15 @@ export function Layout({ children }: LayoutProps) {
                   </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://github.com/xphere-org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    SDK
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://api.xphere.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                  <button
+                    onClick={() => {
+                      // Documentation 페이지로 이동하고 API Reference 섹션을 활성화
+                      window.location.href = '/documentation#api-reference';
+                    }}
+                    className="text-muted-foreground hover:text-primary transition-colors text-left"
                   >
                     API
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/xphere-org/xpswap"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Github
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>

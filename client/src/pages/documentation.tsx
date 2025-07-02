@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,6 +151,14 @@ const smartContracts = [
 export default function Documentation() {
   const [activeSection, setActiveSection] = useState("overview");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  // URL 해시를 통한 섹션 이동 처리
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && navigationItems.some(item => item.id === hash)) {
+      setActiveSection(hash);
+    }
+  }, []);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -1089,8 +1097,8 @@ contract MyContract {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+      <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex gap-8">
             {/* Sidebar Navigation */}
@@ -1134,7 +1142,7 @@ contract MyContract {
             </div>
           </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </div>
   );
 }
