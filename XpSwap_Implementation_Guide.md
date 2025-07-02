@@ -2,15 +2,17 @@
 
 ## 프로젝트 개요
 
-XpSwap은 Xphere 블록체인 기반의 완전한 탈중앙화 거래소(DEX)입니다. 실시간 가격 데이터, 고급 DeFi 기능, 모던한 UI/UX를 제공하며 실제 프로덕션 환경에서 사용할 수 있도록 구현되었습니다.
+XpSwap은 Xphere 블록체인 기반의 **엔터프라이즈급 탈중앙화 거래소(DEX)**입니다. 실제 AMM 알고리즘, MEV 보호, 고급 수익률 파밍, 크로스체인 브릿지 등 프로덕션 수준의 DeFi 기능을 완전히 구현했습니다.
 
-### 기술 스택
-- **Frontend**: React 18 + TypeScript + Vite
-- **Backend**: Node.js + Express + PostgreSQL
-- **Blockchain**: Xphere Network (Chain ID: 20250217)
-- **Smart Contracts**: Solidity + Hardhat
-- **UI Framework**: Tailwind CSS + shadcn/ui
-- **Web3 Integration**: ethers.js + MetaMask
+### 고급 기술 스택
+- **Frontend**: React 18 + TypeScript + Vite + Advanced Web3 Integration
+- **Backend**: Node.js + Express + PostgreSQL + Real AMM Algorithms
+- **Blockchain**: Xphere Network (Chain ID: 20250217) + Multi-network Bridge
+- **Smart Contracts**: Advanced Solidity Suite (5개 핵심 컨트랙트)
+- **UI Framework**: Tailwind CSS + shadcn/ui + Glassmorphism Design
+- **Web3 Integration**: ethers.js + MetaMask + Advanced Contract Service
+- **DeFi Engine**: Constant Product AMM (x * y = k) + MEV Protection
+- **API Integration**: CoinMarketCap Real-time Data (XP Token ID: 36056)
 
 ---
 

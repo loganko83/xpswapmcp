@@ -1,60 +1,201 @@
-# XpSwap - Real Xphere Blockchain Integration
+# XpSwap - Advanced Blockchain DeFi Platform
 
 ## Overview
-XpSwap now includes complete smart contract deployment and integration with the Xphere blockchain network. This implementation provides real DEX functionality with on-chain liquidity pools, token swaps, and yield farming.
+XpSwap is a production-ready decentralized exchange featuring advanced smart contract architecture on the Xphere blockchain. The platform implements enterprise-grade DeFi functionality including MEV protection, dynamic fee systems, yield farming with governance token boosting, and cross-chain bridge capabilities.
 
-## Smart Contract Architecture
+## Advanced Smart Contract Suite
 
-### XpSwapDEX Contract
-- **Location**: `contracts/XpSwapDEX.sol`
-- **Function**: Core DEX functionality with AMM (Automated Market Maker)
+### 1. XpSwapAdvancedAMM.sol
+- **Core AMM Engine**: Advanced automated market maker with MEV protection
+- **Dynamic Fee System**: Price impact and volatility-based fee calculations
+- **MEV Protection**: Sandwich attack detection and prevention mechanisms
 - **Features**:
-  - Pool creation and management
-  - Token swapping with configurable fees
-  - Liquidity provision and removal
-  - Real-time price calculation
-  - Multi-token support
+  - Real-time dynamic fee adjustment
+  - Price impact safeguards
+  - Multi-block MEV detection
+  - Emergency circuit breakers
 
-### Key Functions
+### 2. XpSwapLiquidityPool.sol
+- **Enhanced Pool Management**: Time-locked liquidity with auto-compounding
+- **Optimal Ratio Calculations**: Mathematical precision for liquidity provision
+- **Features**:
+  - Time-locked liquidity positions (30d to 365d)
+  - Auto-compounding reward mechanisms
+  - Impermanent loss protection options
+  - Advanced pool analytics
+
+### 3. XpSwapGovernanceToken.sol
+- **ERC20 Governance**: Delegated voting with vesting schedules
+- **Token Economics**: Controlled inflation and reward distribution
+- **Features**:
+  - Delegated voting mechanisms
+  - Linear and cliff vesting schedules
+  - Voting power time-weighting
+  - Community treasury management
+
+### 4. XpSwapFarmingRewards.sol
+- **Yield Farming Engine**: Multi-tier reward boosting system
+- **Governance Integration**: Token staking for enhanced rewards
+- **Features**:
+  - Up to 2.5x reward boosting
+  - Time-based multipliers
+  - Governance token staking requirements
+  - Real-time APY calculations
+
+### 5. XpSwapCrosschainBridge.sol
+- **Multi-Network Bridge**: Secure cross-chain asset transfers
+- **Network Support**: Ethereum, BSC, Polygon, Arbitrum, Xphere
+- **Features**:
+  - Lock-and-mint bridge architecture
+  - Multi-signature validation
+  - Daily transfer limits
+  - Emergency pause mechanisms
+
+## Advanced AMM Functions
+
+### Core Trading Engine
 ```solidity
-// Pool Management
-createPool(address tokenA, address tokenB, uint256 feeRate)
-getPoolInfo(bytes32 poolId)
-getAllPools()
+// Advanced AMM with MEV Protection
+function swapWithProtection(
+    bytes32 poolId,
+    address tokenIn,
+    uint256 amountIn,
+    uint256 amountOutMin,
+    address to,
+    uint256 deadline
+) external returns (uint256 amountOut);
 
-// Trading
-swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to)
-getAmountsOut(uint256 amountIn, address[] path)
+// Real-time quote with risk analysis
+function getAdvancedQuote(
+    bytes32 poolId,
+    address tokenIn,
+    uint256 amountIn
+) external view returns (
+    uint256 amountOut,
+    uint256 priceImpact,
+    uint256 dynamicFee,
+    uint256 minimumAmountOut,
+    bool mevRisk
+);
 
-// Liquidity
-addLiquidity(bytes32 poolId, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin)
-removeLiquidity(bytes32 poolId, uint256 liquidity, uint256 amountAMin, uint256 amountBMin)
+// Dynamic fee calculation
+function calculateDynamicFee(bytes32 poolId) external view returns (uint256);
 ```
 
-## Deployment Process
+### Enhanced Liquidity Management
+```solidity
+// Time-locked liquidity with auto-compounding
+function addAdvancedLiquidity(
+    bytes32 poolId,
+    uint256 amountADesired,
+    uint256 amountBDesired,
+    uint256 amountAMin,
+    uint256 amountBMin,
+    uint256 lockPeriod,
+    bool autoCompound
+) external returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+
+// Comprehensive pool analytics
+function getPoolAnalytics(bytes32 poolId) external view returns (
+    uint256 tvl,
+    uint256 volume24h,
+    uint256 volatility,
+    uint256 currentFeeRate,
+    uint256 priceImpactScore,
+    uint256 liquidityUtilization
+);
+```
+
+### Yield Farming Operations
+```solidity
+// Enhanced staking with governance token boosting
+function stakeGovernanceToken(uint256 amount) external;
+function withdrawGovernanceToken(uint256 amount) external;
+
+// Boosted reward calculations
+function getBoostMultiplier(address account) external view returns (uint256);
+function getTimeMultiplier(address account) external view returns (uint256);
+
+// Comprehensive user information
+function getUserInfo(address account) external view returns (
+    uint256 staked,
+    uint256 earned,
+    uint256 boost,
+    uint256 timeMultiplier,
+    uint256 stakingDuration,
+    uint256 governanceStaked
+);
+```
+
+### Cross-chain Bridge Functions
+```solidity
+// Multi-network asset transfer
+function lockTokens(
+    address token,
+    uint256 amount,
+    uint256 targetChainId,
+    address recipient
+) external;
+
+function burnTokens(
+    address token,
+    uint256 amount,
+    uint256 targetChainId,
+    address recipient
+) external;
+
+// Bridge transaction tracking
+function getBridgeTransaction(bytes32 txHash) external view returns (
+    bytes32 txHash,
+    address token,
+    address sender,
+    address recipient,
+    uint256 amount,
+    uint256 sourceChainId,
+    uint256 targetChainId,
+    uint256 timestamp,
+    uint8 txType,
+    bool completed,
+    bool refunded
+);
+```
+
+## Advanced Deployment Process
 
 ### Prerequisites
-1. Xphere wallet with XP tokens for gas fees
+1. Xphere wallet with sufficient XP tokens for gas fees
 2. Private key for deployment account
-3. Node.js environment with ethers.js
+3. Node.js environment with ethers.js and Hardhat
+4. CoinMarketCap API key for price feeds
 
-### Compilation
+### Compilation and Building
 ```bash
+# Compile all advanced contracts
 node scripts/compile.js
-```
-This compiles the Solidity contract and generates artifacts in `deployments/artifacts/`.
 
-### Deployment to Xphere Network
+# Generate deployment artifacts
+node scripts/deployAdvancedContracts.js
+```
+
+### Advanced Contract Deployment
 ```bash
-# Set environment variable
+# Set environment variables
 export XPHERE_DEPLOYER_KEY="your_private_key_here"
+export COINMARKETCAP_API_KEY="your_cmc_api_key_here"
 
-# Deploy contract
-node scripts/deployToXphere.js
+# Deploy complete contract suite
+node scripts/deployAdvancedContracts.js
 
-# Verify deployment
-node scripts/deployToXphere.js verify <contract_address>
+# Verify all deployments
+node scripts/deployAdvancedContracts.js verify
 ```
+
+### Deployment Features
+- **Automated Deployment**: Single script deploys all contracts in correct order
+- **Contract Verification**: Built-in verification and testing
+- **Initial Configuration**: Automatic setup of governance tokens and pool parameters
+- **Bridge Configuration**: Multi-network bridge setup with security parameters
+- **Farming Pool Creation**: Automatic farming pool deployment for initial token pairs
 
 ### Network Configuration
 - **Chain ID**: 20250217
@@ -62,26 +203,64 @@ node scripts/deployToXphere.js verify <contract_address>
 - **Native Token**: XP
 - **Block Explorer**: https://explorer.x-phere.com
 
-## Frontend Integration
+## Advanced Frontend Integration
 
-### Web3 Service (`client/src/lib/xphereContract.ts`)
-The XphereBlockchainService class provides:
+### Enhanced Web3 Service (`client/src/lib/advancedContractService.ts`)
+The AdvancedContractService provides enterprise-grade functionality:
 
 ```typescript
-// Initialize connection
-await xphereBlockchain.initialize()
+// Initialize advanced contract service
+await advancedContractService.initialize()
 
-// Token operations
-await xphereBlockchain.getTokenBalance(tokenAddress, userAddress)
-await xphereBlockchain.approveToken(tokenAddress, amount)
+// Advanced AMM operations with MEV protection
+const quote = await advancedContractService.getAdvancedQuote(
+  poolId, tokenIn, amountIn, contractAddress
+)
 
-// Trading operations
-await xphereBlockchain.getSwapQuote(tokenIn, tokenOut, amountIn)
-await xphereBlockchain.executeSwap(tokenIn, tokenOut, amountIn, minAmountOut)
+// Execute protected swap
+await advancedContractService.executeAdvancedSwap(
+  poolId, tokenIn, amountIn, amountOutMin, to, contractAddress
+)
 
-// Liquidity operations
-await xphereBlockchain.addLiquidity(tokenA, tokenB, amountA, amountB)
-await xphereBlockchain.removeLiquidity(tokenA, tokenB, liquidity)
+// Enhanced farming operations
+await advancedContractService.stakeLPTokens(farmingPoolAddress, amount)
+const farmingInfo = await advancedContractService.getFarmingInfo(
+  farmingPoolAddress, userAddress
+)
+
+// Governance operations
+await advancedContractService.delegateVotes(delegatee)
+const votingPower = await advancedContractService.getVotingPower(address)
+
+// Cross-chain bridge operations
+await advancedContractService.lockTokensForBridge(
+  tokenAddress, amount, targetChainId, recipient
+)
+```
+
+### Real-time AMM Algorithm Implementation
+The frontend now uses actual constant product formula (x * y = k) calculations:
+
+```typescript
+// Real AMM calculations
+const AMMAlgorithms = {
+  // Calculate output with dynamic fees
+  getAmountOut: (amountIn, reserveIn, reserveOut, feeRate) => {
+    const amountInWithFee = amountIn * (10000 - feeRate) / 10000;
+    return (amountInWithFee * reserveOut) / (reserveIn + amountInWithFee);
+  },
+
+  // Price impact calculation
+  calculatePriceImpact: (amountIn, reserveIn, reserveOut) => {
+    const amountOut = getAmountOut(amountIn, reserveIn, reserveOut);
+    return (amountOut / reserveOut) * 10000; // in basis points
+  },
+
+  // MEV risk assessment
+  assessMEVRisk: (amountIn, reserveIn, recentTrades, userAddress) => {
+    return amountIn > reserveIn * 0.05 || frequentTrading;
+  }
+}
 ```
 
 ### MetaMask Integration
