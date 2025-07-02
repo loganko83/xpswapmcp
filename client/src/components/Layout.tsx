@@ -303,15 +303,21 @@ export function Layout({ children }: LayoutProps) {
                   </Link>
                 </li>
                 <li>
-                  <button
-                    onClick={() => {
-                      // Documentation 페이지로 이동하고 API Reference 섹션을 활성화
-                      window.location.href = '/documentation#api-reference';
-                    }}
-                    className="text-muted-foreground hover:text-primary transition-colors text-left"
-                  >
-                    API
-                  </button>
+                  <Link href="/documentation">
+                    <a 
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => {
+                        setTimeout(() => {
+                          if (window.location.pathname === '/documentation') {
+                            const event = new CustomEvent('navigate-to-api');
+                            window.dispatchEvent(event);
+                          }
+                        }, 100);
+                      }}
+                    >
+                      API
+                    </a>
+                  </Link>
                 </li>
               </ul>
             </div>

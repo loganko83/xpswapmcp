@@ -158,6 +158,17 @@ export default function Documentation() {
     if (hash && navigationItems.some(item => item.id === hash)) {
       setActiveSection(hash);
     }
+    
+    // Footer API 링크에서 오는 이벤트 리스너
+    const handleNavigateToApi = () => {
+      setActiveSection('api-reference');
+    };
+    
+    window.addEventListener('navigate-to-api', handleNavigateToApi);
+    
+    return () => {
+      window.removeEventListener('navigate-to-api', handleNavigateToApi);
+    };
   }, []);
 
   const copyToClipboard = (text: string, id: string) => {
@@ -1097,8 +1108,8 @@ contract MyContract {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-      <Layout>
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
         <div className="container mx-auto px-4 py-8">
           <div className="flex gap-8">
             {/* Sidebar Navigation */}
@@ -1142,7 +1153,7 @@ contract MyContract {
             </div>
           </div>
         </div>
-      </Layout>
-    </div>
+      </div>
+    </Layout>
   );
 }
