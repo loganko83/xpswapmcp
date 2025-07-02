@@ -296,14 +296,11 @@ export function Layout({ children }: LayoutProps) {
               <h4 className="font-semibold mb-4">Developers</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a
-                    href="https://docs.xphere.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Documentation
-                  </a>
+                  <Link href="/documentation">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Documentation
+                    </a>
+                  </Link>
                 </li>
                 <li>
                   <a

@@ -11,6 +11,7 @@ import FarmPage from "@/pages/farm";
 import BridgePage from "@/pages/bridge";
 import GovernancePage from "@/pages/governance";
 import AnalyticsPage from "@/pages/analytics";
+import DocumentationPage from "@/pages/documentation";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +24,7 @@ function Router() {
         <Route path="/bridge" component={BridgePage} />
         <Route path="/governance" component={GovernancePage} />
         <Route path="/analytics" component={AnalyticsPage} />
+        <Route path="/documentation" component={DocumentationPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -148,7 +148,7 @@ const smartContracts = [
   }
 ];
 
-export function Documentation() {
+export default function Documentation() {
   const [activeSection, setActiveSection] = useState("overview");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
