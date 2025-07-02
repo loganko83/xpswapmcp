@@ -1109,48 +1109,46 @@ contract MyContract {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex gap-8">
-            {/* Sidebar Navigation */}
-            <div className="w-64 flex-shrink-0">
-              <div className="sticky top-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Documentation</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <ScrollArea className="h-[600px]">
-                      <nav className="space-y-1 p-4">
-                        {navigationItems.map((item) => {
-                          const Icon = item.icon;
-                          return (
-                            <Button
-                              key={item.id}
-                              variant={activeSection === item.id ? "secondary" : "ghost"}
-                              className="w-full justify-start"
-                              onClick={() => setActiveSection(item.id)}
-                            >
-                              <Icon className="h-4 w-4 mr-2" />
-                              {item.title}
-                            </Button>
-                          );
-                        })}
-                      </nav>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          {/* Sidebar Navigation */}
+          <div className="w-64 flex-shrink-0">
+            <div className="sticky top-8">
               <Card>
-                <CardContent className="p-8">
-                  {renderContent()}
+                <CardHeader>
+                  <CardTitle className="text-lg">Documentation</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[600px]">
+                    <nav className="space-y-1 p-4">
+                      {navigationItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Button
+                            key={item.id}
+                            variant={activeSection === item.id ? "secondary" : "ghost"}
+                            className="w-full justify-start"
+                            onClick={() => setActiveSection(item.id)}
+                          >
+                            <Icon className="h-4 w-4 mr-2" />
+                            {item.title}
+                          </Button>
+                        );
+                      })}
+                    </nav>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <Card>
+              <CardContent className="p-8">
+                {renderContent()}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
