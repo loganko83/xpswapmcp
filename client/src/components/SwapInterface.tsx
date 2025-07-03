@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowUpDown, Settings, ChevronDown, Loader2 } from "lucide-react";
 import { TokenSelector } from "./TokenSelector";
 import { Token, SwapQuote } from "@/types";
@@ -32,8 +33,10 @@ export function SwapInterface() {
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5);
+  const [customSlippage, setCustomSlippage] = useState("");
   const [isFromSelectorOpen, setIsFromSelectorOpen] = useState(false);
   const [isToSelectorOpen, setIsToSelectorOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [swapQuote, setSwapQuote] = useState<SwapQuote | null>(null);
 
   // Fetch real-time token prices
@@ -220,9 +223,82 @@ export function SwapInterface() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Swap
-          <Button variant="ghost" size="sm">
-            <Settings className="h-4 w-4" />
-          </Button>
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Swap Settings</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Slippage Tolerance</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[0.1, 0.5, 1.0].map((value) => (
+                      <Button
+                        key={value}
+                        variant={slippage === value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSlippage(value);
+                          setCustomSlippage("");
+                        }}
+                      >
+                        {value}%
+                      </Button>
+                    ))}
+                    <div className="relative">
+                      <Input
+                        placeholder="Custom"
+                        value={customSlippage}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setCustomSlippage(value);
+                          if (value && !isNaN(parseFloat(value))) {
+                            setSlippage(parseFloat(value));
+                          }
+                        }}
+                        className="text-xs"
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        max="50"
+                      />
+                      {customSlippage && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          %
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Your transaction will revert if the price changes unfavorably by more than this percentage.
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Transaction Details</label>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Current Slippage:</span>
+                      <span className="font-medium">{slippage}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Network:</span>
+                      <span className="font-medium">Xphere</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Gas Fee:</span>
+                      <span className="font-medium">~0.01 XP</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
