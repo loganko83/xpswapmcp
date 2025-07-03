@@ -4,12 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity, TrendingUp, DollarSign, Users, Zap, ArrowRight, Sparkles } from "lucide-react";
 import { SwapInterface } from "@/components/SwapInterface";
+import { AggregatorSwapInterface } from "@/components/AggregatorSwapInterface";
 import { TopPairs } from "@/components/TopPairs";
 import { useQuery } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
+import { useState } from "react";
+import { Token } from "@/types";
 
 export default function SwapPage() {
   const { data: tokenPrices } = useTokenPrices();
+  const [swapTokens, setSwapTokens] = useState<{
+    fromToken: Token | null;
+    toToken: Token | null;
+    fromAmount: string;
+  }>({
+    fromToken: null,
+    toToken: null,
+    fromAmount: "0",
+  });
   
   // Fetch market stats
   const { data: marketStats } = useQuery({
@@ -185,9 +197,26 @@ export default function SwapPage() {
                 </p>
               </CardHeader>
               <CardContent className="p-6">
-                <SwapInterface />
+                <SwapInterface 
+                  onTokenChange={(from, to, amount) => {
+                    setSwapTokens({
+                      fromToken: from,
+                      toToken: to,
+                      fromAmount: amount
+                    });
+                  }}
+                />
               </CardContent>
             </Card>
+
+            {/* DEX Aggregator Section */}
+            <div className="mt-6">
+              <AggregatorSwapInterface 
+                fromToken={swapTokens.fromToken}
+                toToken={swapTokens.toToken}
+                fromAmount={swapTokens.fromAmount}
+              />
+            </div>
           </div>
 
           {/* Information Panels */}

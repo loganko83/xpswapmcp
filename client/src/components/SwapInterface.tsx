@@ -16,7 +16,11 @@ import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-export function SwapInterface() {
+interface SwapInterfaceProps {
+  onTokenChange?: (fromToken: Token | null, toToken: Token | null, fromAmount: string) => void;
+}
+
+export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   const { wallet, isXphereNetwork, switchToXphere, connectWallet } = useWeb3();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -68,6 +72,13 @@ export function SwapInterface() {
       setSwapQuote(null);
     }
   }, [wallet.isConnected]);
+
+  // Notify parent component of token changes
+  useEffect(() => {
+    if (onTokenChange) {
+      onTokenChange(fromToken, toToken, fromAmount);
+    }
+  }, [fromToken, toToken, fromAmount, onTokenChange]);
 
   // Calculate swap quote
   const swapQuoteMutation = useMutation({
