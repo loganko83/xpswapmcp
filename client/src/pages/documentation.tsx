@@ -33,7 +33,7 @@ const apiEndpoints = [
   {
     method: "GET",
     path: "/api/xp-price",
-    description: "실시간 XP 토큰 가격 조회",
+    description: "Get real-time XP token price data",
     response: `{
   "price": 0.022072,
   "change24h": -6.28,
@@ -44,7 +44,7 @@ const apiEndpoints = [
   {
     method: "POST",
     path: "/api/swap-quote",
-    description: "스왑 견적 계산 (실제 AMM 알고리즘)",
+    description: "Calculate swap quote using real AMM algorithms",
     body: `{
   "tokenIn": "XP",
   "tokenOut": "USDT",
@@ -60,7 +60,7 @@ const apiEndpoints = [
   {
     method: "POST",
     path: "/api/advanced-swap-quote",
-    description: "MEV 보호 포함 고급 스왑 견적",
+    description: "Advanced swap quote with MEV protection",
     body: `{
   "poolId": 1,
   "tokenIn": "XP",
@@ -77,7 +77,7 @@ const apiEndpoints = [
   {
     method: "GET",
     path: "/api/farming-analytics/:poolId",
-    description: "실시간 파밍 풀 분석",
+    description: "Real-time farming pool analytics",
     response: `{
   "poolId": 1,
   "apr": "125.5",
@@ -93,7 +93,7 @@ const smartContracts = [
   {
     name: "XpSwapAdvancedAMM",
     address: "0x...",
-    description: "MEV 보호가 포함된 고급 자동화 마켓 메이커",
+    description: "Advanced automated market maker with MEV protection",
     functions: [
       "swapExactTokensForTokens",
       "addLiquidity",
@@ -104,7 +104,7 @@ const smartContracts = [
   {
     name: "XpSwapLiquidityPool",
     address: "0x...",
-    description: "시간 잠금 유동성 및 자동 복리 시스템",
+    description: "Time-locked liquidity and auto-compounding system",
     functions: [
       "stake",
       "unstake",
@@ -115,7 +115,7 @@ const smartContracts = [
   {
     name: "XpSwapGovernanceToken",
     address: "0x...",
-    description: "위임 투표와 베스팅 스케줄이 포함된 거버넌스",
+    description: "Governance with delegated voting and vesting schedules",
     functions: [
       "delegate",
       "propose",
@@ -126,7 +126,7 @@ const smartContracts = [
   {
     name: "XpSwapFarmingRewards",
     address: "0x...",
-    description: "거버넌스 토큰 부스팅이 가능한 수익률 파밍",
+    description: "Yield farming with governance token boosting",
     functions: [
       "stakeLPTokens",
       "claimRewards",
@@ -137,7 +137,7 @@ const smartContracts = [
   {
     name: "XpSwapCrosschainBridge",
     address: "0x...",
-    description: "다중 네트워크 자산 전송 브릿지",
+    description: "Multi-network asset transfer bridge",
     functions: [
       "lockTokens",
       "unlockTokens",
@@ -204,14 +204,14 @@ export default function Documentation() {
             <div>
               <h1 className="text-4xl font-bold mb-4">XpSwap DEX Documentation</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                Xphere 블록체인 기반의 엔터프라이즈급 탈중앙화 거래소
+                Enterprise-grade decentralized exchange built on Xphere blockchain
               </p>
               <div className="flex flex-wrap gap-2 mb-8">
-                <Badge variant="secondary">실제 AMM 엔진</Badge>
-                <Badge variant="secondary">MEV 보호</Badge>
-                <Badge variant="secondary">5개 스마트 컨트랙트</Badge>
-                <Badge variant="secondary">실시간 가격 데이터</Badge>
-                <Badge variant="secondary">크로스체인 브릿지</Badge>
+                <Badge variant="secondary">Real AMM Engine</Badge>
+                <Badge variant="secondary">MEV Protection</Badge>
+                <Badge variant="secondary">5 Smart Contracts</Badge>
+                <Badge variant="secondary">Real-time Price Data</Badge>
+                <Badge variant="secondary">Cross-chain Bridge</Badge>
               </div>
             </div>
 
@@ -220,25 +220,25 @@ export default function Documentation() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Zap className="h-5 w-5" />
-                    핵심 기능
+                    Core Features
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
-                    <span>실제 상수곱 공식 (x * y = k) AMM</span>
+                    <span>Real constant product formula (x * y = k) AMM</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
-                    <span>MEV 보호 및 샌드위치 공격 방지</span>
+                    <span>MEV protection and sandwich attack prevention</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
-                    <span>최대 2.5배 수익률 부스팅</span>
+                    <span>Up to 2.5x yield boosting</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
-                    <span>다중 네트워크 크로스체인 브릿지</span>
+                    <span>Multi-network cross-chain bridge</span>
                   </div>
                 </CardContent>
               </Card>
@@ -247,7 +247,7 @@ export default function Documentation() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Shield className="h-5 w-5" />
-                    기술 스택
+                    Tech Stack
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -257,7 +257,7 @@ export default function Documentation() {
                   </div>
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
-                    <span>Solidity + OpenZeppelin 라이브러리</span>
+                    <span>Solidity + OpenZeppelin libraries</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
@@ -265,7 +265,7 @@ export default function Documentation() {
                   </div>
                   <div className="flex items-center gap-2">
                     <ChevronRight className="h-4 w-4" />
-                    <span>CoinMarketCap 실시간 API</span>
+                    <span>CoinMarketCap real-time API</span>
                   </div>
                 </CardContent>
               </Card>
@@ -273,25 +273,25 @@ export default function Documentation() {
 
             <Card>
               <CardHeader>
-                <CardTitle>아키텍처 개요</CardTitle>
+                <CardTitle>Architecture Overview</CardTitle>
               </CardHeader>
               <CardContent>
                 <CodeBlock
                   id="architecture"
                   language="text"
-                  code={`XpSwap DEX 아키텍처
+                  code={`XpSwap DEX Architecture
 
 ┌─ Frontend (React + TypeScript)
-│  ├─ 실시간 가격 데이터 (CoinMarketCap API)
-│  ├─ MetaMask 지갑 통합
-│  ├─ 고급 스왑 인터페이스
-│  └─ 분석 대시보드
+│  ├─ Real-time price data (CoinMarketCap API)
+│  ├─ MetaMask wallet integration
+│  ├─ Advanced swap interface
+│  └─ Analytics dashboard
 
 ├─ Backend (Node.js + Express)
-│  ├─ 실제 AMM 계산 엔진
-│  ├─ MEV 보호 알고리즘
-│  ├─ 파밍 분석 API
-│  └─ PostgreSQL 데이터베이스
+│  ├─ Real AMM calculation engine
+│  ├─ MEV protection algorithms
+│  ├─ Farming analytics API
+│  └─ PostgreSQL database
 
 └─ Smart Contracts (Solidity)
    ├─ XpSwapAdvancedAMM.sol
@@ -309,20 +309,20 @@ export default function Documentation() {
         return (
           <div className="space-y-8">
             <div>
-              <h1 className="text-4xl font-bold mb-4">시작하기</h1>
+              <h1 className="text-4xl font-bold mb-4">Getting Started</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                XpSwap DEX를 사용하기 위한 단계별 가이드
+                Step-by-step guide to using XpSwap DEX
               </p>
             </div>
 
             <Card>
               <CardHeader>
-                <CardTitle>1. 지갑 연결</CardTitle>
-                <CardDescription>MetaMask를 사용하여 Xphere 네트워크에 연결</CardDescription>
+                <CardTitle>1. Connect Wallet</CardTitle>
+                <CardDescription>Connect to Xphere network using MetaMask</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold">네트워크 정보</h4>
+                  <h4 className="font-semibold">Network Information</h4>
                   <CodeBlock
                     id="network-config"
                     language="json"
@@ -340,12 +340,12 @@ export default function Documentation() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold">연결 단계</h4>
+                  <h4 className="font-semibold">Connection Steps</h4>
                   <ol className="list-decimal list-inside space-y-1 text-sm">
-                    <li>상단의 "Connect Wallet" 버튼 클릭</li>
-                    <li>MetaMask에서 연결 승인</li>
-                    <li>Xphere 네트워크 자동 전환 (필요시)</li>
-                    <li>지갑 잔고 확인</li>
+                    <li>Click "Connect Wallet" button at the top</li>
+                    <li>Approve connection in MetaMask</li>
+                    <li>Auto-switch to Xphere network (if needed)</li>
+                    <li>Verify wallet balance</li>
                   </ol>
                 </div>
               </CardContent>
@@ -353,25 +353,25 @@ export default function Documentation() {
 
             <Card>
               <CardHeader>
-                <CardTitle>2. 토큰 스왑</CardTitle>
-                <CardDescription>실시간 가격으로 토큰 교환</CardDescription>
+                <CardTitle>2. Token Swapping</CardTitle>
+                <CardDescription>Exchange tokens with real-time pricing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold">스왑 프로세스</h4>
+                  <h4 className="font-semibold">Swap Process</h4>
                   <ol className="list-decimal list-inside space-y-1 text-sm">
-                    <li>교환할 토큰 쌍 선택</li>
-                    <li>교환할 수량 입력</li>
-                    <li>슬리피지 허용치 설정 (0.1% ~ 5.0%)</li>
-                    <li>스왑 견적 확인 (실제 AMM 계산)</li>
-                    <li>MEV 보호 옵션 확인</li>
-                    <li>트랜잭션 실행</li>
+                    <li>Select token pair to exchange</li>
+                    <li>Enter amount to exchange</li>
+                    <li>Set slippage tolerance (0.1% ~ 5.0%)</li>
+                    <li>Review swap quote (real AMM calculation)</li>
+                    <li>Verify MEV protection options</li>
+                    <li>Execute transaction</li>
                   </ol>
                 </div>
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
                   <p className="text-sm">
-                    <strong>주의:</strong> 모든 스왑은 실제 상수곱 공식 (x * y = k)을 사용하여 계산되며, 
-                    MEV 보호 기능이 자동으로 적용됩니다.
+                    <strong>Note:</strong> All swaps are calculated using the real constant product formula (x * y = k), 
+                    with MEV protection automatically applied.
                   </p>
                 </div>
               </CardContent>
@@ -379,19 +379,19 @@ export default function Documentation() {
 
             <Card>
               <CardHeader>
-                <CardTitle>3. 유동성 공급</CardTitle>
-                <CardDescription>유동성 풀에 참여하여 수수료 수익 획득</CardDescription>
+                <CardTitle>3. Liquidity Provision</CardTitle>
+                <CardDescription>Participate in liquidity pools to earn fee rewards</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold">유동성 공급 단계</h4>
+                  <h4 className="font-semibold">Liquidity Provision Steps</h4>
                   <ol className="list-decimal list-inside space-y-1 text-sm">
-                    <li>Pool 페이지로 이동</li>
-                    <li>참여할 유동성 풀 선택</li>
-                    <li>토큰 쌍 및 수량 입력 (최적 비율 자동 계산)</li>
-                    <li>시간 잠금 옵션 선택 (30일~365일)</li>
-                    <li>예상 APR 확인</li>
-                    <li>유동성 공급 실행</li>
+                    <li>Navigate to Pool page</li>
+                    <li>Select liquidity pool to participate in</li>
+                    <li>Enter token pair and amounts (optimal ratio auto-calculated)</li>
+                    <li>Choose time-lock option (30 days ~ 365 days)</li>
+                    <li>Review expected APR</li>
+                    <li>Execute liquidity provision</li>
                   </ol>
                 </div>
               </CardContent>
@@ -403,9 +403,9 @@ export default function Documentation() {
         return (
           <div className="space-y-8">
             <div>
-              <h1 className="text-4xl font-bold mb-4">스마트 컨트랙트</h1>
+              <h1 className="text-4xl font-bold mb-4">Smart Contracts</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                XpSwap의 5개 핵심 스마트 컨트랙트 상세 정보
+                Detailed information about XpSwap's 5 core smart contracts
               </p>
             </div>
 
@@ -430,7 +430,7 @@ export default function Documentation() {
                       </code>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">주요 함수</h4>
+                      <h4 className="font-semibold mb-2">Key Functions</h4>
                       <div className="grid grid-cols-2 gap-2">
                         {contract.functions.map((func, i) => (
                           <code key={i} className="bg-muted px-2 py-1 rounded text-sm">
@@ -446,34 +446,34 @@ export default function Documentation() {
 
             <Card>
               <CardHeader>
-                <CardTitle>배포 정보</CardTitle>
+                <CardTitle>Deployment Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">네트워크</h4>
+                    <h4 className="font-semibold mb-2">Network</h4>
                     <p>Xphere Blockchain (Chain ID: 20250217)</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">컴파일러 버전</h4>
+                    <h4 className="font-semibold mb-2">Compiler Version</h4>
                     <p>Solidity ^0.8.19</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">라이브러리</h4>
+                    <h4 className="font-semibold mb-2">Libraries</h4>
                     <p>OpenZeppelin Contracts v4.9.0</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">배포 스크립트</h4>
+                    <h4 className="font-semibold mb-2">Deployment Scripts</h4>
                     <CodeBlock
                       id="deploy-script"
                       language="bash"
-                      code={`# 스마트 컨트랙트 컴파일
+                      code={`# Compile smart contracts
 node scripts/compile.js
 
-# Xphere 네트워크에 배포
+# Deploy to Xphere network
 node scripts/deployAdvancedContracts.js
 
-# 배포 검증
+# Verify deployment
 node scripts/deployAdvancedContracts.js verify`}
                     />
                   </div>
@@ -489,13 +489,13 @@ node scripts/deployAdvancedContracts.js verify`}
             <div>
               <h1 className="text-4xl font-bold mb-4">API Reference</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                XpSwap DEX의 모든 API 엔드포인트 상세 정보
+                Detailed information for all XpSwap DEX API endpoints
               </p>
             </div>
 
             <Card>
               <CardHeader>
-                <CardTitle>기본 정보</CardTitle>
+                <CardTitle>Basic Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -598,7 +598,7 @@ node scripts/deployAdvancedContracts.js verify`}
             <div>
               <h1 className="text-4xl font-bold mb-4">DeFi Features</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                XpSwap의 고급 DeFi 기능 상세 가이드
+                Detailed guide to XpSwap's advanced DeFi features
               </p>
             </div>
 
@@ -613,24 +613,24 @@ node scripts/deployAdvancedContracts.js verify`}
               <TabsContent value="amm" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>실제 AMM 엔진</CardTitle>
-                    <CardDescription>상수곱 공식 (x * y = k) 기반 자동화 마켓 메이커</CardDescription>
+                    <CardTitle>Real AMM Engine</CardTitle>
+                    <CardDescription>Automated market maker based on constant product formula (x * y = k)</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">핵심 공식</h4>
+                      <h4 className="font-semibold mb-2">Core Formula</h4>
                       <CodeBlock
                         id="amm-formula"
                         language="javascript"
-                        code={`// 상수곱 공식 (x * y = k)
+                        code={`// Constant product formula (x * y = k)
 function getAmountOut(amountIn, reserveIn, reserveOut) {
-  const amountInWithFee = amountIn * 997; // 0.3% 수수료 적용
+  const amountInWithFee = amountIn * 997; // Apply 0.3% fee
   const numerator = amountInWithFee * reserveOut;
   const denominator = (reserveIn * 1000) + amountInWithFee;
   return numerator / denominator;
 }
 
-// 가격 영향도 계산
+// Calculate price impact
 function calculatePriceImpact(amountIn, reserveIn, reserveOut) {
   const amountOut = getAmountOut(amountIn, reserveIn, reserveOut);
   const currentPrice = reserveOut / reserveIn;
@@ -640,12 +640,12 @@ function calculatePriceImpact(amountIn, reserveIn, reserveOut) {
                       />
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">MEV 보호</h4>
+                      <h4 className="font-semibold mb-2">MEV Protection</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• 샌드위치 공격 감지 및 차단</li>
-                        <li>• 동적 수수료 조정 (변동성 기반)</li>
-                        <li>• 최대 슬리피지 보호</li>
-                        <li>• 타임스탬프 기반 검증</li>
+                        <li>• Sandwich attack detection and blocking</li>
+                        <li>• Dynamic fee adjustment (volatility-based)</li>
+                        <li>• Maximum slippage protection</li>
+                        <li>• Timestamp-based verification</li>
                       </ul>
                     </div>
                   </CardContent>
