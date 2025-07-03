@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Sprout, TrendingUp, Search, Lock, Unlock, Zap } from "lucide-react";
+import { Sprout, TrendingUp, Search, Lock, Unlock, Zap, Sparkles, ArrowRight } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
 import { YieldFarmingManager } from "@/components/YieldFarmingManager";
@@ -165,6 +165,37 @@ export default function FarmPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* XPS Token Yield Farming Banner */}
+      <div className="mb-8">
+        <Card className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white border-0">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold mb-1">XPS 스테이킹으로 농장 수익 극대화</h3>
+                  <p className="text-orange-100 text-sm">최대 400% APY 스테이킹 + LP 농장 보상 2.5배 부스트</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  수익 부스터
+                </Badge>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-orange-600 hover:bg-white/90"
+                  onClick={() => window.location.href = '/documentation#xps-whitepaper'}
+                >
+                  스테이킹 시작 <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">Yield Farming</h1>
         <p className="text-muted-foreground">

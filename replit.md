@@ -8,6 +8,10 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-03**: Added XPS token promotion banners across all main pages (Swap, Pool, Farm, Analytics)
+- **2025-01-03**: Created colorful gradient banners highlighting XPS benefits and driving traffic to whitepaper
+- **2025-01-03**: Integrated direct links from promotion banners to XPS Whitepaper documentation section
+- **2025-01-03**: Enhanced user engagement with XPS ecosystem through strategic placement and messaging
 - **2025-01-03**: Added comprehensive XPS Token Whitepaper section to Documentation
 - **2025-01-03**: Implemented detailed tokenomics with fee discounts, staking tiers, and deflationary mechanisms
 - **2025-01-03**: Created XPS-specific API endpoints for token info, staking tiers, and revenue stats

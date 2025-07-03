@@ -44,6 +44,37 @@ export default function SwapPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* XPS Token Promotion Banner */}
+        <div className="mb-8">
+          <Card className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white border-0">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-xl font-bold mb-1">XPS 네이티브 토큰</h3>
+                    <p className="text-blue-100 text-sm">거래 수수료 최대 75% 할인 + 최대 400% 스테이킹 APY</p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    디플레이션 토큰
+                  </Badge>
+                  <Button 
+                    variant="secondary" 
+                    className="bg-white text-purple-600 hover:bg-white/90"
+                    onClick={() => window.location.href = '/documentation#xps-whitepaper'}
+                  >
+                    화이트페이퍼 보기 <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">

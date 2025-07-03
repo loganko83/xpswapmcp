@@ -24,7 +24,7 @@ import {
   BarChart,
   Bar
 } from "recharts";
-import { TrendingUp, TrendingDown, Activity, DollarSign, Users, Zap, RefreshCw } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, DollarSign, Users, Zap, RefreshCw, Sparkles, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function AnalyticsPage() {
@@ -171,6 +171,37 @@ export default function AnalyticsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* XPS Token Portfolio Analytics Banner */}
+      <div className="mb-8">
+        <Card className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white border-0">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold mb-1">XPS 포트폴리오 최적화</h3>
+                  <p className="text-purple-100 text-sm">토큰 분산 투자 추천 + 실시간 수익률 분석</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  고급 분석
+                </Badge>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-purple-600 hover:bg-white/90"
+                  onClick={() => window.location.href = '/documentation#xps-whitepaper'}
+                >
+                  포트폴리오 시작 <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Analytics & Portfolio</h1>

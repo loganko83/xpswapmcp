@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Minus, TrendingUp, Search } from "lucide-react";
+import { Plus, Minus, TrendingUp, Search, Sparkles, ArrowRight } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
 import { AdvancedLiquidityPoolManager } from "@/components/LiquidityPoolManager";
@@ -53,6 +53,37 @@ export default function PoolPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* XPS Token LP Boost Banner */}
+      <div className="mb-8">
+        <Card className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white border-0">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold mb-1">XPS 홀더 LP 부스트</h3>
+                  <p className="text-green-100 text-sm">XPS 스테이킹으로 LP 보상 최대 2.5배 증가</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  LP 마이닝 부스트
+                </Badge>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-green-600 hover:bg-white/90"
+                  onClick={() => window.location.href = '/documentation#xps-whitepaper'}
+                >
+                  자세히 보기 <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">Liquidity Pools</h1>
         <p className="text-muted-foreground">
