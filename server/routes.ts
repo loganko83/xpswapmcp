@@ -2449,6 +2449,239 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // XPS Token Information API
+  app.get("/api/xps/info", async (req, res) => {
+    try {
+      const xpsInfo = {
+        symbol: "XPS",
+        name: "XpSwap Token",
+        maxSupply: "1000000000",
+        currentSupply: "250000000",
+        totalBurned: "5000000",
+        circulatingSupply: "245000000",
+        price: "0.85",
+        marketCap: "208250000",
+        burnRate: "0.5",
+        holders: 15420,
+        stakingTVL: "45000000",
+        stakingParticipation: "18.37",
+        feeDiscountTiers: [
+          { balance: "1000", discount: "10", effectiveFee: "0.27" },
+          { balance: "5000", discount: "20", effectiveFee: "0.24" },
+          { balance: "10000", discount: "30", effectiveFee: "0.21" },
+          { balance: "50000", discount: "50", effectiveFee: "0.15" },
+          { balance: "100000", discount: "75", effectiveFee: "0.075" }
+        ]
+      };
+      
+      res.json(xpsInfo);
+    } catch (error) {
+      console.error("Error fetching XPS info:", error);
+      res.status(500).json({ message: "Failed to fetch XPS info" });
+    }
+  });
+
+  // XPS Staking Tiers API
+  app.get("/api/xps/staking-tiers", async (req, res) => {
+    try {
+      const stakingTiers = [
+        {
+          id: 0,
+          lockPeriod: 30,
+          apy: 50,
+          boostMultiplier: 1.2,
+          minStake: "100",
+          maxStake: "100000",
+          currentStakers: 3245,
+          totalStaked: "2500000"
+        },
+        {
+          id: 1,
+          lockPeriod: 90,
+          apy: 100,
+          boostMultiplier: 1.5,
+          minStake: "500",
+          maxStake: "250000",
+          currentStakers: 2156,
+          totalStaked: "8750000"
+        },
+        {
+          id: 2,
+          lockPeriod: 180,
+          apy: 200,
+          boostMultiplier: 2.0,
+          minStake: "1000",
+          maxStake: "500000",
+          currentStakers: 1542,
+          totalStaked: "15000000"
+        },
+        {
+          id: 3,
+          lockPeriod: 365,
+          apy: 400,
+          boostMultiplier: 2.5,
+          minStake: "5000",
+          maxStake: "1000000",
+          currentStakers: 876,
+          totalStaked: "18750000"
+        }
+      ];
+      
+      res.json(stakingTiers);
+    } catch (error) {
+      console.error("Error fetching staking tiers:", error);
+      res.status(500).json({ message: "Failed to fetch staking tiers" });
+    }
+  });
+
+  // XPS Revenue and Burn Statistics API
+  app.get("/api/xps/revenue-stats", async (req, res) => {
+    try {
+      const revenueStats = {
+        totalRevenue: "8750000",
+        totalBurned: "3500000",
+        burnAllocation: 40,
+        teamAllocation: 15,
+        developmentAllocation: 15,
+        marketingAllocation: 10,
+        bugBountyAllocation: 5,
+        reserveAllocation: 15,
+        revenueHistory: [
+          { date: "2025-01", amount: "450000", burned: "180000" },
+          { date: "2024-12", amount: "520000", burned: "208000" },
+          { date: "2024-11", amount: "380000", burned: "152000" },
+          { date: "2024-10", amount: "630000", burned: "252000" },
+          { date: "2024-09", amount: "420000", burned: "168000" },
+          { date: "2024-08", amount: "390000", burned: "156000" }
+        ],
+        nextBurnDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        estimatedNextBurn: "185000"
+      };
+      
+      res.json(revenueStats);
+    } catch (error) {
+      console.error("Error fetching revenue stats:", error);
+      res.status(500).json({ message: "Failed to fetch revenue stats" });
+    }
+  });
+
+  // XPS Bug Bounty System API
+  app.get("/api/xps/bug-bounties", async (req, res) => {
+    try {
+      const bugBounties = [
+        {
+          id: 1,
+          severity: "critical",
+          title: "Smart Contract Vulnerability in AMM",
+          reward: "50000",
+          status: "claimed",
+          reporter: "0x1234...5678",
+          description: "Critical vulnerability in constant product formula",
+          submittedAt: "2024-12-15",
+          claimedAt: "2024-12-20"
+        },
+        {
+          id: 2,
+          severity: "high",
+          title: "Frontend XSS Vulnerability",
+          reward: "15000",
+          status: "claimed",
+          reporter: "0x2345...6789",
+          description: "XSS vulnerability in token selector component",
+          submittedAt: "2024-11-28",
+          claimedAt: "2024-12-01"
+        },
+        {
+          id: 3,
+          severity: "medium",
+          title: "API Rate Limiting Bypass",
+          reward: "5000",
+          status: "open",
+          reporter: "0x3456...7890",
+          description: "Method to bypass API rate limiting",
+          submittedAt: "2024-12-28",
+          claimedAt: null
+        }
+      ];
+      
+      const summary = {
+        totalPaid: "71000",
+        totalBounties: bugBounties.length,
+        openBounties: bugBounties.filter(b => b.status === "open").length,
+        averageReward: "17750"
+      };
+      
+      res.json({ bounties: bugBounties, summary });
+    } catch (error) {
+      console.error("Error fetching bug bounties:", error);
+      res.status(500).json({ message: "Failed to fetch bug bounties" });
+    }
+  });
+
+  // Fee Discount Calculator API
+  app.post("/api/xps/calculate-fee-discount", async (req, res) => {
+    try {
+      const { userAddress, tradeAmount } = req.body;
+      
+      const mockBalances: { [key: string]: string } = {
+        "0x1234567890abcdef": "75000",
+        "0xabcdef1234567890": "8500",
+        "0x1111222233334444": "150000",
+      };
+      
+      const xpsBalance = parseFloat(mockBalances[userAddress] || "0");
+      let discount = 0;
+      
+      if (xpsBalance >= 100000) {
+        discount = 75;
+      } else if (xpsBalance >= 50000) {
+        discount = 50;
+      } else if (xpsBalance >= 10000) {
+        discount = 30;
+      } else if (xpsBalance >= 5000) {
+        discount = 20;
+      } else if (xpsBalance >= 1000) {
+        discount = 10;
+      }
+      
+      const baseFee = 0.3;
+      const effectiveFee = baseFee * (1 - discount / 100);
+      const savedAmount = (parseFloat(tradeAmount) * baseFee / 100) - (parseFloat(tradeAmount) * effectiveFee / 100);
+      
+      function getNextTierBalance(currentBalance: number): string {
+        if (currentBalance < 1000) return "1000";
+        if (currentBalance < 5000) return "5000";
+        if (currentBalance < 10000) return "10000";
+        if (currentBalance < 50000) return "50000";
+        if (currentBalance < 100000) return "100000";
+        return "Max tier reached";
+      }
+
+      function getNextTierDiscount(currentBalance: number): number {
+        if (currentBalance < 1000) return 10;
+        if (currentBalance < 5000) return 20;
+        if (currentBalance < 10000) return 30;
+        if (currentBalance < 50000) return 50;
+        if (currentBalance < 100000) return 75;
+        return 75;
+      }
+      
+      res.json({
+        userAddress,
+        xpsBalance: xpsBalance.toString(),
+        discount,
+        baseFee,
+        effectiveFee,
+        savedAmount: savedAmount.toString(),
+        nextTierBalance: getNextTierBalance(xpsBalance),
+        nextTierDiscount: getNextTierDiscount(xpsBalance)
+      });
+    } catch (error) {
+      console.error("Error calculating fee discount:", error);
+      res.status(500).json({ message: "Failed to calculate fee discount" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -23,6 +23,7 @@ const navigationItems = [
   { id: "overview", title: "Overview", icon: BookOpen },
   { id: "getting-started", title: "Getting Started", icon: Zap },
   { id: "smart-contracts", title: "Smart Contracts", icon: Shield },
+  { id: "xps-whitepaper", title: "XPS Whitepaper", icon: TrendingUp },
   { id: "api-reference", title: "API Reference", icon: Code },
   { id: "defi-features", title: "DeFi Features", icon: TrendingUp },
   { id: "integration", title: "Integration Guide", icon: Globe },
@@ -777,6 +778,447 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
                 </Card>
               </TabsContent>
             </Tabs>
+          </div>
+        );
+
+      case "xps-whitepaper":
+        return (
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-4xl font-bold mb-4">XPS Token Whitepaper</h1>
+              <p className="text-xl text-muted-foreground mb-6">
+                The native utility and governance token of XpSwap DEX
+              </p>
+              <div className="flex flex-wrap gap-2 mb-8">
+                <Badge variant="secondary">Deflationary</Badge>
+                <Badge variant="secondary">Governance</Badge>
+                <Badge variant="secondary">Fee Discounts</Badge>
+                <Badge variant="secondary">Staking Rewards</Badge>
+                <Badge variant="secondary">LP Mining</Badge>
+              </div>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Token Overview</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <h3 className="font-semibold text-2xl">1,000,000,000</h3>
+                    <p className="text-sm text-muted-foreground">Max Supply</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <h3 className="font-semibold text-2xl">XPS</h3>
+                    <p className="text-sm text-muted-foreground">Token Symbol</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <h3 className="font-semibold text-2xl">ERC-20</h3>
+                    <p className="text-sm text-muted-foreground">Token Standard</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Key Features</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li>• <strong>Deflationary Mechanism:</strong> Regular token burns from protocol revenue</li>
+                    <li>• <strong>Fee Discounts:</strong> Up to 75% trading fee reduction for XPS holders</li>
+                    <li>• <strong>Staking Rewards:</strong> Earn up to 400% APY through staking tiers</li>
+                    <li>• <strong>Governance Rights:</strong> Vote on protocol improvements and parameter changes</li>
+                    <li>• <strong>LP Mining Boost:</strong> Enhanced rewards for liquidity providers</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Token Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3">Allocation Breakdown</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Liquidity Mining</span>
+                        <span className="font-medium">40%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Staking Rewards</span>
+                        <span className="font-medium">20%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Team & Development</span>
+                        <span className="font-medium">25%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Reserve Fund</span>
+                        <span className="font-medium">8%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Marketing</span>
+                        <span className="font-medium">5%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Bug Bounty</span>
+                        <span className="font-medium">2%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-3">Vesting Schedule</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <strong>Team Allocation:</strong> 4-year linear vesting with 1-year cliff
+                      </div>
+                      <div>
+                        <strong>Development Fund:</strong> Released based on milestone completion
+                      </div>
+                      <div>
+                        <strong>Liquidity Mining:</strong> Distributed over 4 years with declining rates
+                      </div>
+                      <div>
+                        <strong>Staking Rewards:</strong> Continuous distribution based on staking participation
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Deflationary Mechanisms</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Revenue-Based Burning</h4>
+                  <p className="text-sm mb-3">
+                    40% of all protocol revenue is used to buy back and burn XPS tokens from the market, 
+                    creating continuous deflationary pressure.
+                  </p>
+                  <CodeBlock
+                    id="burn-mechanism"
+                    language="javascript"
+                    code={`// Automatic burning from protocol revenue
+function distributeRevenue(uint256 amount) {
+    uint256 burnAmount = (amount * 4000) / 10000; // 40%
+    xpsToken.burnFromRevenue(burnAmount, "Protocol revenue burn");
+    
+    // Distribute remaining to team, development, marketing, etc.
+    // ...
+}`}
+                  />
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Emergency Withdrawal Penalties</h4>
+                  <p className="text-sm">
+                    25% penalty on emergency withdrawals from staking is permanently burned, 
+                    further reducing circulating supply.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Burn Rate Targets</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li>• <strong>Year 1:</strong> Target 5% of max supply burned (50M XPS)</li>
+                    <li>• <strong>Year 2:</strong> Target additional 3% burned (30M XPS)</li>
+                    <li>• <strong>Long-term:</strong> Maintain steady deflation through revenue burns</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Utility & Benefits</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="fee-discounts" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="fee-discounts">Fee Discounts</TabsTrigger>
+                    <TabsTrigger value="staking">Staking</TabsTrigger>
+                    <TabsTrigger value="governance">Governance</TabsTrigger>
+                    <TabsTrigger value="rewards">Rewards</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="fee-discounts" className="space-y-4">
+                    <h4 className="font-semibold">Trading Fee Discounts</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse border border-muted">
+                        <thead>
+                          <tr className="bg-muted">
+                            <th className="border border-muted p-2 text-left">XPS Balance</th>
+                            <th className="border border-muted p-2 text-left">Discount</th>
+                            <th className="border border-muted p-2 text-left">Effective Fee</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="border border-muted p-2">1,000 XPS</td>
+                            <td className="border border-muted p-2">10%</td>
+                            <td className="border border-muted p-2">0.27%</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">5,000 XPS</td>
+                            <td className="border border-muted p-2">20%</td>
+                            <td className="border border-muted p-2">0.24%</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">10,000 XPS</td>
+                            <td className="border border-muted p-2">30%</td>
+                            <td className="border border-muted p-2">0.21%</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">50,000 XPS</td>
+                            <td className="border border-muted p-2">50%</td>
+                            <td className="border border-muted p-2">0.15%</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">100,000 XPS</td>
+                            <td className="border border-muted p-2">75%</td>
+                            <td className="border border-muted p-2">0.075%</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="staking" className="space-y-4">
+                    <h4 className="font-semibold">Staking Tiers & Rewards</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse border border-muted">
+                        <thead>
+                          <tr className="bg-muted">
+                            <th className="border border-muted p-2 text-left">Lock Period</th>
+                            <th className="border border-muted p-2 text-left">APY</th>
+                            <th className="border border-muted p-2 text-left">LP Boost</th>
+                            <th className="border border-muted p-2 text-left">Min Stake</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="border border-muted p-2">30 days</td>
+                            <td className="border border-muted p-2">50%</td>
+                            <td className="border border-muted p-2">1.2x</td>
+                            <td className="border border-muted p-2">100 XPS</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">90 days</td>
+                            <td className="border border-muted p-2">100%</td>
+                            <td className="border border-muted p-2">1.5x</td>
+                            <td className="border border-muted p-2">500 XPS</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">180 days</td>
+                            <td className="border border-muted p-2">200%</td>
+                            <td className="border border-muted p-2">2.0x</td>
+                            <td className="border border-muted p-2">1,000 XPS</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-muted p-2">365 days</td>
+                            <td className="border border-muted p-2">400%</td>
+                            <td className="border border-muted p-2">2.5x</td>
+                            <td className="border border-muted p-2">5,000 XPS</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="governance" className="space-y-4">
+                    <h4 className="font-semibold">Governance Participation</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <h5 className="font-medium">Voting Power Calculation</h5>
+                        <p className="text-sm text-muted-foreground">
+                          Voting power = Base tokens × (1 + √(lock_duration/365)) + Delegated power
+                        </p>
+                      </div>
+                      <div>
+                        <h5 className="font-medium">Proposal Types</h5>
+                        <ul className="space-y-1 text-sm">
+                          <li>• Protocol parameter changes (fees, rewards, etc.)</li>
+                          <li>• Smart contract upgrades and improvements</li>
+                          <li>• Treasury fund allocation and spending</li>
+                          <li>• Partnership and integration proposals</li>
+                          <li>• Emergency actions and protocol governance</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-medium">Voting Requirements</h5>
+                        <ul className="space-y-1 text-sm">
+                          <li>• <strong>Quorum:</strong> 4% of total supply participation</li>
+                          <li>• <strong>Majority:</strong> {'>'} 50% of votes cast</li>
+                          <li>• <strong>Timelock:</strong> 48-hour delay for execution</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="rewards" className="space-y-4">
+                    <h4 className="font-semibold">Reward Systems</h4>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h5 className="font-medium mb-2">Liquidity Mining</h5>
+                        <ul className="space-y-1 text-sm">
+                          <li>• Base rewards for all LP providers</li>
+                          <li>• Boost multipliers for XPS stakers</li>
+                          <li>• Higher rewards for key trading pairs</li>
+                          <li>• Dynamic allocation based on TVL and volume</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-medium mb-2">Special Programs</h5>
+                        <ul className="space-y-1 text-sm">
+                          <li>• <strong>Bug Bounty:</strong> Up to 100,000 XPS rewards</li>
+                          <li>• <strong>Marketing:</strong> Community campaign rewards</li>
+                          <li>• <strong>Referral:</strong> Earn XPS for bringing new users</li>
+                          <li>• <strong>Developer:</strong> Grants for ecosystem building</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Economic Model & Price Support</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Value Accrual Mechanisms</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li>
+                      <strong>Revenue Sharing:</strong> 40% of protocol revenue used for token buybacks and burns
+                    </li>
+                    <li>
+                      <strong>Utility Demand:</strong> Fee discounts create consistent buying pressure
+                    </li>
+                    <li>
+                      <strong>Staking Lock-up:</strong> Long-term staking reduces circulating supply
+                    </li>
+                    <li>
+                      <strong>Governance Premium:</strong> Voting rights add intrinsic value
+                    </li>
+                    <li>
+                      <strong>LP Boost Requirement:</strong> Staking needed for maximum farming rewards
+                    </li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Deflationary Schedule</h4>
+                  <CodeBlock
+                    id="deflation-schedule"
+                    language="javascript"
+                    code={`// Projected token burn over time
+Year 1: 50,000,000 XPS burned (5% of max supply)
+Year 2: 30,000,000 XPS burned (3% of max supply)  
+Year 3: 20,000,000 XPS burned (2% of max supply)
+Year 4+: Revenue-based burns continue indefinitely
+
+// Factors affecting burn rate:
+- Trading volume (higher volume = more fees = more burns)
+- Protocol adoption (more users = more utility demand)
+- Market conditions (bear markets may reduce burns)
+- Governance decisions (burn rate can be adjusted)`}
+                  />
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Price Support Mechanisms</h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="font-medium">Automatic Stabilizers</h5>
+                      <ul className="space-y-1 text-sm">
+                        <li>• Revenue-based buybacks increase during high volume</li>
+                        <li>• Staking rewards adjust based on participation</li>
+                        <li>• Emergency burn fund for market protection</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="font-medium">Manual Interventions</h5>
+                      <ul className="space-y-1 text-sm">
+                        <li>• Emergency burns from treasury</li>
+                        <li>• Governance-approved buyback programs</li>
+                        <li>• Strategic partnership announcements</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Roadmap & Future Development</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Q1 2025</h4>
+                    <ul className="space-y-1 text-sm">
+                      <li>• XPS token launch</li>
+                      <li>• Staking system deployment</li>
+                      <li>• Fee discount implementation</li>
+                      <li>• Initial liquidity mining</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Q2 2025</h4>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Governance system activation</li>
+                      <li>• Cross-chain bridge expansion</li>
+                      <li>• Advanced farming features</li>
+                      <li>• Mobile app integration</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Q3-Q4 2025</h4>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Multi-chain token deployment</li>
+                      <li>• Institutional staking products</li>
+                      <li>• DeFi ecosystem partnerships</li>
+                      <li>• Layer 2 integrations</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Risk Factors & Disclaimers</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">Important Notice</h4>
+                  <p className="text-sm">
+                    XPS tokens are utility tokens designed for use within the XpSwap ecosystem. 
+                    This document is for informational purposes only and does not constitute 
+                    investment advice. Token values may fluctuate and past performance does not 
+                    guarantee future results.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Key Risks</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li>• Smart contract risks and potential vulnerabilities</li>
+                    <li>• Market volatility and liquidity risks</li>
+                    <li>• Regulatory changes affecting DeFi protocols</li>
+                    <li>• Technology risks and blockchain network issues</li>
+                    <li>• Competition from other DEX platforms</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
 

@@ -8,6 +8,16 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-03**: Added comprehensive XPS Token Whitepaper section to Documentation
+- **2025-01-03**: Implemented detailed tokenomics with fee discounts, staking tiers, and deflationary mechanisms
+- **2025-01-03**: Created XPS-specific API endpoints for token info, staking tiers, and revenue stats
+- **2025-01-03**: Added bug bounty system API with rewards tracking and developer incentives
+- **2025-01-03**: Implemented fee discount calculator API for XPS holders
+- **2025-01-03**: Enhanced Documentation with interactive tables and comprehensive token utility explanations
+- **2025-01-03**: Added XPS governance system with voting power calculations and proposal types
+- **2025-01-03**: Integrated deflationary burn mechanism with 40% revenue allocation
+- **2025-01-03**: Created comprehensive XPS roadmap with quarterly milestones
+- **2025-01-03**: Added risk factors and regulatory disclaimers to XPS Whitepaper
 - **2025-01-02**: Implemented advanced smart contract suite with production-level DeFi functionality
 - **2025-01-02**: Deployed real AMM algorithms with constant product formula (x * y = k)
 - **2025-01-02**: Added MEV protection and sandwich attack prevention mechanisms
@@ -139,6 +149,13 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - `GET /api/farming-analytics/:poolId` - Real-time yield farming analytics
 - `GET /api/pools` - Liquidity pool data with real reserves
 - `GET /api/farms` - Farming pool information with APY calculations
+
+### XPS Native Token API Endpoints
+- `GET /api/xps/info` - XPS token information, supply, and market data
+- `GET /api/xps/staking-tiers` - Staking tier information with APY and boosting
+- `GET /api/xps/revenue-stats` - Protocol revenue distribution and burn statistics
+- `GET /api/xps/bug-bounties` - Bug bounty program with rewards and claims
+- `POST /api/xps/calculate-fee-discount` - Calculate fee discounts for XPS holders
 
 ### Database Schema
 - `users` - User account information
