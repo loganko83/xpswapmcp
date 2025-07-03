@@ -655,38 +655,38 @@ function calculatePriceImpact(amountIn, reserveIn, reserveOut) {
               <TabsContent value="farming" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>수익률 파밍</CardTitle>
-                    <CardDescription>최대 2.5배 부스팅이 가능한 고급 파밍 시스템</CardDescription>
+                    <CardTitle>Yield Farming</CardTitle>
+                    <CardDescription>Advanced farming system with up to 2.5x boosting capability</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">부스팅 시스템</h4>
+                      <h4 className="font-semibold mb-2">Boosting System</h4>
                       <CodeBlock
                         id="boost-formula"
                         language="javascript"
-                        code={`// 부스팅 계산 공식
+                        code={`// Boost calculation formula
 function calculateBoost(lpStaked, govTokenStaked, lockDuration) {
-  const timeMultiplier = Math.min(lockDuration / 365, 1.0); // 최대 1년
-  const govMultiplier = Math.min(govTokenStaked / lpStaked, 1.5); // 최대 1.5배
+  const timeMultiplier = Math.min(lockDuration / 365, 1.0); // Max 1 year
+  const govMultiplier = Math.min(govTokenStaked / lpStaked, 1.5); // Max 1.5x
   const baseBoost = 1.0;
   
   return baseBoost + (timeMultiplier * govMultiplier);
 }
 
-// 실제 APY 계산
+// Real APY calculation
 function calculateAPY(baseReward, boost, totalStaked) {
   const boostedReward = baseReward * boost;
-  return (boostedReward / totalStaked) * 365 * 100; // 연율
+  return (boostedReward / totalStaked) * 365 * 100; // Annual rate
 }`}
                       />
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">파밍 전략</h4>
+                      <h4 className="font-semibold mb-2">Farming Strategies</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• <strong>기본 파밍:</strong> LP 토큰 스테이킹으로 기본 수익</li>
-                        <li>• <strong>거버넌스 부스팅:</strong> XPS 토큰 스테이킹으로 최대 1.5배</li>
-                        <li>• <strong>시간 잠금:</strong> 장기 잠금으로 추가 부스팅</li>
-                        <li>• <strong>자동 복리:</strong> 수익 자동 재투자</li>
+                        <li>• <strong>Basic Farming:</strong> Base rewards from LP token staking</li>
+                        <li>• <strong>Governance Boosting:</strong> Up to 1.5x with XPS token staking</li>
+                        <li>• <strong>Time Locking:</strong> Additional boosting from long-term locks</li>
+                        <li>• <strong>Auto-compounding:</strong> Automatic reward reinvestment</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -696,27 +696,27 @@ function calculateAPY(baseReward, boost, totalStaked) {
               <TabsContent value="governance" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>거버넌스 시스템</CardTitle>
-                    <CardDescription>위임 투표와 시간 가중 투표권을 가진 DAO</CardDescription>
+                    <CardTitle>Governance System</CardTitle>
+                    <CardDescription>DAO with delegated voting and time-weighted voting power</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">투표권 계산</h4>
+                      <h4 className="font-semibold mb-2">Voting Power Calculation</h4>
                       <CodeBlock
                         id="voting-power"
                         language="javascript"
-                        code={`// 투표권 계산
+                        code={`// Voting power calculation
 function calculateVotingPower(tokenBalance, lockDuration, delegatedPower) {
   const basePower = tokenBalance;
-  const timeWeight = Math.sqrt(lockDuration / 365); // 제곱근 시간 가중
+  const timeWeight = Math.sqrt(lockDuration / 365); // Square root time weighting
   const totalPower = basePower * (1 + timeWeight) + delegatedPower;
   
   return totalPower;
 }
 
-// 제안 통과 조건
+// Proposal passing criteria
 function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
-  const quorum = totalSupply * 0.04; // 4% 쿼럼
+  const quorum = totalSupply * 0.04; // 4% quorum
   const majority = votesFor > votesAgainst;
   const quorumMet = (votesFor + votesAgainst) >= quorum;
   
@@ -725,12 +725,12 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
                       />
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">제안 유형</h4>
+                      <h4 className="font-semibold mb-2">Proposal Types</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• <strong>매개변수 변경:</strong> 수수료, 보상률 등 조정</li>
-                        <li>• <strong>프로토콜 업그레이드:</strong> 스마트 컨트랙트 개선</li>
-                        <li>• <strong>재무 관리:</strong> 커뮤니티 자금 사용</li>
-                        <li>• <strong>파트너십:</strong> 다른 프로토콜과의 통합</li>
+                        <li>• <strong>Parameter Changes:</strong> Adjust fees, reward rates, etc.</li>
+                        <li>• <strong>Protocol Upgrades:</strong> Smart contract improvements</li>
+                        <li>• <strong>Treasury Management:</strong> Community fund usage</li>
+                        <li>• <strong>Partnerships:</strong> Integration with other protocols</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -740,12 +740,12 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
               <TabsContent value="bridge" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>크로스체인 브릿지</CardTitle>
-                    <CardDescription>5개 메인넷을 연결하는 안전한 자산 전송</CardDescription>
+                    <CardTitle>Cross-chain Bridge</CardTitle>
+                    <CardDescription>Secure asset transfer connecting 5 mainnets</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">지원 네트워크</h4>
+                      <h4 className="font-semibold mb-2">Supported Networks</h4>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-muted p-2 rounded">Ethereum</div>
                         <div className="bg-muted p-2 rounded">Binance Smart Chain</div>
@@ -755,22 +755,22 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">브릿지 과정</h4>
+                      <h4 className="font-semibold mb-2">Bridge Process</h4>
                       <ol className="list-decimal list-inside space-y-1 text-sm">
-                        <li>소스 체인에서 토큰 잠금 (Lock)</li>
-                        <li>다중 서명 검증자들이 트랜잭션 확인</li>
-                        <li>머클 증명 생성 및 검증</li>
-                        <li>대상 체인에서 토큰 발행 (Mint)</li>
-                        <li>사용자에게 토큰 전송</li>
+                        <li>Lock tokens on source chain</li>
+                        <li>Multi-sig validators confirm transaction</li>
+                        <li>Generate and verify Merkle proof</li>
+                        <li>Mint tokens on destination chain</li>
+                        <li>Transfer tokens to user</li>
                       </ol>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">보안 기능</h4>
+                      <h4 className="font-semibold mb-2">Security Features</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• 다중 서명 검증 (3/5 임계값)</li>
-                        <li>• 일일 전송 한도</li>
-                        <li>• 응급 일시 정지 메커니즘</li>
-                        <li>• 타임락 지연</li>
+                        <li>• Multi-signature validation (3/5 threshold)</li>
+                        <li>• Daily transfer limits</li>
+                        <li>• Emergency pause mechanism</li>
+                        <li>• Timelock delays</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -786,7 +786,7 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
             <div>
               <h1 className="text-4xl font-bold mb-4">Integration Guide</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                XpSwap을 다른 프로젝트에 통합하는 방법
+                How to integrate XpSwap into other projects
               </p>
             </div>
 
@@ -800,12 +800,12 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
               <TabsContent value="frontend" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Frontend 통합</CardTitle>
-                    <CardDescription>React/Vue/Angular 앱에 XpSwap 위젯 통합</CardDescription>
+                    <CardTitle>Frontend Integration</CardTitle>
+                    <CardDescription>Integrate XpSwap widget into React/Vue/Angular apps</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">설치</h4>
+                      <h4 className="font-semibold mb-2">Installation</h4>
                       <CodeBlock
                         id="npm-install"
                         language="bash"
@@ -813,7 +813,7 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
                       />
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">기본 사용법</h4>
+                      <h4 className="font-semibold mb-2">Basic Usage</h4>
                       <CodeBlock
                         id="basic-usage"
                         language="javascript"
@@ -848,12 +848,12 @@ function App() {
               <TabsContent value="backend" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Backend API 통합</CardTitle>
-                    <CardDescription>서버 사이드에서 XpSwap API 사용</CardDescription>
+                    <CardTitle>Backend API Integration</CardTitle>
+                    <CardDescription>Using XpSwap API on server side</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">Node.js 예제</h4>
+                      <h4 className="font-semibold mb-2">Node.js Example</h4>
                       <CodeBlock
                         id="nodejs-example"
                         language="javascript"
@@ -884,19 +884,19 @@ class XpSwapAPI {
   }
 }
 
-// 사용 예제
+// Usage example
 const xpswap = new XpSwapAPI();
 
 async function example() {
-  // XP 토큰 가격 조회
+  // Get XP token price
   const xpPrice = await xpswap.getPrice('XP');
   console.log('XP Price:', xpPrice);
 
-  // 스왑 견적 요청
+  // Request swap quote
   const quote = await xpswap.getSwapQuote('XP', 'USDT', '100');
   console.log('Swap Quote:', quote);
 
-  // 파밍 정보 조회
+  // Get farming information
   const farmInfo = await xpswap.getFarmingInfo(1);
   console.log('Farm Info:', farmInfo);
 }`}
@@ -909,12 +909,12 @@ async function example() {
               <TabsContent value="smart-contract" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Smart Contract 통합</CardTitle>
-                    <CardDescription>다른 컨트랙트에서 XpSwap 호출</CardDescription>
+                    <CardTitle>Smart Contract Integration</CardTitle>
+                    <CardDescription>Calling XpSwap from other contracts</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">Solidity 인터페이스</h4>
+                      <h4 className="font-semibold mb-2">Solidity Interface</h4>
                       <CodeBlock
                         id="solidity-interface"
                         language="solidity"
@@ -949,7 +949,7 @@ interface IXpSwapAMM {
 }
 
 contract MyContract {
-    IXpSwapAMM constant xpswap = IXpSwapAMM(0x...); // XpSwap 주소
+    IXpSwapAMM constant xpswap = IXpSwapAMM(0x...); // XpSwap address
 
     function performSwap(
         address tokenIn,
@@ -985,7 +985,7 @@ contract MyContract {
             <div>
               <h1 className="text-4xl font-bold mb-4">Community</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                XpSwap 커뮤니티에 참여하고 최신 정보를 받아보세요
+                Join the XpSwap community and stay up to date with the latest news
               </p>
             </div>
 
@@ -994,26 +994,26 @@ contract MyContract {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    소셜 미디어
+                    Social Media
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button variant="outline" className="w-full justify-start" asChild>
                     <a href="#" target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Discord 커뮤니티
+                      Discord Community
                     </a>
                   </Button>
                   <Button variant="outline" className="w-full justify-start" asChild>
                     <a href="#" target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Telegram 채널
+                      Telegram Channel
                     </a>
                   </Button>
                   <Button variant="outline" className="w-full justify-start" asChild>
                     <a href="#" target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Twitter 팔로우
+                      Follow on Twitter
                     </a>
                   </Button>
                 </CardContent>
@@ -1023,7 +1023,7 @@ contract MyContract {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Code className="h-5 w-5" />
-                    개발자 리소스
+                    Developer Resources
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -1051,26 +1051,26 @@ contract MyContract {
 
             <Card>
               <CardHeader>
-                <CardTitle>기여하기</CardTitle>
-                <CardDescription>XpSwap 프로토콜 개선에 참여하세요</CardDescription>
+                <CardTitle>Contributing</CardTitle>
+                <CardDescription>Participate in improving the XpSwap protocol</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">개발 참여</h4>
+                  <h4 className="font-semibold mb-2">Development Participation</h4>
                   <ul className="space-y-1 text-sm">
-                    <li>• 스마트 컨트랙트 보안 감사</li>
-                    <li>• 프론트엔드 UI/UX 개선</li>
-                    <li>• 새로운 DeFi 기능 제안</li>
-                    <li>• 문서화 및 튜토리얼 작성</li>
+                    <li>• Smart contract security audits</li>
+                    <li>• Frontend UI/UX improvements</li>
+                    <li>• New DeFi feature proposals</li>
+                    <li>• Documentation and tutorial writing</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">거버넌스 참여</h4>
+                  <h4 className="font-semibold mb-2">Governance Participation</h4>
                   <ul className="space-y-1 text-sm">
-                    <li>• XPS 토큰으로 투표 참여</li>
-                    <li>• 프로토콜 개선 제안 작성</li>
-                    <li>• 커뮤니티 토론 참여</li>
-                    <li>• 대사(Ambassador) 프로그램 참여</li>
+                    <li>• Vote with XPS tokens</li>
+                    <li>• Create protocol improvement proposals</li>
+                    <li>• Participate in community discussions</li>
+                    <li>• Join Ambassador program</li>
                   </ul>
                 </div>
               </CardContent>
@@ -1078,22 +1078,22 @@ contract MyContract {
 
             <Card>
               <CardHeader>
-                <CardTitle>지원 및 도움말</CardTitle>
+                <CardTitle>Support & Help</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">자주 묻는 질문</h4>
+                  <h4 className="font-semibold mb-2">Frequently Asked Questions</h4>
                   <ul className="space-y-1 text-sm">
-                    <li>• <strong>Q:</strong> XpSwap의 수수료는 얼마인가요?</li>
-                    <li>• <strong>A:</strong> 기본 스왑 수수료는 0.3%이며, 변동성에 따라 동적으로 조정됩니다.</li>
-                    <li>• <strong>Q:</strong> 파밍 보상은 언제 받을 수 있나요?</li>
-                    <li>• <strong>A:</strong> 보상은 실시간으로 누적되며 언제든지 청구할 수 있습니다.</li>
+                    <li>• <strong>Q:</strong> What are XpSwap's fees?</li>
+                    <li>• <strong>A:</strong> Base swap fee is 0.3%, dynamically adjusted based on volatility.</li>
+                    <li>• <strong>Q:</strong> When can I claim farming rewards?</li>
+                    <li>• <strong>A:</strong> Rewards accumulate in real-time and can be claimed anytime.</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">기술 지원</h4>
+                  <h4 className="font-semibold mb-2">Technical Support</h4>
                   <p className="text-sm">
-                    기술적인 문제나 질문이 있으시면 Discord의 #support 채널을 이용해주세요.
+                    For technical issues or questions, please use the #support channel on Discord.
                   </p>
                 </div>
               </CardContent>
