@@ -44,7 +44,7 @@ export function CryptoTicker() {
   const duplicatedTickers = [...tickers, ...tickers];
 
   return (
-    <div className="w-full bg-gradient-to-r from-background/95 via-background/90 to-background/95 backdrop-blur-sm border-b border-border/50 overflow-hidden relative">
+    <div className="w-full bg-slate-900 dark:bg-slate-950 backdrop-blur-sm border-b border-slate-700 overflow-hidden relative shadow-lg">
       <div 
         className={`flex whitespace-nowrap ${isPaused ? '' : 'animate-scroll-ticker'}`}
         onMouseEnter={() => setIsPaused(true)}
@@ -67,17 +67,16 @@ export function CryptoTicker() {
             />
             <span className="text-lg hidden">{ticker.symbol}</span>
             <div className="flex items-center space-x-2">
-              <span className="font-semibold text-foreground">{ticker.symbol}</span>
-              <span className="text-sm text-muted-foreground">{ticker.name}</span>
+              <span className="font-bold text-white text-sm">{ticker.symbol}</span>
             </div>
-            <span className="font-mono text-sm font-medium text-foreground">
+            <span className="font-mono text-sm font-medium text-white">
               {formatPrice(ticker.price, ticker.symbol)}
             </span>
             <span
-              className={`text-xs font-medium px-2 py-1 rounded ${
+              className={`text-xs font-bold px-2 py-1 rounded ${
                 ticker.change24h >= 0
-                  ? 'text-green-600 bg-green-100/50 dark:text-green-400 dark:bg-green-900/30'
-                  : 'text-red-600 bg-red-100/50 dark:text-red-400 dark:bg-red-900/30'
+                  ? 'text-green-400 bg-green-900/50'
+                  : 'text-red-400 bg-red-900/50'
               }`}
             >
               {formatChange(ticker.change24h)}
