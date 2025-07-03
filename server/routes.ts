@@ -2682,6 +2682,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bug Bounty submission endpoint
+  app.post("/api/bug-bounty/submit", async (req, res) => {
+    try {
+      const { name, title, content } = req.body;
+
+      if (!name || !title || !content) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing required fields: name, title, content" 
+        });
+      }
+
+      // SendGrid email configuration
+      const sgMail = require('@sendgrid/mail');
+      
+      // Check if SendGrid API key is available
+      if (!process.env.SENDGRID_API_KEY) {
+        console.error("SENDGRID_API_KEY not configured");
+        return res.status(500).json({
+          success: false,
+          message: "Email service not configured. Please contact support directly."
+        });
+      }
+
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+      const msg = {
+        to: 'myid998877@gmail.com',
+        from: 'noreply@xpswap.dev', // Use a verified sender email
+        subject: `[XpSwap Bug Bounty] ${title}`,
+        text: `
+Bug Report Submission
+
+Reporter: ${name}
+Title: ${title}
+
+Description:
+${content}
+
+Submitted at: ${new Date().toISOString()}
+        `,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #3b82f6;">XpSwap Bug Bounty Report</h2>
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>Reporter:</strong> ${name}</p>
+              <p><strong>Title:</strong> ${title}</p>
+              <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+            </div>
+            <div style="background: white; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h3>Bug Description:</h3>
+              <p style="white-space: pre-wrap; line-height: 1.6;">${content}</p>
+            </div>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 14px;">
+              This bug report was submitted through the XpSwap Bug Bounty Program.<br>
+              Please review and respond within 48-72 hours as per our program guidelines.
+            </p>
+          </div>
+        `
+      };
+
+      await sgMail.send(msg);
+
+      res.json({
+        success: true,
+        message: "Bug report submitted successfully. We'll review it within 48-72 hours."
+      });
+
+    } catch (error: any) {
+      console.error("Bug bounty submission error:", error);
+      
+      // Handle specific SendGrid errors
+      if (error.code === 401) {
+        return res.status(500).json({
+          success: false,
+          message: "Email service authentication failed. Please contact support."
+        });
+      }
+      
+      if (error.code === 403) {
+        return res.status(500).json({
+          success: false,
+          message: "Email service permission denied. Please contact support."
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to submit bug report. Please try again or contact support directly."
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

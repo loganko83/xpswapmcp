@@ -8,6 +8,9 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-03**: Created Bug Bounty submission system with email integration to myid998877@gmail.com via SendGrid API
+- **2025-01-03**: Added comprehensive Bug Bounty page with tiered reward system ($100-$50,000) and detailed submission form
+- **2025-01-03**: Implemented /bug-bounty route with proper navigation integration and glassmorphism design
 - **2025-01-03**: Updated footer links: Help Center (https://trendy.storydot.kr), Contact (myid998877@gmail.com), Medium (https://eng.storydot.kr), copyright year changed to 2025
 - **2025-01-03**: Added comprehensive Privacy Policy and Terms of Service pages with English content for global legal compliance
 - **2025-01-03**: Updated footer navigation to link to internal /privacy-policy and /terms-of-service pages instead of external links

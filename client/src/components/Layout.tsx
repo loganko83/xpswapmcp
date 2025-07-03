@@ -354,14 +354,9 @@ export function Layout({ children }: LayoutProps) {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="https://xphere.io/bug-bounty"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link href="/bug-bounty" className="text-muted-foreground hover:text-primary transition-colors">
                     Bug Bounty
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
