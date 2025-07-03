@@ -19,20 +19,26 @@ export const DEFAULT_TOKENS = [
     address: "0x0000000000000000000000000000000000000000",
     decimals: 18,
     logoUrl: "",
+    network: "Xphere",
+    chainId: 20250217,
   },
   {
     symbol: "USDT",
-    name: "Tether USD",
+    name: "Tether USD (Xphere)",
     address: "0x1234567890123456789012345678901234567890",
     decimals: 6,
     logoUrl: "",
+    network: "Xphere",
+    chainId: 20250217,
   },
   {
     symbol: "ETH",
-    name: "Ethereum",
+    name: "Ethereum (Xphere)",
     address: "0x2345678901234567890123456789012345678901",
     decimals: 18,
     logoUrl: "",
+    network: "Xphere",
+    chainId: 20250217,
   },
   {
     symbol: "BNB",
@@ -40,6 +46,8 @@ export const DEFAULT_TOKENS = [
     address: "0x3456789012345678901234567890123456789012",
     decimals: 18,
     logoUrl: "",
+    network: "BSC",
+    chainId: 56,
   },
 ];
 
