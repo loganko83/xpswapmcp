@@ -53,12 +53,12 @@ export function CryptoTicker() {
         {duplicatedTickers.map((ticker, index) => (
           <div
             key={`${ticker.id}-${index}`}
-            className="flex items-center space-x-3 px-6 py-3 min-w-fit"
+            className="flex items-center space-x-2 px-3 py-1.5 min-w-fit"
           >
             <img 
               src={ticker.iconUrl} 
               alt={ticker.name}
-              className="w-6 h-6 rounded-full"
+              className="w-5 h-5 rounded-full"
               onError={(e) => {
                 // 이미지 로드 실패 시 대체 텍스트 표시
                 e.currentTarget.style.display = 'none';
