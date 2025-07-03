@@ -190,48 +190,105 @@ export class LiFiBridgeService {
 
 export const lifiService = new LiFiBridgeService();
 
-// Network configurations for common chains
+// Network configurations for common chains with reliable free RPC endpoints
 export const SUPPORTED_NETWORKS = {
   ETHEREUM: {
     chainId: 1,
     name: 'Ethereum',
     symbol: 'ETH',
-    rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+    rpcUrls: [
+      'https://eth.llamarpc.com',
+      'https://rpc.ankr.com/eth',
+      'https://ethereum.publicnode.com',
+      'https://eth.rpc.blxrbdn.com'
+    ],
     blockExplorer: 'https://etherscan.io',
+    nativeCurrency: {
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18,
+    },
   },
   BSC: {
     chainId: 56,
     name: 'BNB Smart Chain',
     symbol: 'BNB',
-    rpcUrl: 'https://bsc-dataseed.binance.org',
+    rpcUrls: [
+      'https://bsc-dataseed1.defibit.io',
+      'https://bsc-dataseed.binance.org',
+      'https://rpc.ankr.com/bsc',
+      'https://bsc.publicnode.com'
+    ],
     blockExplorer: 'https://bscscan.com',
+    nativeCurrency: {
+      name: 'BNB',
+      symbol: 'BNB',
+      decimals: 18,
+    },
   },
   POLYGON: {
     chainId: 137,
     name: 'Polygon',
     symbol: 'MATIC',
-    rpcUrl: 'https://polygon-rpc.com',
+    rpcUrls: [
+      'https://polygon-rpc.com',
+      'https://rpc.ankr.com/polygon',
+      'https://polygon.llamarpc.com',
+      'https://polygon.publicnode.com'
+    ],
     blockExplorer: 'https://polygonscan.com',
+    nativeCurrency: {
+      name: 'MATIC',
+      symbol: 'MATIC',
+      decimals: 18,
+    },
   },
   ARBITRUM: {
     chainId: 42161,
     name: 'Arbitrum One',
     symbol: 'ETH',
-    rpcUrl: 'https://arb1.arbitrum.io/rpc',
+    rpcUrls: [
+      'https://arb1.arbitrum.io/rpc',
+      'https://rpc.ankr.com/arbitrum',
+      'https://arbitrum.publicnode.com',
+      'https://arbitrum.llamarpc.com'
+    ],
     blockExplorer: 'https://arbiscan.io',
+    nativeCurrency: {
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18,
+    },
   },
   OPTIMISM: {
     chainId: 10,
     name: 'Optimism',
     symbol: 'ETH',
-    rpcUrl: 'https://mainnet.optimism.io',
+    rpcUrls: [
+      'https://mainnet.optimism.io',
+      'https://rpc.ankr.com/optimism',
+      'https://optimism.publicnode.com',
+      'https://optimism.llamarpc.com'
+    ],
     blockExplorer: 'https://optimistic.etherscan.io',
+    nativeCurrency: {
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18,
+    },
   },
   XPHERE: {
     chainId: 20250217,
     name: 'Xphere',
     symbol: 'XP',
-    rpcUrl: 'https://en-bkk.x-phere.com',
+    rpcUrls: [
+      'https://en-bkk.x-phere.com'
+    ],
     blockExplorer: 'https://explorer.x-phere.com',
+    nativeCurrency: {
+      name: 'Xphere',
+      symbol: 'XP',
+      decimals: 18,
+    },
   },
 } as const;

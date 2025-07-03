@@ -13,10 +13,14 @@ import {
   ExternalLink, 
   AlertTriangle,
   RefreshCw,
-  ChevronDown
+  ChevronDown,
+  Plus,
+  CheckCircle
 } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { SUPPORTED_NETWORKS, lifiService, BridgeQuote } from "@/lib/lifiService";
+import { switchToNetwork, addNetworkToMetaMask, getNetworkByChainId, checkNetworkStatus } from "@/lib/networkUtils";
+import { useToast } from "@/hooks/use-toast";
 import { Token } from "@/types";
 
 interface NetworkOption {
@@ -29,6 +33,7 @@ interface NetworkOption {
 
 export function MultiNetworkSwapInterface() {
   const { wallet, switchToXphere } = useWeb3();
+  const { toast } = useToast();
   const [selectedFromNetwork, setSelectedFromNetwork] = useState<number>(wallet.chainId || 20250217);
   const [selectedToNetwork, setSelectedToNetwork] = useState<number>(1); // Ethereum
   const [fromAmount, setFromAmount] = useState("");
@@ -36,6 +41,7 @@ export function MultiNetworkSwapInterface() {
   const [bridgeQuote, setBridgeQuote] = useState<BridgeQuote | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [networkStatus, setNetworkStatus] = useState<Record<string, boolean>>({});
 
   const networks: NetworkOption[] = [
     {
@@ -78,8 +84,73 @@ export function MultiNetworkSwapInterface() {
   const supportedTokens = ["ETH", "USDT", "USDC", "BNB", "MATIC"];
 
   useEffect(() => {
-    lifiService.initialize();
+    const initializeService = async () => {
+      try {
+        await lifiService.initialize();
+        
+        // Test network connectivity for Ethereum and BSC
+        const ethStatus = await testNetworkConnectivity(1);
+        const bscStatus = await testNetworkConnectivity(56);
+        const polygonStatus = await testNetworkConnectivity(137);
+        
+        setNetworkStatus({
+          ethereum: ethStatus,
+          bsc: bscStatus,
+          polygon: polygonStatus,
+        });
+      } catch (error) {
+        console.error("Failed to initialize multi-network service:", error);
+      }
+    };
+    
+    initializeService();
   }, []);
+
+  // Test network connectivity
+  const testNetworkConnectivity = async (chainId: number): Promise<boolean> => {
+    const network = Object.values(SUPPORTED_NETWORKS).find(n => n.chainId === chainId);
+    if (!network || !network.rpcUrls || network.rpcUrls.length === 0) return false;
+
+    try {
+      const response = await fetch(network.rpcUrls[0], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1
+        })
+      });
+      
+      const data = await response.json();
+      return !!(data.result && response.ok);
+    } catch (error) {
+      console.error(`Network connectivity test failed for chain ${chainId}:`, error);
+      return false;
+    }
+  };
+
+  // Add network to MetaMask
+  const addNetworkToWallet = async (chainId: number) => {
+    const network = Object.values(SUPPORTED_NETWORKS).find(n => n.chainId === chainId);
+    if (!network || !window.ethereum) return;
+
+    try {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: `0x${chainId.toString(16)}`,
+          chainName: network.name,
+          nativeCurrency: network.nativeCurrency,
+          rpcUrls: network.rpcUrls,
+          blockExplorerUrls: [network.blockExplorer],
+        }],
+      });
+    } catch (error) {
+      console.error('Failed to add network:', error);
+    }
+  };
 
   useEffect(() => {
     if (wallet.chainId && wallet.chainId !== selectedFromNetwork) {
@@ -168,6 +239,47 @@ export function MultiNetworkSwapInterface() {
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Network Status Indicator */}
+        <div className="bg-white/60 p-4 rounded-lg border border-green-200">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-medium text-green-800">Network Status</h4>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="text-xs"
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Refresh
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {Object.entries(SUPPORTED_NETWORKS).map(([key, network]) => (
+              <div key={key} className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    networkStatus[key.toLowerCase()] ? 'bg-green-500' : 'bg-gray-400'
+                  }`} />
+                  <span className="text-xs font-medium">{network.name}</span>
+                </div>
+                {!networkStatus[key.toLowerCase()] && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => addNetworkToWallet(network.chainId)}
+                    className="text-xs p-1 h-6"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            🟢 Connected • ⚪ Disconnected • Click <Plus className="w-3 h-3 inline" /> to add network to MetaMask
+          </p>
+        </div>
+
         <Tabs defaultValue="swap" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="swap">Cross-Chain Swap</TabsTrigger>
