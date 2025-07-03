@@ -63,20 +63,20 @@ export default function PoolPage() {
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-xl font-bold mb-1">XPS 홀더 LP 부스트</h3>
-                  <p className="text-green-100 text-sm">XPS 스테이킹으로 LP 보상 최대 2.5배 증가</p>
+                  <h3 className="text-xl font-bold mb-1">XPS Holder LP Boost</h3>
+                  <p className="text-green-100 text-sm">XPS staking increases LP rewards up to 2.5x</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  LP 마이닝 부스트
+                  LP Mining Boost
                 </Badge>
                 <Button 
                   variant="secondary" 
                   className="bg-white text-green-600 hover:bg-white/90"
                   onClick={() => window.location.href = '/documentation#xps-whitepaper'}
                 >
-                  자세히 보기 <ArrowRight className="w-4 h-4 ml-2" />
+                  Learn More <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>

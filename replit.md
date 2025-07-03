@@ -8,6 +8,9 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-03**: Converted all XPS promotion banners from Korean to English for global audience
+- **2025-01-03**: Updated banner content: Swap (fee discount), Pool (LP boost), Farm (yield maximization), Analytics (portfolio optimization)
+- **2025-01-03**: All promotional messaging now in English to support global service expansion
 - **2025-01-03**: Added XPS token promotion banners across all main pages (Swap, Pool, Farm, Analytics)
 - **2025-01-03**: Created colorful gradient banners highlighting XPS benefits and driving traffic to whitepaper
 - **2025-01-03**: Integrated direct links from promotion banners to XPS Whitepaper documentation section

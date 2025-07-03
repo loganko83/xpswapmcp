@@ -181,20 +181,20 @@ export default function AnalyticsPage() {
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-xl font-bold mb-1">XPS 포트폴리오 최적화</h3>
-                  <p className="text-purple-100 text-sm">토큰 분산 투자 추천 + 실시간 수익률 분석</p>
+                  <h3 className="text-xl font-bold mb-1">XPS Portfolio Optimization</h3>
+                  <p className="text-purple-100 text-sm">Token diversification recommendations + real-time yield analysis</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  고급 분석
+                  Advanced Analytics
                 </Badge>
                 <Button 
                   variant="secondary" 
                   className="bg-white text-purple-600 hover:bg-white/90"
                   onClick={() => window.location.href = '/documentation#xps-whitepaper'}
                 >
-                  포트폴리오 시작 <ArrowRight className="w-4 h-4 ml-2" />
+                  Start Portfolio <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>

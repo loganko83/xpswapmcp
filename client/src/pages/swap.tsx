@@ -54,20 +54,20 @@ export default function SwapPage() {
                     <Sparkles className="w-8 h-8 text-white" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-bold mb-1">XPS 네이티브 토큰</h3>
-                    <p className="text-blue-100 text-sm">거래 수수료 최대 75% 할인 + 최대 400% 스테이킹 APY</p>
+                    <h3 className="text-xl font-bold mb-1">XPS Native Token</h3>
+                    <p className="text-blue-100 text-sm">Up to 75% trading fee discount + Up to 400% staking APY</p>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                    디플레이션 토큰
+                    Deflationary Token
                   </Badge>
                   <Button 
                     variant="secondary" 
                     className="bg-white text-purple-600 hover:bg-white/90"
                     onClick={() => window.location.href = '/documentation#xps-whitepaper'}
                   >
-                    화이트페이퍼 보기 <ArrowRight className="w-4 h-4 ml-2" />
+                    View Whitepaper <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </div>

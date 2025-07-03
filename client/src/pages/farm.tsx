@@ -175,20 +175,20 @@ export default function FarmPage() {
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-xl font-bold mb-1">XPS 스테이킹으로 농장 수익 극대화</h3>
-                  <p className="text-orange-100 text-sm">최대 400% APY 스테이킹 + LP 농장 보상 2.5배 부스트</p>
+                  <h3 className="text-xl font-bold mb-1">XPS Staking Farm Yield Maximization</h3>
+                  <p className="text-orange-100 text-sm">Up to 400% APY staking + 2.5x LP farm reward boost</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  수익 부스터
+                  Yield Booster
                 </Badge>
                 <Button 
                   variant="secondary" 
                   className="bg-white text-orange-600 hover:bg-white/90"
                   onClick={() => window.location.href = '/documentation#xps-whitepaper'}
                 >
-                  스테이킹 시작 <ArrowRight className="w-4 h-4 ml-2" />
+                  Start Staking <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>
