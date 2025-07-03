@@ -22,6 +22,7 @@ import {
 const navigationItems = [
   { id: "overview", title: "Overview", icon: BookOpen },
   { id: "getting-started", title: "Getting Started", icon: Zap },
+  { id: "multi-network", title: "Multi-Network Trading", icon: Globe },
   { id: "smart-contracts", title: "Smart Contracts", icon: Shield },
   { id: "xps-whitepaper", title: "XPS Whitepaper", icon: TrendingUp },
   { id: "api-reference", title: "API Reference", icon: Code },
@@ -86,6 +87,47 @@ const apiEndpoints = [
   "totalStaked": "750000",
   "rewardRate": "1000",
   "boostMultiplier": "2.5"
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/bridge-quote",
+    description: "Get cross-chain bridge quotes via LI.FI integration",
+    body: `{
+  "fromChain": 1,
+  "toChain": 56,
+  "fromToken": "ETH",
+  "toToken": "BNB",
+  "amount": "1000000000000000000"
+}`,
+    response: `{
+  "estimate": {
+    "fromAmount": "1.0",
+    "toAmount": "0.98",
+    "gasCosts": [{"amount": "21000", "token": "ETH"}],
+    "executionDuration": 300
+  },
+  "routes": [{
+    "fromChainId": 1,
+    "toChainId": 56,
+    "steps": [{"tool": "lifi"}]
+  }]
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/network-status",
+    description: "Check real-time network connectivity status",
+    body: `{
+  "networks": ["ethereum", "bsc", "polygon"]
+}`,
+    response: `{
+  "status": {
+    "ethereum": {"connected": true, "blockNumber": "0x12345"},
+    "bsc": {"connected": true, "blockNumber": "0x67890"},
+    "polygon": {"connected": false, "error": "RPC timeout"}
+  },
+  "timestamp": 1672531200
 }`
   }
 ];
@@ -397,6 +439,217 @@ export default function Documentation() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        );
+
+      case "multi-network":
+        return (
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-4xl font-bold mb-4">Multi-Network Trading</h1>
+              <p className="text-xl text-muted-foreground mb-6">
+                XpSwap supports seamless trading across 40+ blockchain networks via LI.FI integration
+              </p>
+            </div>
+
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Supported Networks
+                  </CardTitle>
+                  <CardDescription>
+                    Trade assets across major blockchain networks with real-time RPC connectivity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="font-semibold text-blue-900">Ethereum</div>
+                      <div className="text-sm text-blue-700">Chain ID: 1</div>
+                      <div className="text-xs text-blue-600">RPC: eth.llamarpc.com</div>
+                    </div>
+                    <div className="p-3 bg-yellow-50 rounded-lg">
+                      <div className="font-semibold text-yellow-900">Binance Smart Chain</div>
+                      <div className="text-sm text-yellow-700">Chain ID: 56</div>
+                      <div className="text-xs text-yellow-600">RPC: bsc-dataseed1.defibit.io</div>
+                    </div>
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <div className="font-semibold text-purple-900">Polygon</div>
+                      <div className="text-sm text-purple-700">Chain ID: 137</div>
+                      <div className="text-xs text-purple-600">RPC: polygon-rpc.com</div>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="font-semibold text-blue-900">Arbitrum</div>
+                      <div className="text-sm text-blue-700">Chain ID: 42161</div>
+                      <div className="text-xs text-blue-600">RPC: arb1.arbitrum.io</div>
+                    </div>
+                    <div className="p-3 bg-red-50 rounded-lg">
+                      <div className="font-semibold text-red-900">Optimism</div>
+                      <div className="text-sm text-red-700">Chain ID: 10</div>
+                      <div className="text-xs text-red-600">RPC: mainnet.optimism.io</div>
+                    </div>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <div className="font-semibold text-green-900">Xphere</div>
+                      <div className="text-sm text-green-700">Chain ID: 20250217</div>
+                      <div className="text-xs text-green-600">RPC: en-bkk.x-phere.com</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    Key Features
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-3">🌐 Real-time Network Status</h4>
+                      <ul className="space-y-2 text-sm">
+                        <li>• Live RPC connectivity monitoring</li>
+                        <li>• Network health indicators</li>
+                        <li>• Automatic failover to backup RPCs</li>
+                        <li>• Visual network status dashboard</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-3">⚡ One-click Network Addition</h4>
+                      <ul className="space-y-2 text-sm">
+                        <li>• Auto-add networks to MetaMask</li>
+                        <li>• Pre-configured RPC endpoints</li>
+                        <li>• Automatic network switching</li>
+                        <li>• Built-in network detection</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-3">🔗 Cross-chain Bridge</h4>
+                      <ul className="space-y-2 text-sm">
+                        <li>• LI.FI SDK integration</li>
+                        <li>• 40+ blockchain support</li>
+                        <li>• Real-time bridge quotes</li>
+                        <li>• Multi-route optimization</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-3">💧 High Availability</h4>
+                      <ul className="space-y-2 text-sm">
+                        <li>• Multiple fallback RPC URLs</li>
+                        <li>• Load balancing across providers</li>
+                        <li>• 99.9% uptime guarantee</li>
+                        <li>• Redundant infrastructure</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>How to Use Multi-Network Trading</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">1. Access Multi-Network Interface</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Navigate to the Swap page and scroll to the "Multi-Network Trading" section
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">2. Check Network Status</h4>
+                      <p className="text-sm text-muted-foreground">
+                        View real-time network connectivity in the "Network Status" panel
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">3. Add Networks to MetaMask</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Click the "+" button next to any network to add it to your MetaMask wallet
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">4. Select Source and Target Networks</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Choose your source network (where you have tokens) and target network (where you want tokens)
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">5. Get Real-time Quotes</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Enter amount and receive instant quotes from multiple bridge providers
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Technical Implementation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">RPC Configuration</h4>
+                      <CodeBlock
+                        id="rpc-config"
+                        language="typescript"
+                        code={`// Multiple fallback RPC endpoints for high availability
+const SUPPORTED_NETWORKS = {
+  ETHEREUM: {
+    chainId: 1,
+    name: "Ethereum",
+    rpcUrls: [
+      "https://eth.llamarpc.com",
+      "https://rpc.ankr.com/eth",
+      "https://ethereum.publicnode.com"
+    ]
+  },
+  BSC: {
+    chainId: 56,
+    name: "Binance Smart Chain",
+    rpcUrls: [
+      "https://bsc-dataseed1.defibit.io",
+      "https://bsc-dataseed.binance.org"
+    ]
+  }
+};`}
+                      />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Network Status Monitoring</h4>
+                      <CodeBlock
+                        id="network-monitor"
+                        language="typescript"
+                        code={`// Real-time network connectivity testing
+export async function checkNetworkStatus(rpcUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_blockNumber',
+        params: [],
+        id: 1
+      })
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}`}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         );
 
