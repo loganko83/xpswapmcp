@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowUpDown, Settings, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowUpDown, Settings, ChevronDown, Loader2, AlertTriangle, ExternalLink } from "lucide-react";
 import { TokenSelector } from "./TokenSelector";
 import { Token, SwapQuote } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
@@ -193,6 +194,21 @@ export function SwapInterface() {
     }
   };
 
+  // Define network tokens
+  const XPHERE_TOKENS = ["XP", "USDT", "ETH"]; // Tokens available on Xphere network
+  const CROSS_CHAIN_TOKENS = ["BNB"]; // Tokens requiring cross-chain bridge
+  
+  // Check if this is a cross-chain swap
+  const isCrossChainSwap = () => {
+    const fromIsXphere = XPHERE_TOKENS.includes(fromToken.symbol);
+    const toIsXphere = XPHERE_TOKENS.includes(toToken.symbol);
+    const fromIsCrossChain = CROSS_CHAIN_TOKENS.includes(fromToken.symbol);
+    const toIsCrossChain = CROSS_CHAIN_TOKENS.includes(toToken.symbol);
+    
+    return (fromIsXphere && toIsCrossChain) || (fromIsCrossChain && toIsXphere) || 
+           (fromIsCrossChain && toIsCrossChain);
+  };
+
   // Get token prices
   const fromTokenPrice = tokenPrices?.[fromToken.symbol]?.price || 0;
   const toTokenPrice = tokenPrices?.[toToken.symbol]?.price || 0;
@@ -205,6 +221,8 @@ export function SwapInterface() {
   const toTokenBalance = getTokenBalance(toToken);
   const isInsufficientBalance = fromAmount && 
     parseFloat(fromAmount) > parseFloat(fromTokenBalance);
+  
+  const requiresCrossChainBridge = isCrossChainSwap();
 
   // Token icon URLs from CoinMarketCap
   const getTokenIcon = (symbol: string) => {
@@ -415,6 +433,32 @@ export function SwapInterface() {
           </div>
         )}
 
+        {/* Cross-chain Bridge Warning */}
+        {requiresCrossChainBridge && (
+          <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-sm">
+              <div className="space-y-2">
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                  Cross-chain transfer required
+                </p>
+                <p className="text-yellow-700 dark:text-yellow-300">
+                  {fromToken.symbol} and {toToken.symbol} are on different networks. Use our Bridge feature for cross-chain transfers.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2 text-yellow-800 border-yellow-300 hover:bg-yellow-100 dark:text-yellow-200 dark:border-yellow-600 dark:hover:bg-yellow-900/40"
+                  onClick={() => window.location.href = '/bridge'}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Go to Bridge
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Action Button */}
         <div className="space-y-2">
           {!wallet.isConnected ? (
@@ -431,6 +475,10 @@ export function SwapInterface() {
               variant="outline"
             >
               Switch to Xphere Network
+            </Button>
+          ) : requiresCrossChainBridge ? (
+            <Button className="w-full" disabled>
+              Use Bridge for Cross-chain Transfer
             </Button>
           ) : isInsufficientBalance ? (
             <Button className="w-full" disabled>

@@ -8,6 +8,10 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-03**: Fixed cross-chain swap issue with network validation and user guidance
+- **2025-01-03**: Added cross-chain bridge warning for XP-BNB and other cross-network token pairs
+- **2025-01-03**: Implemented slippage settings dialog with preset and custom options
+- **2025-01-03**: Enhanced swap interface with transaction details display
 - **2025-01-03**: Converted all XPS promotion banners from Korean to English for global audience
 - **2025-01-03**: Updated banner content: Swap (fee discount), Pool (LP boost), Farm (yield maximization), Analytics (portfolio optimization)
 - **2025-01-03**: All promotional messaging now in English to support global service expansion
