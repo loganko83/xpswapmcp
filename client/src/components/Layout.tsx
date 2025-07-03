@@ -372,22 +372,16 @@ export function Layout({ children }: LayoutProps) {
               © 2024 XpSwap. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <a
-                href="https://xphere.io/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="https://xphere.io/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                Terms of Service
-              </a>
+              <Link href="/privacy-policy">
+                <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Privacy Policy
+                </a>
+              </Link>
+              <Link href="/terms-of-service">
+                <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Terms of Service
+                </a>
+              </Link>
             </div>
           </div>
         </div>

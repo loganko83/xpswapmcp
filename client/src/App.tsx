@@ -12,6 +12,8 @@ import BridgePage from "@/pages/bridge";
 import GovernancePage from "@/pages/governance";
 import AnalyticsPage from "@/pages/analytics";
 import DocumentationPage from "@/pages/documentation";
+import PrivacyPolicyPage from "@/pages/privacy-policy";
+import TermsOfServicePage from "@/pages/terms-of-service";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +27,8 @@ function Router() {
         <Route path="/governance" component={GovernancePage} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/documentation" component={DocumentationPage} />
+        <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+        <Route path="/terms-of-service" component={TermsOfServicePage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

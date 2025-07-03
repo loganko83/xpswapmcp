@@ -8,6 +8,9 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-03**: Added comprehensive Privacy Policy and Terms of Service pages with English content for global legal compliance
+- **2025-01-03**: Updated footer navigation to link to internal /privacy-policy and /terms-of-service pages instead of external links
+- **2025-01-03**: Implemented proper routing for legal compliance pages with glassmorphism design matching platform UI
 - **2025-01-03**: Integrated LI.FI Bridge SDK for cross-chain functionality with 40+ blockchain support
 - **2025-01-03**: Created MultiNetworkSwapInterface for cross-chain trading with MetaMask multi-network detection
 - **2025-01-03**: Added real-time bridge quotes and network switching functionality
