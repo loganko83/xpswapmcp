@@ -23,6 +23,21 @@ export default function BridgePage() {
         <p className="text-muted-foreground">
           Transfer assets seamlessly between different blockchain networks
         </p>
+        
+        {/* LI.FI Integration Status */}
+        <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="w-5 h-5 text-green-600" />
+            <span className="font-medium text-green-800">LI.FI Bridge Integration Active</span>
+            <Badge variant="secondary" className="bg-green-100 text-green-700">
+              40+ Networks Supported
+            </Badge>
+          </div>
+          <p className="text-sm text-green-700">
+            Connected to the largest bridge aggregator supporting Ethereum, BSC, Polygon, Arbitrum, Optimism, 
+            and 35+ additional blockchains for seamless cross-chain asset transfers.
+          </p>
+        </div>
       </div>
 
       {/* Bridge Statistics */}

@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity, TrendingUp, DollarSign, Users, Zap, ArrowRight, Sparkles } from "lucide-react";
 import { SwapInterface } from "@/components/SwapInterface";
 import { AggregatorSwapInterface } from "@/components/AggregatorSwapInterface";
+import { MultiNetworkSwapInterface } from "@/components/MultiNetworkSwapInterface";
 import { TopPairs } from "@/components/TopPairs";
 import { useQuery } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
@@ -216,6 +217,11 @@ export default function SwapPage() {
                 toToken={swapTokens.toToken}
                 fromAmount={swapTokens.fromAmount}
               />
+            </div>
+
+            {/* Multi-Network Bridge Section */}
+            <div className="mt-6">
+              <MultiNetworkSwapInterface />
             </div>
           </div>
 

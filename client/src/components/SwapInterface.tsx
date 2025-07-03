@@ -75,10 +75,8 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
 
   // Notify parent component of token changes
   useEffect(() => {
-    if (onTokenChange) {
-      onTokenChange(fromToken, toToken, fromAmount);
-    }
-  }, [fromToken, toToken, fromAmount, onTokenChange]);
+    onTokenChange?.(fromToken, toToken, fromAmount);
+  }, [fromToken.id, toToken.id, fromAmount]);
 
   // Calculate swap quote
   const swapQuoteMutation = useMutation({
