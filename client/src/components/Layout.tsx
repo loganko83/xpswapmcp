@@ -327,7 +327,7 @@ export function Layout({ children }: LayoutProps) {
               <ul className="space-y-2 text-sm">
                 <li>
                   <a
-                    href="https://help.xphere.io"
+                    href="https://trendy.storydot.kr"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors"
@@ -337,17 +337,17 @@ export function Layout({ children }: LayoutProps) {
                 </li>
                 <li>
                   <a
-                    href="https://discord.gg/xphere"
+                    href="https://eng.storydot.kr"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Discord
+                    Medium
                   </a>
                 </li>
                 <li>
                   <a
-                    href="mailto:support@xphere.io"
+                    href="mailto:myid998877@gmail.com"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     Contact
@@ -369,7 +369,7 @@ export function Layout({ children }: LayoutProps) {
 
           <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              © 2024 XpSwap. All rights reserved.
+              © 2025 XpSwap. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <Link href="/privacy-policy">
