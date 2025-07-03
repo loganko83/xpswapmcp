@@ -47,6 +47,9 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Crypto Ticker - Top Position */}
+      <CryptoTicker />
+      
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -234,9 +237,6 @@ export function Layout({ children }: LayoutProps) {
           </div>
         )}
       </header>
-
-      {/* Crypto Ticker */}
-      <CryptoTicker />
 
       {/* Main Content */}
       <main className="flex-1">
