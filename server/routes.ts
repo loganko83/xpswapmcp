@@ -328,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Bitcoin',
           price: cryptoData['1']?.quote.USD.price || 0,
           change24h: cryptoData['1']?.quote.USD.percent_change_24h || 0,
-          icon: '₿'
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png'
         },
         {
           id: '1027',
@@ -336,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Ethereum',
           price: cryptoData['1027']?.quote.USD.price || 0,
           change24h: cryptoData['1027']?.quote.USD.percent_change_24h || 0,
-          icon: 'Ξ'
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png'
         },
         {
           id: '1839',
@@ -344,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'BNB',
           price: cryptoData['1839']?.quote.USD.price || 0,
           change24h: cryptoData['1839']?.quote.USD.percent_change_24h || 0,
-          icon: '🔶'
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
         },
         {
           id: '5426',
@@ -352,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Solana',
           price: cryptoData['5426']?.quote.USD.price || 0,
           change24h: cryptoData['5426']?.quote.USD.percent_change_24h || 0,
-          icon: '◎'
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png'
         },
         {
           id: '74',
@@ -360,7 +360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Dogecoin',
           price: cryptoData['74']?.quote.USD.price || 0,
           change24h: cryptoData['74']?.quote.USD.percent_change_24h || 0,
-          icon: '🐕'
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png'
         },
         {
           id: '36056',
@@ -368,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Xphere',
           price: cryptoData['36056']?.quote.USD.price || 0,
           change24h: cryptoData['36056']?.quote.USD.percent_change_24h || 0,
-          icon: '⚡'
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png'
         }
       ];
 

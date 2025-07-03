@@ -7,7 +7,7 @@ interface TickerData {
   name: string;
   price: number;
   change24h: number;
-  icon: string;
+  iconUrl: string;
 }
 
 export function CryptoTicker() {
@@ -55,7 +55,17 @@ export function CryptoTicker() {
             key={`${ticker.id}-${index}`}
             className="flex items-center space-x-3 px-6 py-3 min-w-fit"
           >
-            <span className="text-lg">{ticker.icon}</span>
+            <img 
+              src={ticker.iconUrl} 
+              alt={ticker.name}
+              className="w-6 h-6 rounded-full"
+              onError={(e) => {
+                // 이미지 로드 실패 시 대체 텍스트 표시
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling!.style.display = 'inline';
+              }}
+            />
+            <span className="text-lg hidden">{ticker.symbol}</span>
             <div className="flex items-center space-x-2">
               <span className="font-semibold text-foreground">{ticker.symbol}</span>
               <span className="text-sm text-muted-foreground">{ticker.name}</span>
