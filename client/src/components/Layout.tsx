@@ -5,6 +5,7 @@ import { WalletConnect } from "@/components/WalletConnect";
 import { useTheme } from "@/components/ThemeProvider";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Link, useLocation } from "wouter";
+import { CryptoTicker } from "@/components/CryptoTicker";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -233,6 +234,9 @@ export function Layout({ children }: LayoutProps) {
           </div>
         )}
       </header>
+
+      {/* Crypto Ticker */}
+      <CryptoTicker />
 
       {/* Main Content */}
       <main className="flex-1">

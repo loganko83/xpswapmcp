@@ -303,6 +303,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Crypto ticker prices endpoint
+  app.get('/api/crypto-ticker', async (req, res) => {
+    try {
+      // CoinMarketCap IDs: BTC(1), ETH(1027), BNB(1839), SOL(5426), DOGE(74), XP(36056)
+      const response = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,1839,5426,74,36056', {
+        headers: {
+          'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const cryptoData = data.data;
+      
+      const tickers = [
+        {
+          id: '1',
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: cryptoData['1']?.quote.USD.price || 0,
+          change24h: cryptoData['1']?.quote.USD.percent_change_24h || 0,
+          icon: '₿'
+        },
+        {
+          id: '1027',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          price: cryptoData['1027']?.quote.USD.price || 0,
+          change24h: cryptoData['1027']?.quote.USD.percent_change_24h || 0,
+          icon: 'Ξ'
+        },
+        {
+          id: '1839',
+          symbol: 'BNB',
+          name: 'BNB',
+          price: cryptoData['1839']?.quote.USD.price || 0,
+          change24h: cryptoData['1839']?.quote.USD.percent_change_24h || 0,
+          icon: '🔶'
+        },
+        {
+          id: '5426',
+          symbol: 'SOL',
+          name: 'Solana',
+          price: cryptoData['5426']?.quote.USD.price || 0,
+          change24h: cryptoData['5426']?.quote.USD.percent_change_24h || 0,
+          icon: '◎'
+        },
+        {
+          id: '74',
+          symbol: 'DOGE',
+          name: 'Dogecoin',
+          price: cryptoData['74']?.quote.USD.price || 0,
+          change24h: cryptoData['74']?.quote.USD.percent_change_24h || 0,
+          icon: '🐕'
+        },
+        {
+          id: '36056',
+          symbol: 'XP',
+          name: 'Xphere',
+          price: cryptoData['36056']?.quote.USD.price || 0,
+          change24h: cryptoData['36056']?.quote.USD.percent_change_24h || 0,
+          icon: '⚡'
+        }
+      ];
+
+      res.json({
+        tickers,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching crypto ticker:', error);
+      res.status(500).json({ error: 'Failed to fetch crypto ticker data' });
+    }
+  });
+
   // Get multiple token prices from CoinMarketCap
   app.get("/api/token-prices", async (req, res) => {
     try {
