@@ -135,16 +135,25 @@ export function useWeb3() {
   useEffect(() => {
     if (typeof window.ethereum !== "undefined") {
       const handleAccountsChanged = (accounts: string[]) => {
+        console.log("MetaMask accounts changed:", accounts);
         if (accounts.length === 0) {
+          // User disconnected from MetaMask
           disconnectWallet();
         } else if (accounts[0] !== wallet.address) {
+          // User switched accounts
           updateWalletInfo(accounts[0]);
         }
       };
 
       const handleChainChanged = (chainId: string) => {
         const newChainId = parseInt(chainId, 16);
+        console.log("MetaMask network changed:", newChainId);
         setWallet(prev => ({ ...prev, chainId: newChainId }));
+        
+        // Refresh wallet info after network change
+        if (wallet.address) {
+          updateWalletInfo(wallet.address);
+        }
       };
 
       window.ethereum.on("accountsChanged", handleAccountsChanged);
