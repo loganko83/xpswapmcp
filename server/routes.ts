@@ -413,8 +413,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("Failed to fetch Xphere price:", error);
       }
 
-      // Then get other tokens by symbol
-      const symbols = "BTC,ETH,USDT,BNB";
+      // Then get other tokens by symbol - Extended list for multi-chain support
+      const symbols = "BTC,ETH,USDT,BNB,USDC,WBTC,UNI,LINK,BUSD,CAKE,DOGE";
       const cmcResponse = await fetch(
         `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=${symbols}`,
         {
@@ -2852,6 +2852,117 @@ Submitted at: ${new Date().toISOString()}
         success: false,
         message: "Failed to submit bug report. Please try again or contact support directly."
       });
+    }
+  });
+
+  // Multi-chain token balance API
+  app.get("/api/multichain/balance/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const { networks } = req.query;
+      
+      // Simulate multi-chain balance queries
+      // In production, this would query actual blockchain APIs (Etherscan, BSCScan, etc.)
+      const balances = {
+        ethereum: {
+          ETH: { balance: "1.2547", usdValue: 3072.51 },
+          USDT: { balance: "500.0", usdValue: 500.0 },
+          USDC: { balance: "250.0", usdValue: 250.0 },
+          WBTC: { balance: "0.01", usdValue: 421.50 },
+          UNI: { balance: "25.0", usdValue: 175.0 },
+          LINK: { balance: "50.0", usdValue: 675.0 }
+        },
+        bsc: {
+          BNB: { balance: "3.4567", usdValue: 1242.41 },
+          BUSD: { balance: "300.0", usdValue: 300.0 },
+          CAKE: { balance: "100.0", usdValue: 350.0 },
+          WBNB: { balance: "2.0", usdValue: 718.0 },
+          DOGE: { balance: "1000.0", usdValue: 85.0 }
+        },
+        xphere: {
+          XP: { balance: "6.5994225", usdValue: 141.9 },
+          ml: { balance: "1250.0", usdValue: 87.5 },
+          XCR: { balance: "500.0", usdValue: 125.0 },
+          XEF: { balance: "750.0", usdValue: 45.0 },
+          WARP: { balance: "25.0", usdValue: 12.5 }
+        }
+      };
+      
+      res.json({
+        address,
+        balances,
+        totalUsdValue: Object.values(balances).reduce((acc, networkBalances) => 
+          acc + Object.values(networkBalances).reduce((netAcc, token) => netAcc + (token as any).usdValue, 0), 0
+        )
+      });
+    } catch (error) {
+      console.error("Failed to fetch multi-chain balances:", error);
+      res.status(500).json({ error: "Failed to fetch multi-chain balances" });
+    }
+  });
+
+  // Multi-chain token transaction history
+  app.get("/api/multichain/transactions/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const { network, limit = 50 } = req.query;
+      
+      const transactions = [
+        {
+          hash: "0xa1b2c3d4e5f6789012345678901234567890abcd",
+          network: "ethereum",
+          type: "send",
+          token: "ETH",
+          amount: "0.5",
+          usdValue: 1225.38,
+          from: address,
+          to: "0x9876543210987654321098765432109876543210",
+          timestamp: Date.now() - 3600000,
+          status: "confirmed",
+          gasUsed: "21000",
+          gasFee: "0.002"
+        },
+        {
+          hash: "0xb2c3d4e5f6789012345678901234567890abcdef",
+          network: "bsc",
+          type: "receive",
+          token: "BNB",
+          amount: "1.0",
+          usdValue: 359.2,
+          from: "0x1234567890123456789012345678901234567890",
+          to: address,
+          timestamp: Date.now() - 7200000,
+          status: "confirmed",
+          gasUsed: "21000",
+          gasFee: "0.0005"
+        },
+        {
+          hash: "0xc3d4e5f6789012345678901234567890abcdef12",
+          network: "xphere",
+          type: "swap",
+          token: "XP",
+          amount: "100.0",
+          usdValue: 2.15,
+          from: address,
+          to: "0xXpSwap_Contract_Address",
+          timestamp: Date.now() - 10800000,
+          status: "confirmed",
+          gasUsed: "85000",
+          gasFee: "0.01"
+        }
+      ];
+      
+      const filteredTxs = network ? 
+        transactions.filter(tx => tx.network === network) : 
+        transactions;
+        
+      res.json({
+        transactions: filteredTxs.slice(0, parseInt(limit as string)),
+        total: filteredTxs.length
+      });
+    } catch (error) {
+      console.error("Failed to fetch multi-chain transactions:", error);
+      res.status(500).json({ error: "Failed to fetch multi-chain transactions" });
     }
   });
 

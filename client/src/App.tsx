@@ -15,6 +15,7 @@ import DocumentationPage from "@/pages/documentation";
 import PrivacyPolicyPage from "@/pages/privacy-policy";
 import TermsOfServicePage from "@/pages/terms-of-service";
 import BugBountyPage from "@/pages/bug-bounty";
+import MultiChainPortfolioPage from "@/pages/multichain-portfolio";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/privacy-policy" component={PrivacyPolicyPage} />
         <Route path="/terms-of-service" component={TermsOfServicePage} />
         <Route path="/bug-bounty" component={BugBountyPage} />
+        <Route path="/multichain-portfolio" component={MultiChainPortfolioPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

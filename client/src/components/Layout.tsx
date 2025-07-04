@@ -112,6 +112,13 @@ export function Layout({ children }: LayoutProps) {
                 }`}>
                   Analytics
                 </Link>
+                <Link href="/multichain-portfolio" className={`text-sm font-medium transition-colors ${
+                  isActivePage("/multichain-portfolio") 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}>
+                  Portfolio
+                </Link>
               </nav>
             </div>
 
@@ -223,6 +230,15 @@ export function Layout({ children }: LayoutProps) {
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}>
                     Analytics
+                  </div>
+                </Link>
+                <Link href="/multichain-portfolio" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/multichain-portfolio") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Portfolio
                   </div>
                 </Link>
               </nav>
