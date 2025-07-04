@@ -13,7 +13,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { theme, setTheme } = useTheme();
-  const { wallet, connectWallet, disconnectWallet } = useWeb3();
+  const { wallet, isConnecting, connectWallet, disconnectWallet } = useWeb3();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
@@ -133,12 +133,17 @@ export function Layout({ children }: LayoutProps) {
               {/* Wallet Connection */}
               <Button
                 onClick={handleWalletClick}
-                className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:scale-105 transition-all"
+                disabled={isConnecting}
+                className={`bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:scale-105 transition-all duration-300 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed ${
+                  isConnecting ? 'animate-wallet-pulse' : wallet.isConnected ? 'animate-wallet-connect' : ''
+                }`}
               >
-                <Wallet className="w-4 h-4 mr-2" />
-                {wallet.isConnected
-                  ? formatAddress(wallet.address!)
-                  : "Connect Wallet"}
+                <Wallet className={`w-4 h-4 mr-2 transition-transform duration-300 ${isConnecting ? 'animate-spin' : ''}`} />
+                {isConnecting 
+                  ? "연결 중..." 
+                  : wallet.isConnected
+                    ? formatAddress(wallet.address!)
+                    : "지갑 연결"}
               </Button>
 
               {/* Mobile Menu */}

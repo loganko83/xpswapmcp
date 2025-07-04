@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { WalletConnection } from "@/types";
 import { web3Service } from "@/lib/web3";
 import { XPHERE_NETWORK } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
 
 export function useWeb3() {
+  const { toast } = useToast();
   const [wallet, setWallet] = useState<WalletConnection>({
     isConnected: false,
     address: null,
@@ -43,32 +45,66 @@ export function useWeb3() {
 
     try {
       const address = await web3Service.connectWallet();
+      
+      // Smoothly update wallet info
       await updateWalletInfo(address);
       
-      // Try to switch to Xphere network
-      try {
-        await web3Service.switchToXphereNetwork();
-      } catch (networkError) {
-        console.warn("Failed to switch to Xphere network:", networkError);
-      }
+      // Show success toast
+      toast({
+        title: "지갑 연결 성공",
+        description: `메타마스크가 성공적으로 연결되었습니다.`,
+        variant: "default",
+      });
+      
+      // Try to switch to Xphere network with delay for better UX
+      setTimeout(async () => {
+        try {
+          await web3Service.switchToXphereNetwork();
+          if (address) {
+            await updateWalletInfo(address);
+          }
+        } catch (networkError) {
+          console.warn("Failed to switch to Xphere network:", networkError);
+        }
+      }, 500);
+      
     } catch (err: any) {
       setError(err.message);
       console.error("Failed to connect wallet:", err);
+      
+      // Show error toast
+      toast({
+        title: "지갑 연결 실패",
+        description: "메타마스크 연결에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
     } finally {
       setIsConnecting(false);
     }
-  }, [updateWalletInfo]);
+  }, [updateWalletInfo, toast]);
 
   const disconnectWallet = useCallback(() => {
-    web3Service.disconnect();
-    setWallet({
-      isConnected: false,
-      address: null,
-      balance: "0",
-      chainId: null,
+    // Add a brief delay for smoother transition
+    setWallet(prev => ({ ...prev, isConnected: false }));
+    
+    // Show disconnect toast
+    toast({
+      title: "지갑 연결 해제",
+      description: "메타마스크 연결이 해제되었습니다.",
+      variant: "default",
     });
-    setError(null);
-  }, []);
+    
+    setTimeout(() => {
+      web3Service.disconnect();
+      setWallet({
+        isConnected: false,
+        address: null,
+        balance: "0",
+        chainId: null,
+      });
+      setError(null);
+    }, 300);
+  }, [toast]);
 
   const switchToXphere = useCallback(async () => {
     try {
@@ -76,10 +112,24 @@ export function useWeb3() {
       if (wallet.address) {
         await updateWalletInfo(wallet.address);
       }
+      
+      // Show network switch success toast
+      toast({
+        title: "네트워크 전환 완료",
+        description: "Xphere 네트워크로 성공적으로 전환되었습니다.",
+        variant: "default",
+      });
     } catch (err: any) {
       setError(err.message);
+      
+      // Show network switch error toast
+      toast({
+        title: "네트워크 전환 실패",
+        description: "Xphere 네트워크 전환에 실패했습니다.",
+        variant: "destructive",
+      });
     }
-  }, [wallet.address, updateWalletInfo]);
+  }, [wallet.address, updateWalletInfo, toast]);
 
   // Listen for account changes
   useEffect(() => {
