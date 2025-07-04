@@ -11,6 +11,7 @@ import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_TOKENS } from "@/lib/constants";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 interface LiquidityPool {
   id: number;
@@ -89,17 +90,6 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
   const handleAmountAChange = (value: string) => {
     setAmountA(value);
     setAmountB(calculateAmountB(value));
-  };
-
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
   };
 
   const priceA = tokenPrices?.[pool.tokenA.symbol]?.price || 0;
@@ -287,17 +277,6 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
     }
   }, [percentage, pool.userLiquidity]);
 
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -406,16 +385,7 @@ export function AdvancedLiquidityPoolManager({ pools }: AdvancedLiquidityPoolMan
     setRemoveLiquidityOpen(true);
   };
 
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount.replace(/,/g, ''));

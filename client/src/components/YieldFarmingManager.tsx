@@ -11,6 +11,7 @@ import { useWeb3 } from "@/hooks/useWeb3";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 interface Farm {
   id: number;
@@ -81,17 +82,6 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
       });
     }
   });
-
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
 
   const stakingPrice = tokenPrices?.[farm.stakingToken.symbol]?.price || 0;
   const dollarValue = amount ? (parseFloat(amount) * stakingPrice).toFixed(2) : "0.00";
@@ -278,16 +268,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
     setStakeDialogOpen(true);
   };
 
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount.replace(/,/g, ''));

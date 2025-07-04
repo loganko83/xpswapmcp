@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Sprout, TrendingUp, Search, Lock, Unlock, Zap, Sparkles, ArrowRight } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
+import { getTokenIcon } from "@/lib/tokenUtils";
 import { YieldFarmingManager } from "@/components/YieldFarmingManager";
 
 export default function FarmPage() {
@@ -33,16 +34,7 @@ export default function FarmPage() {
   const activeFarms = filteredFarms.filter((farm: any) => farm.isActive);
   const endedFarms = filteredFarms.filter((farm: any) => !farm.isActive);
 
-  const getTokenIcon = (symbol: string) => {
-    const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
-    };
-    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount.replace(/,/g, ''));

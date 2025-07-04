@@ -8,6 +8,10 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Deployment**: Ready for enterprise-level production deployment
 
 ## Recent Changes
+- **2025-01-04**: Centralized token icon management system using unified getTokenIcon utility function from tokenUtils.ts
+- **2025-01-04**: Removed duplicate getTokenIcon functions across all components (SwapInterface, LiquidityPools, TopPairs, etc.)
+- **2025-01-04**: Enhanced token icon support for Xphere-specific tokens (ml, XCR, XEF, WARP) with Tamsa API integration
+- **2025-01-04**: Improved code maintainability and consistency across all UI components
 - **2025-01-04**: Fixed MetaMask connection UX with enhanced error handling and debug logging
 - **2025-01-04**: Improved wallet connection flow with proper MetaMask popup trigger and state management
 - **2025-01-04**: Enhanced WalletConnect component with better MetaMask detection and user feedback

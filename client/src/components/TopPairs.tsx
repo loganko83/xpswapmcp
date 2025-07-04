@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { TradingPair } from "@/types";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 // Mock trading pairs data
 const mockPairs: TradingPair[] = [
@@ -83,16 +84,7 @@ const mockPairs: TradingPair[] = [
 ];
 
 export function TopPairs() {
-  const getTokenIcon = (symbol: string) => {
-    const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
-    };
-    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const formatVolume = (volume: string) => {
     const num = parseFloat(volume);

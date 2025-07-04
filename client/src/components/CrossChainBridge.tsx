@@ -10,6 +10,7 @@ import { useWeb3 } from "@/hooks/useWeb3";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 interface SupportedNetwork {
   id: number;
@@ -299,16 +300,7 @@ export function CrossChainBridge() {
     );
   };
 
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const getNetworkLogo = (chainId: number) => {
     const logos: { [key: number]: string } = {

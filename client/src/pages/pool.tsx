@@ -8,6 +8,7 @@ import { Plus, Minus, TrendingUp, Search, Sparkles, ArrowRight } from "lucide-re
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
 import { AdvancedLiquidityPoolManager } from "@/components/LiquidityPoolManager";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 export default function PoolPage() {
   const { wallet } = useWeb3();
@@ -30,16 +31,7 @@ export default function PoolPage() {
     pool.tokenB?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getTokenIcon = (symbol: string) => {
-    const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
-    };
-    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount.replace(/,/g, ''));

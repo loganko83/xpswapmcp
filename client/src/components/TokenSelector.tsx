@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Search, Star, AlertTriangle, ExternalLink } from "lucide-react";
 import { Token } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 interface TokenSelectorProps {
   isOpen: boolean;
@@ -62,16 +63,7 @@ export function TokenSelector({
     setSearchQuery("");
   };
 
-  const getTokenIcon = (symbol: string) => {
-    const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
-    };
-    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const getNetworkBadge = (network: string) => {
     if (network === "Xphere") {
@@ -155,7 +147,7 @@ export function TokenSelector({
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
                             <img 
-                              src={getTokenIcon(token.symbol)} 
+                              src={getTokenIcon(token.symbol, token)} 
                               alt={token.symbol}
                               className="w-8 h-8 rounded-full"
                               onError={(e) => {
@@ -215,7 +207,7 @@ export function TokenSelector({
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
                               <img 
-                                src={getTokenIcon(token.symbol)} 
+                                src={getTokenIcon(token.symbol, token)} 
                                 alt={token.symbol}
                                 className="w-8 h-8 rounded-full"
                                 onError={(e) => {

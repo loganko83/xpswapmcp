@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
+import { getTokenIcon } from "@/lib/tokenUtils";
 import { 
   LineChart, 
   Line, 
@@ -108,16 +109,7 @@ export default function AnalyticsPage() {
     }
   ];
 
-  const getTokenIcon = (symbol: string) => {
-    const iconMap: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
-    };
-    return iconMap[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000000) {

@@ -15,6 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { getTokenIcon } from "@/lib/tokenUtils";
 
 interface SwapInterfaceProps {
   onTokenChange?: (fromToken: Token | null, toToken: Token | null, fromAmount: string) => void;
@@ -114,16 +115,13 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
         throw new Error("Wallet not connected");
       }
 
-      return apiRequest("/api/execute-swap", {
-        method: "POST",
-        body: {
-          fromToken: fromToken.symbol,
-          toToken: toToken.symbol,
-          fromAmount,
-          toAmount,
-          userAddress: wallet.address,
-          slippage
-        },
+      return apiRequest("POST", "/api/execute-swap", {
+        fromToken: fromToken.symbol,
+        toToken: toToken.symbol,
+        fromAmount,
+        toAmount,
+        userAddress: wallet.address,
+        slippage
       });
     },
     onSuccess: (data) => {
@@ -233,17 +231,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   
   const requiresCrossChainBridge = isCrossChainSwap();
 
-  // Token icon URLs from CoinMarketCap
-  const getTokenIcon = (symbol: string) => {
-    const icons: { [key: string]: string } = {
-      XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
-      BTC: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-      ETH: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-      USDT: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
-      BNB: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
-    };
-    return icons[symbol] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
-  };
+
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -361,7 +349,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
                   onClick={() => setIsFromSelectorOpen(true)}
                 >
                   <img 
-                    src={getTokenIcon(fromToken.symbol)} 
+                    src={getTokenIcon(fromToken.symbol, fromToken)} 
                     alt={fromToken.symbol}
                     className="w-6 h-6 rounded-full"
                   />
@@ -410,7 +398,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
                 onClick={() => setIsToSelectorOpen(true)}
               >
                 <img 
-                  src={getTokenIcon(toToken.symbol)} 
+                  src={getTokenIcon(toToken.symbol, toToken)} 
                   alt={toToken.symbol}
                   className="w-6 h-6 rounded-full"
                 />
