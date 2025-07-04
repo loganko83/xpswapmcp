@@ -34,24 +34,40 @@ export class Web3Service {
 
   async connectWallet(): Promise<string> {
     if (!await this.isMetaMaskInstalled()) {
-      throw new Error("MetaMask is not installed");
+      throw new Error("MetaMask is not installed. Please install MetaMask extension.");
     }
 
     try {
+      console.log("Requesting MetaMask connection...");
+      
+      // Request account access - this should trigger MetaMask popup
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
 
+      console.log("MetaMask accounts received:", accounts);
+
       if (accounts.length === 0) {
-        throw new Error("No accounts found");
+        throw new Error("No accounts found. Please unlock MetaMask.");
       }
 
+      // Initialize provider and signer
       this._provider = new ethers.BrowserProvider(window.ethereum);
       this.signer = await this._provider.getSigner();
 
+      console.log("MetaMask connection successful:", accounts[0]);
       return accounts[0];
-    } catch (error) {
-      throw new Error(`Failed to connect wallet: ${error}`);
+    } catch (error: any) {
+      console.error("MetaMask connection error:", error);
+      
+      // Handle specific MetaMask errors
+      if (error.code === 4001) {
+        throw new Error("Connection cancelled by user");
+      } else if (error.code === -32002) {
+        throw new Error("Connection request already pending. Please check MetaMask.");
+      } else {
+        throw new Error(`Failed to connect wallet: ${error.message || error}`);
+      }
     }
   }
 

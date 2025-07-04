@@ -43,7 +43,7 @@ export function WalletConnect({ isOpen, onClose }: WalletConnectProps) {
       name: "MetaMask",
       description: "Connect using MetaMask wallet",
       icon: <Wallet className="w-6 h-6" />,
-      available: typeof window !== "undefined" && typeof window.ethereum !== "undefined",
+      available: typeof window !== "undefined" && typeof window.ethereum !== "undefined" && window.ethereum.isMetaMask,
     },
     {
       id: "zigap",
