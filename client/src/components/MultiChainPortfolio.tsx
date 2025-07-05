@@ -117,13 +117,37 @@ export function MultiChainPortfolio() {
     error 
   } = useMultiChainBalance();
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-500 text-lg">Failed to load multi-chain portfolio data</p>
+          <p className="text-muted-foreground mt-2">Please check your connection and try again</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoadingBalances) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading portfolio...</p>
+        </div>
+      </div>
+    );
+  }
+
   const filteredTokens = selectedNetwork === 'all' 
-    ? topTokens 
-    : balances[selectedNetwork] || [];
+    ? (topTokens || [])
+    : (balances[selectedNetwork] || []);
 
   const filteredTransactions = selectedNetwork === 'all' 
-    ? transactions 
-    : transactions.filter(tx => tx.network === selectedNetwork);
+    ? (transactions || [])
+    : (transactions || []).filter((tx: any) => tx.network === selectedNetwork);
 
   const handleTokenClick = (token: any) => {
     setSelectedToken(token);
@@ -307,7 +331,7 @@ export function MultiChainPortfolio() {
               ) : (
                 <ScrollArea className="h-96">
                   <div className="space-y-3">
-                    {filteredTransactions.map((tx) => (
+                    {filteredTransactions.map((tx: any) => (
                       <div key={tx.hash} className="flex items-center justify-between p-3 rounded-lg border">
                         <div className="flex items-center gap-3">
                           <div className={`p-2 rounded-full ${

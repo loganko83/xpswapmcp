@@ -129,10 +129,11 @@ export function useMultiChainTokens() {
 
   // Add balance information to tokens
   const tokensWithBalance = Object.entries(supportedTokens).reduce((acc, [network, tokens]) => {
+    const networkBalances = (balances as MultiChainBalance)?.balances?.[network as keyof typeof supportedTokens] || {};
     acc[network] = tokens.map(token => ({
       ...token,
-      balance: (balances as MultiChainBalance)?.balances?.[network]?.[token.symbol]?.balance || '0',
-      usdValue: (balances as MultiChainBalance)?.balances?.[network]?.[token.symbol]?.usdValue || 0,
+      balance: networkBalances[token.symbol]?.balance || '0',
+      usdValue: networkBalances[token.symbol]?.usdValue || 0,
     }));
     return acc;
   }, {} as Record<string, (typeof supportedTokens.ethereum[0] & { balance: string; usdValue: number })[]>);
