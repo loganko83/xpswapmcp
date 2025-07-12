@@ -11,7 +11,7 @@ import { TokenSelector } from "./TokenSelector";
 import { Token, SwapQuote } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { useWeb3 } from "@/hooks/useWeb3";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -51,17 +51,30 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     toToken.symbol
   ]);
 
-  // Get token balance function using actual MetaMask balance for XP
+  // Token balance query using real blockchain API
+  const { data: tokenBalance } = useQuery({
+    queryKey: [`/api/blockchain/balance/${wallet.address}/${fromToken.symbol}`, wallet.address, fromToken.symbol],
+    enabled: !!wallet.address && !!fromToken.symbol,
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
+
+  const { data: toTokenBalance } = useQuery({
+    queryKey: [`/api/blockchain/balance/${wallet.address}/${toToken.symbol}`, wallet.address, toToken.symbol],
+    enabled: !!wallet.address && !!toToken.symbol,
+    refetchInterval: 5000,
+  });
+
+  // Get token balance using real blockchain API
   const getTokenBalance = (token: Token) => {
-    // Only show balance if wallet is connected
     if (!wallet.isConnected || !wallet.address) {
       return "0";
     }
     
-    if (token.symbol === "XP") {
-      return wallet.balance || "0";
+    if (token.symbol === fromToken.symbol) {
+      return tokenBalance?.balance || "0";
+    } else if (token.symbol === toToken.symbol) {
+      return toTokenBalance?.balance || "0";
     }
-    // For other tokens, return 0 until smart contract integration is complete
     return "0";
   };
 
@@ -79,12 +92,17 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     onTokenChange?.(fromToken, toToken, fromAmount);
   }, [fromToken.id, toToken.id, fromAmount]);
 
-  // Calculate swap quote
+  // Calculate swap quote using real blockchain API
   const swapQuoteMutation = useMutation({
     mutationFn: async ({ fromToken, toToken, amount }: { fromToken: string; toToken: string; amount: string }) => {
-      const response = await fetch("/api/swap-quote", {
+      const response = await fetch("/api/blockchain/swap-quote", {
         method: "POST",
-        body: JSON.stringify({ fromToken, toToken, amount }),
+        body: JSON.stringify({ 
+          tokenIn: fromToken, 
+          tokenOut: toToken, 
+          amountIn: amount,
+          userAddress: wallet.address 
+        }),
         headers: { "Content-Type": "application/json" }
       });
       
@@ -94,9 +112,17 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
       
       return response.json();
     },
-    onSuccess: (data: SwapQuote) => {
-      setSwapQuote(data);
-      setToAmount(data.outputAmount);
+    onSuccess: (data: any) => {
+      const swapQuote: SwapQuote = {
+        inputAmount: data.amountIn || fromAmount,
+        outputAmount: data.amountOut,
+        priceImpact: data.priceImpact,
+        minimumReceived: data.minimumReceived,
+        gasEstimate: data.gasEstimate,
+        route: data.route
+      };
+      setSwapQuote(swapQuote);
+      setToAmount(data.amountOut);
     },
     onError: (error) => {
       console.error("Error getting swap quote:", error);
@@ -108,18 +134,22 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     },
   });
 
-  // Execute swap
+  // Execute swap using real blockchain API
   const executeSwapMutation = useMutation({
     mutationFn: async () => {
       if (!wallet.isConnected || !wallet.address) {
         throw new Error("Wallet not connected");
       }
 
-      return apiRequest("POST", "/api/execute-swap", {
-        fromToken: fromToken.symbol,
-        toToken: toToken.symbol,
-        fromAmount,
-        toAmount,
+      if (!swapQuote) {
+        throw new Error("No swap quote available");
+      }
+
+      return apiRequest("POST", "/api/blockchain/execute-swap", {
+        tokenIn: fromToken.symbol,
+        tokenOut: toToken.symbol,
+        amountIn: fromAmount,
+        amountOutMin: swapQuote.minimumReceived,
         userAddress: wallet.address,
         slippage
       });
@@ -225,7 +255,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   const toAmountUSD = toAmount ? (parseFloat(toAmount) * toTokenPrice).toFixed(2) : "0.00";
 
   const fromTokenBalance = getTokenBalance(fromToken);
-  const toTokenBalance = getTokenBalance(toToken);
+  const toTokenBalanceAmount = getTokenBalance(toToken);
   const isInsufficientBalance = fromAmount && 
     parseFloat(fromAmount) > parseFloat(fromTokenBalance);
   

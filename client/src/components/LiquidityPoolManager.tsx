@@ -47,11 +47,17 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
 
   const addLiquidityMutation = useMutation({
     mutationFn: async () => {
+      if (!wallet.address) {
+        throw new Error("Wallet not connected");
+      }
+      
       const response = await fetch("/api/add-liquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           poolId: pool.id,
+          tokenA: pool.tokenA.symbol,
+          tokenB: pool.tokenB.symbol,
           amountA,
           amountB,
           slippage: parseFloat(slippage),
@@ -59,7 +65,10 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
         })
       });
       
-      if (!response.ok) throw new Error("Failed to add liquidity");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add liquidity");
+      }
       return response.json();
     },
     onSuccess: () => {

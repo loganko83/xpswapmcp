@@ -50,6 +50,10 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
 
   const stakeMutation = useMutation({
     mutationFn: async () => {
+      if (!wallet.address) {
+        throw new Error("Wallet not connected");
+      }
+      
       const endpoint = action === 'stake' ? '/api/stake-tokens' : '/api/unstake-tokens';
       const response = await fetch(endpoint, {
         method: "POST",
@@ -62,7 +66,10 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
         })
       });
       
-      if (!response.ok) throw new Error(`Failed to ${action} tokens`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} tokens`);
+      }
       return response.json();
     },
     onSuccess: () => {
