@@ -59,9 +59,21 @@ export default function XPSPurchase() {
 
   const connectWallet = async () => {
     try {
-      const connected = await web3Service.connectWallet();
-      if (connected) {
-        await checkWalletConnection();
+      setLoading(true);
+      const address = await web3Service.connectWallet();
+      if (address) {
+        setWalletAddress(address);
+        setIsConnected(true);
+        
+        // Load XP balance with fallback
+        try {
+          const balance = await web3Service.getXPBalance();
+          setXpBalance(balance);
+        } catch (error) {
+          console.error('Failed to load XP balance:', error);
+          setXpBalance('0');
+        }
+        
         toast({
           title: "지갑 연결 성공",
           description: "메타마스크 지갑이 성공적으로 연결되었습니다.",
@@ -74,6 +86,8 @@ export default function XPSPurchase() {
         description: "메타마스크 지갑 연결에 실패했습니다.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -215,8 +229,8 @@ export default function XPSPurchase() {
           <CardContent className="space-y-4">
             {!isConnected ? (
               <div className="text-center py-8">
-                <Button onClick={connectWallet} className="w-full">
-                  지갑 연결하기
+                <Button onClick={connectWallet} className="w-full" disabled={loading}>
+                  {loading ? '연결 중...' : '지갑 연결하기'}
                 </Button>
               </div>
             ) : (

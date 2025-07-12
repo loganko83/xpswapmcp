@@ -177,21 +177,42 @@ export class Web3Service {
 
   // Add XPS token balance check
   async checkXPSBalance(address: string): Promise<string> {
-    if (!this._provider) return "0";
+    if (!this._provider || !address) return "0";
     
     try {
       // XPS token contract address from constants
       const xpsAddress = CONTRACT_ADDRESSES.XPSToken;
       
+      if (!xpsAddress) {
+        console.log('XPS contract address not found');
+        return "0";
+      }
+      
       // ERC20 balanceOf ABI
       const erc20ABI = [
-        "function balanceOf(address) view returns (uint256)"
+        "function balanceOf(address) view returns (uint256)",
+        "function decimals() view returns (uint8)"
       ];
       
       const xpsContract = new ethers.Contract(xpsAddress, erc20ABI, this._provider);
-      const balance = await xpsContract.balanceOf(address);
       
-      return ethers.formatEther(balance);
+      // Check if contract is deployed
+      const code = await this._provider.getCode(xpsAddress);
+      if (code === '0x') {
+        console.log('XPS contract not deployed');
+        return "0";
+      }
+      
+      // Get decimals (should be 18 for XPS)
+      let decimals = 18;
+      try {
+        decimals = await xpsContract.decimals();
+      } catch (error) {
+        console.log('Using default decimals (18)');
+      }
+      
+      const balance = await xpsContract.balanceOf(address);
+      return ethers.formatUnits(balance, decimals);
     } catch (error) {
       console.error('Failed to check XPS balance:', error);
       return "0";
