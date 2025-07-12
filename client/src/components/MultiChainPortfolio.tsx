@@ -154,14 +154,7 @@ export function MultiChainPortfolio() {
     setIsDetailsOpen(true);
   };
 
-  if (error) {
-    return (
-      <div className="text-center text-red-500 py-8">
-        <p>Failed to load multi-chain portfolio data</p>
-        <p className="text-sm text-muted-foreground mt-2">Please check your connection and try again</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6">

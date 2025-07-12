@@ -3389,6 +3389,46 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // XPS staking analytics endpoint
+  app.get("/api/xps/staking-analytics", async (req, res) => {
+    try {
+      const { address } = req.query;
+      
+      // Get all staking records for the user
+      const userStakings = stakingRecords.filter(record => 
+        !address || record.walletAddress.toLowerCase() === address.toString().toLowerCase()
+      );
+      
+      // Calculate analytics
+      const totalStaked = userStakings.reduce((sum, record) => sum + record.amount, 0);
+      const activeStakings = userStakings.filter(record => record.status === 'active');
+      const totalRewards = userStakings.reduce((sum, record) => sum + parseFloat(record.estimatedRewards), 0);
+      const averageAPY = activeStakings.length > 0 ? 
+        activeStakings.reduce((sum, record) => sum + record.apy, 0) / activeStakings.length : 0;
+      
+      res.json({
+        totalStaked,
+        activeStakings: activeStakings.length,
+        totalRewards,
+        averageAPY,
+        records: userStakings,
+        summary: {
+          totalRecords: userStakings.length,
+          activePeriods: activeStakings.map(record => ({
+            amount: record.amount,
+            lockPeriod: record.lockPeriod,
+            apy: record.apy,
+            unlockDate: record.unlockDate,
+            estimatedRewards: record.estimatedRewards
+          }))
+        }
+      });
+    } catch (error) {
+      console.error("Failed to fetch staking analytics:", error);
+      res.status(500).json({ error: "Failed to fetch staking analytics" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

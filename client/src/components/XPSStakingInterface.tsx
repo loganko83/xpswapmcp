@@ -14,6 +14,7 @@ import { xpsService, XPSStakingInfo, XPSTokenInfo, XPSService } from '@/lib/xpsS
 import { web3Service } from '@/lib/web3';
 import { directWeb3Service } from '@/lib/web3-direct';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 export function XPSStakingInterface() {
   const [userAddress, setUserAddress] = useState<string>('');
@@ -25,6 +26,13 @@ export function XPSStakingInterface() {
   const [loading, setLoading] = useState<boolean>(false);
   const [isStakeDialogOpen, setIsStakeDialogOpen] = useState<boolean>(false);
   const { toast } = useToast();
+
+  // Staking analytics data
+  const { data: stakingAnalytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['/api/xps/staking-analytics', userAddress],
+    enabled: !!userAddress,
+    refetchInterval: 30000,
+  });
 
   // Initialize services and load data
   useEffect(() => {
@@ -671,67 +679,79 @@ export function XPSStakingInterface() {
 
         {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-purple-500" />
-                  Your XPS Statistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Wallet Balance</span>
-                    <span className="font-semibold">{parseFloat(xpsBalance).toLocaleString()} XPS</span>
+          {analyticsLoading ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading analytics...</p>
+            </div>
+          ) : stakingAnalytics ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-purple-500" />
+                    Staking Analytics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Total Staked</span>
+                      <span className="font-semibold">{stakingAnalytics.totalStaked.toLocaleString()} XPS</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Stakings</span>
+                      <span className="font-semibold">{stakingAnalytics.activeStakings}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Rewards</span>
+                      <span className="font-semibold text-green-500">
+                        {stakingAnalytics.totalRewards.toLocaleString()} XPS
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Average APY</span>
+                      <span className="font-semibold text-blue-500">{stakingAnalytics.averageAPY.toFixed(0)}%</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Staked Amount</span>
-                    <span className="font-semibold">{stakingInfo ? parseFloat(stakingInfo.stakedAmount).toLocaleString() : '0'} XPS</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Holdings</span>
-                    <span className="font-semibold text-green-500">
-                      {(parseFloat(xpsBalance) + parseFloat(stakingInfo?.stakedAmount || '0')).toLocaleString()} XPS
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Current Discount</span>
-                    <span className="font-semibold text-blue-500">{XPSService.formatFeeDiscount(tier.discount)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-orange-500" />
-                  Staking Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {stakingInfo && parseFloat(stakingInfo.stakedAmount) > 0 ? (
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Lock Period Progress</span>
-                        <span>{Math.min(100, (parseInt(stakingInfo.stakingDuration) / (parseInt(stakingInfo.lockPeriod) * 86400)) * 100).toFixed(1)}%</span>
-                      </div>
-                      <Progress value={Math.min(100, (parseInt(stakingInfo.stakingDuration) / (parseInt(stakingInfo.lockPeriod) * 86400)) * 100)} />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-orange-500" />
+                    Active Positions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {stakingAnalytics.summary.activePeriods.length > 0 ? (
+                    <div className="space-y-3">
+                      {stakingAnalytics.summary.activePeriods.map((period, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div>
+                            <p className="font-medium">{period.amount.toLocaleString()} XPS</p>
+                            <p className="text-sm text-muted-foreground">{period.lockPeriod}d @ {period.apy}% APY</p>
+                          </div>
+                          <Badge variant="outline">
+                            {period.estimatedRewards.toLocaleString()} XPS
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>Remaining: {Math.max(0, (parseInt(stakingInfo.lockPeriod) * 86400) - parseInt(stakingInfo.stakingDuration))} seconds</p>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No active staking positions</p>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No active staking</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No staking analytics available</p>
+            </div>
+          )}
         </TabsContent>
         </Tabs>
       )}
