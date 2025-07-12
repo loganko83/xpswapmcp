@@ -4636,6 +4636,75 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // Governance proposals endpoint
+  app.get("/api/governance/proposals", async (req, res) => {
+    try {
+      const proposals = [
+        {
+          id: 1,
+          title: "Reduce Trading Fees from 0.3% to 0.25%",
+          description: "Proposal to reduce trading fees to increase volume and competitiveness",
+          proposer: "0x1234567890123456789012345678901234567890",
+          status: "active",
+          type: "parameter",
+          votingPower: "50000",
+          votesFor: "32500",
+          votesAgainst: "12800",
+          totalVotes: "45300",
+          quorum: "40000",
+          startTime: Date.now() - 86400000,
+          endTime: Date.now() + 172800000,
+          details: {
+            currentValue: "0.3%",
+            proposedValue: "0.25%",
+            impact: "Expected 15% increase in trading volume",
+            implementation: "Immediate effect upon approval"
+          }
+        },
+        {
+          id: 2,
+          title: "Implement Cross-Chain Bridge for Polygon",
+          description: "Add support for Polygon network bridging",
+          proposer: "0x2345678901234567890123456789012345678901",
+          status: "passed",
+          type: "upgrade",
+          votingPower: "45000",
+          votesFor: "38200",
+          votesAgainst: "6800",
+          totalVotes: "45000",
+          quorum: "40000",
+          startTime: Date.now() - 259200000,
+          endTime: Date.now() - 86400000,
+          executionTime: Date.now() + 604800000,
+          details: {
+            impact: "Enable cross-chain liquidity for Polygon assets",
+            implementation: "2-week development and testing period"
+          }
+        }
+      ];
+      res.json(proposals);
+    } catch (error) {
+      console.error("Error fetching proposals:", error);
+      res.status(500).json({ message: "Failed to fetch proposals" });
+    }
+  });
+
+  app.get("/api/governance/stats", async (req, res) => {
+    try {
+      const stats = {
+        totalProposals: 5,
+        activeProposals: 2,
+        participationRate: 78,
+        successRate: 85,
+        newProposals: 3
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching governance stats:", error);
+      res.status(500).json({ message: "Failed to fetch governance stats" });
+    }
+  });
+
   // Advanced DeFi Analytics API endpoints
   app.get("/api/governance/analytics", async (req, res) => {
     try {

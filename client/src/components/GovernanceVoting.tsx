@@ -655,8 +655,18 @@ export function GovernanceVoting() {
                           Details
                         </Button>
                         <QuickShareButton 
-                          content={`Reviewing governance proposal: ${proposal.title}`}
-                          insightType="governance"
+                          insight={{
+                            id: proposal.id.toString(),
+                            type: 'analysis',
+                            title: proposal.title,
+                            description: proposal.description,
+                            data: {
+                              tokenA: 'XP',
+                              amount: proposal.votesFor,
+                              price: '0.01659'
+                            },
+                            timestamp: Date.now()
+                          }}
                         />
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">

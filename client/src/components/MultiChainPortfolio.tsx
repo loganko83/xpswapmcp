@@ -158,7 +158,7 @@ export function MultiChainPortfolio() {
   // Fetch multi-chain balances
   const { data: portfolioData, isLoading, refetch } = useQuery({
     queryKey: ["/api/multichain/balances", wallet.address],
-    enabled: !!wallet.address,
+    enabled: !!wallet.address && wallet.isConnected,
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
@@ -289,7 +289,7 @@ export function MultiChainPortfolio() {
     setTokenDetailsOpen(true);
   };
 
-  if (!wallet.connected) {
+  if (!wallet.isConnected) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
         <div className="max-w-2xl mx-auto pt-20">
