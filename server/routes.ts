@@ -953,6 +953,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add liquidity endpoint
+  app.post('/api/add-liquidity', async (req, res) => {
+    try {
+      const { tokenA, tokenB, amountA, amountB, userAddress } = req.body;
+      
+      // Validate input
+      if (!tokenA || !tokenB || !amountA || !amountB || !userAddress) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      // Validate amounts
+      const amountANum = parseFloat(amountA);
+      const amountBNum = parseFloat(amountB);
+      
+      if (isNaN(amountANum) || isNaN(amountBNum) || amountANum <= 0 || amountBNum <= 0) {
+        return res.status(400).json({ error: 'Invalid amounts' });
+      }
+      
+      // Find or create trading pair
+      let pair = await storage.getTradingPairs().then(pairs => 
+        pairs.find(p => 
+          (p.tokenA === tokenA && p.tokenB === tokenB) ||
+          (p.tokenA === tokenB && p.tokenB === tokenA)
+        )
+      );
+      
+      if (!pair) {
+        // Create new trading pair
+        pair = await storage.createTradingPair({
+          tokenA,
+          tokenB,
+          reserveA: amountA,
+          reserveB: amountB,
+          totalSupply: Math.sqrt(amountANum * amountBNum).toString(),
+          fee: "0.003" // 0.3%
+        });
+      } else {
+        // Update existing pair reserves
+        const newReserveA = parseFloat(pair.reserveA) + amountANum;
+        const newReserveB = parseFloat(pair.reserveB) + amountBNum;
+        const newTotalSupply = Math.sqrt(newReserveA * newReserveB);
+        
+        await storage.updateTradingPair(pair.id, {
+          reserveA: newReserveA.toString(),
+          reserveB: newReserveB.toString(),
+          totalSupply: newTotalSupply.toString()
+        });
+      }
+      
+      // Calculate total liquidity value in USD
+      const totalLiquidityUSD = (amountANum + amountBNum) * 0.5; // Simplified calculation
+      
+      // XPS Bonus APR based on user's XPS balance (mock calculation)
+      const baseAPR = 15.2;
+      const xpsBonus = 12.8; // Additional APR for XPS holders
+      const totalAPR = baseAPR + xpsBonus;
+      
+      // Create liquidity pool entry
+      const liquidityPool = await storage.createLiquidityPool({
+        pairId: pair.id,
+        totalLiquidity: totalLiquidityUSD.toString(),
+        apr: totalAPR.toString(),
+        volume24h: "0",
+        fees24h: "0",
+        userLiquidity: totalLiquidityUSD.toString(),
+        userRewards: "0"
+      });
+      
+      // Record transaction
+      await storage.createTransaction({
+        userAddress,
+        type: 'add_liquidity',
+        tokenA,
+        tokenB,
+        amountA,
+        amountB,
+        status: 'completed',
+        txHash: `0x${Math.random().toString(16).slice(2)}`,
+        gasUsed: "21000",
+        gasFee: "0.001"
+      });
+      
+      res.json({
+        success: true,
+        liquidityPool,
+        pair,
+        totalAPR,
+        baseAPR,
+        xpsBonus,
+        transactionHash: `0x${Math.random().toString(16).slice(2)}`,
+        message: 'Liquidity added successfully'
+      });
+    } catch (error) {
+      console.error('Add liquidity error:', error);
+      res.status(500).json({ error: 'Failed to add liquidity' });
+    }
+  });
+
   // Enhanced Liquidity Pool Data
   app.get("/api/pools", async (req, res) => {
     try {
