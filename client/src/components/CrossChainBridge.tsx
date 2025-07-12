@@ -5,24 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowUpDown, ArrowLeftRight, Clock, CheckCircle, AlertCircle, ExternalLink, Loader2, Globe, Coins } from "lucide-react";
+import { ArrowUpDown, ArrowLeftRight, Clock, CheckCircle, AlertCircle, ExternalLink, Loader2, Globe, Coins, Repeat, Zap } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { getTokenIcon } from "@/lib/tokenUtils";
+import { crossChainService } from "@/lib/crossChainService";
 
 interface SupportedNetwork {
-  id: number;
-  name: string;
   chainId: number;
+  name: string;
   symbol: string;
+  logo: string;
   rpcUrl: string;
   blockExplorer: string;
-  bridgeFee: string;
-  confirmations: number;
-  estimatedTime: string;
-  logo: string;
+  nativeCurrency: { name: string; symbol: string; decimals: number };
+  isConnected: boolean;
 }
 
 interface BridgeToken {
@@ -37,17 +36,18 @@ interface BridgeToken {
 
 interface BridgeTransaction {
   id: string;
-  fromNetwork: SupportedNetwork;
-  toNetwork: SupportedNetwork;
-  token: BridgeToken;
+  fromChainId: number;
+  toChainId: number;
+  fromToken: { symbol: string; name: string };
+  toToken: { symbol: string; name: string };
   amount: string;
-  fromTxHash: string;
-  toTxHash: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  fromTxHash?: string;
+  toTxHash?: string;
   timestamp: number;
   estimatedCompletion: number;
-  currentConfirmations: number;
-  requiredConfirmations: number;
+  currentStep?: string;
+  steps?: { name: string; status: string; txHash?: string }[];
 }
 
 interface BridgeConfirmationProps {
@@ -77,60 +77,64 @@ function BridgeConfirmation({ isOpen, onClose, bridgeData, onConfirm }: BridgeCo
           <DialogTitle>Confirm Bridge Transaction</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
-          {/* Transaction Summary */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <img src={bridgeData.fromNetwork.logo} alt={bridgeData.fromNetwork.name} className="w-8 h-8 rounded-full" />
-                <div>
-                  <div className="font-medium">{bridgeData.fromNetwork.name}</div>
-                  <div className="text-sm text-muted-foreground">From</div>
-                </div>
+        <div className="space-y-4">
+          {/* Networks */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                <Globe className="w-4 h-4 text-white" />
               </div>
-              <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
-              <div className="flex items-center gap-3">
-                <img src={bridgeData.toNetwork.logo} alt={bridgeData.toNetwork.name} className="w-8 h-8 rounded-full" />
-                <div>
-                  <div className="font-medium">{bridgeData.toNetwork.name}</div>
-                  <div className="text-sm text-muted-foreground">To</div>
+              <div>
+                <div className="font-medium">{bridgeData.fromNetwork.name}</div>
+                <div className="text-sm text-muted-foreground">From</div>
+              </div>
+            </div>
+            
+            <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+            
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                <Globe className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div className="font-medium">{bridgeData.toNetwork.name}</div>
+                <div className="text-sm text-muted-foreground">To</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span>Amount</span>
+              <div className="text-right">
+                <div className="font-medium">{bridgeData.amount} {bridgeData.token.symbol}</div>
+                <div className="text-sm text-muted-foreground">${totalValue}</div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <span>Bridge Fee</span>
+              <div className="text-right">
+                <div className="font-medium">{bridgeData.fee} {bridgeData.token.symbol}</div>
+                <div className="text-sm text-muted-foreground">${feeValue}</div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <span>You'll Receive</span>
+              <div className="text-right">
+                <div className="font-medium">
+                  {(parseFloat(bridgeData.amount) - parseFloat(bridgeData.fee)).toFixed(6)} {bridgeData.token.symbol}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  ${((parseFloat(bridgeData.amount) - parseFloat(bridgeData.fee)) * tokenPrice).toFixed(2)}
                 </div>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span>Amount</span>
-                <div className="text-right">
-                  <div className="font-medium">{bridgeData.amount} {bridgeData.token.symbol}</div>
-                  <div className="text-sm text-muted-foreground">${totalValue}</div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Bridge Fee</span>
-                <div className="text-right">
-                  <div className="font-medium">{bridgeData.fee} {bridgeData.token.symbol}</div>
-                  <div className="text-sm text-muted-foreground">${feeValue}</div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>You'll Receive</span>
-                <div className="text-right">
-                  <div className="font-medium">
-                    {(parseFloat(bridgeData.amount) - parseFloat(bridgeData.fee)).toFixed(6)} {bridgeData.token.symbol}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    ${((parseFloat(bridgeData.amount) - parseFloat(bridgeData.fee)) * tokenPrice).toFixed(2)}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Estimated Time</span>
-                <div className="font-medium">{bridgeData.estimatedTime}</div>
-              </div>
+            
+            <div className="flex justify-between">
+              <span>Estimated Time</span>
+              <div className="font-medium">{bridgeData.estimatedTime}</div>
             </div>
           </div>
 
@@ -172,35 +176,72 @@ export function CrossChainBridge() {
   const [selectedToken, setSelectedToken] = useState<BridgeToken | null>(null);
   const [amount, setAmount] = useState("");
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [bridgeData, setBridgeData] = useState<any>(null);
 
-  // Fetch supported networks and tokens
+  // Fetch supported networks
   const { data: networks = [] } = useQuery({
-    queryKey: ["/api/bridge/networks"],
-    queryFn: async () => {
-      const response = await fetch("/api/bridge/networks");
-      if (!response.ok) throw new Error("Failed to fetch networks");
-      return response.json();
-    }
+    queryKey: ["/api/bridge/supported-chains"],
+    staleTime: 5 * 60 * 1000 // 5 minutes
   });
 
+  // Fetch bridge tokens
   const { data: bridgeTokens = [] } = useQuery({
     queryKey: ["/api/bridge/tokens"],
     queryFn: async () => {
-      const response = await fetch("/api/bridge/tokens");
-      if (!response.ok) throw new Error("Failed to fetch bridge tokens");
-      return response.json();
+      // Real bridge tokens for different networks
+      return [
+        {
+          symbol: 'USDT',
+          name: 'Tether USD',
+          networks: [1, 56, 137, 42161, 10],
+          minAmount: '1',
+          maxAmount: '100000',
+          decimals: 6,
+          logo: '/api/placeholder/32/32'
+        },
+        {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          networks: [1, 56, 137, 42161, 10],
+          minAmount: '1',
+          maxAmount: '100000',
+          decimals: 6,
+          logo: '/api/placeholder/32/32'
+        },
+        {
+          symbol: 'WETH',
+          name: 'Wrapped Ethereum',
+          networks: [1, 56, 137, 42161, 10],
+          minAmount: '0.001',
+          maxAmount: '1000',
+          decimals: 18,
+          logo: '/api/placeholder/32/32'
+        },
+        {
+          symbol: 'XPS',
+          name: 'XpSwap Token',
+          networks: [20250217],
+          minAmount: '1',
+          maxAmount: '1000000',
+          decimals: 18,
+          logo: '/api/placeholder/32/32'
+        }
+      ];
     }
   });
 
+  // Fetch multi-chain balances
+  const { data: multiChainBalances = [] } = useQuery({
+    queryKey: ["/api/multichain/balances", wallet.address],
+    enabled: !!wallet.address,
+    refetchInterval: 10000 // Refresh every 10 seconds
+  });
+
+  // Fetch bridge history
   const { data: bridgeHistory = [] } = useQuery({
     queryKey: ["/api/bridge/history", wallet.address],
-    queryFn: async () => {
-      if (!wallet.address) return [];
-      const response = await fetch(`/api/bridge/history/${wallet.address}`);
-      if (!response.ok) throw new Error("Failed to fetch bridge history");
-      return response.json();
-    },
-    enabled: !!wallet.address
+    enabled: !!wallet.address,
+    refetchInterval: 5000 // Refresh every 5 seconds
   });
 
   // Set default networks
@@ -214,61 +255,116 @@ export function CrossChainBridge() {
     }
   }, [networks, fromNetwork]);
 
-  // Bridge estimation mutation
-  const estimateBridgeMutation = useMutation({
+  // Bridge quote mutation
+  const bridgeQuoteMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/bridge/estimate", {
+      if (!fromNetwork || !toNetwork || !selectedToken || !amount || !wallet.address) {
+        throw new Error('Missing required parameters');
+      }
+
+      const response = await fetch("/api/bridge/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fromNetwork: fromNetwork?.chainId,
-          toNetwork: toNetwork?.chainId,
-          token: selectedToken?.symbol,
-          amount,
+          fromChainId: fromNetwork.chainId,
+          toChainId: toNetwork.chainId,
+          fromTokenAddress: '0x' + selectedToken.symbol.toLowerCase().padStart(40, '0'),
+          toTokenAddress: '0x' + selectedToken.symbol.toLowerCase().padStart(40, '0'),
+          amount: amount,
           userAddress: wallet.address
         })
       });
-      
-      if (!response.ok) throw new Error("Failed to estimate bridge");
+
+      if (!response.ok) {
+        throw new Error('Failed to get bridge quote');
+      }
+
       return response.json();
+    },
+    onSuccess: (data) => {
+      setBridgeData({
+        fromNetwork: fromNetwork!,
+        toNetwork: toNetwork!,
+        token: selectedToken!,
+        amount: amount,
+        fee: data.fees.total,
+        estimatedTime: `${Math.ceil(data.estimatedTime / 60)} minutes`
+      });
+      setConfirmationOpen(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Quote Error",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
-  // Execute bridge mutation
+  // Bridge execution mutation
   const executeBridgeMutation = useMutation({
     mutationFn: async () => {
+      if (!fromNetwork || !toNetwork || !selectedToken || !amount || !wallet.address) {
+        throw new Error('Missing required parameters');
+      }
+
       const response = await fetch("/api/bridge/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fromNetwork: fromNetwork?.chainId,
-          toNetwork: toNetwork?.chainId,
-          token: selectedToken?.symbol,
-          amount,
-          userAddress: wallet.address
+          fromChainId: fromNetwork.chainId,
+          toChainId: toNetwork.chainId,
+          fromTokenAddress: '0x' + selectedToken.symbol.toLowerCase().padStart(40, '0'),
+          toTokenAddress: '0x' + selectedToken.symbol.toLowerCase().padStart(40, '0'),
+          amount: amount,
+          userAddress: wallet.address,
+          slippage: 0.5
         })
       });
-      
-      if (!response.ok) throw new Error("Failed to execute bridge");
+
+      if (!response.ok) {
+        throw new Error('Failed to execute bridge');
+      }
+
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Bridge Transaction Initiated",
-        description: `Your cross-chain transfer has been initiated. Transaction ID: ${data.transactionId}`,
+        title: "Bridge Initiated",
+        description: `Bridge transaction started. ID: ${data.id}`,
+        variant: "default"
       });
-      setAmount("");
       setConfirmationOpen(false);
+      setAmount("");
       queryClient.invalidateQueries({ queryKey: ["/api/bridge/history"] });
     },
     onError: (error) => {
       toast({
-        title: "Bridge Failed",
-        description: "Failed to execute cross-chain bridge. Please try again.",
-        variant: "destructive",
+        title: "Bridge Error",
+        description: error.message,
+        variant: "destructive"
       });
     }
   });
+
+  // Get bridge quote
+  const getBridgeQuote = () => {
+    if (!fromNetwork || !toNetwork || !selectedToken || !amount) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    bridgeQuoteMutation.mutate();
+  };
+
+  // Execute bridge
+  const handleConfirmBridge = () => {
+    executeBridgeMutation.mutate();
+  };
 
   const handleSwapNetworks = () => {
     const temp = fromNetwork;
@@ -278,18 +374,8 @@ export function CrossChainBridge() {
 
   const handleMaxClick = () => {
     // In a real implementation, this would fetch the actual token balance
-    setAmount("100.0");
-  };
-
-  const handleBridge = async () => {
-    if (!amount || !selectedToken || !fromNetwork || !toNetwork) return;
-    
-    try {
-      const estimation = await estimateBridgeMutation.mutateAsync();
-      setConfirmationOpen(true);
-    } catch (error) {
-      console.error("Bridge estimation failed:", error);
-    }
+    const balance = multiChainBalances.find(b => b.chainId === fromNetwork?.chainId)?.nativeBalance || "0";
+    setAmount(balance);
   };
 
   const getAvailableTokens = () => {
@@ -300,307 +386,286 @@ export function CrossChainBridge() {
     );
   };
 
-
-
-  const getNetworkLogo = (chainId: number) => {
-    const logos: { [key: number]: string } = {
-      1: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png", // Ethereum
-      56: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png", // BNB Chain
-      137: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png", // Polygon
-      43114: "https://s2.coinmarketcap.com/static/img/coins/64x64/5805.png", // Avalanche
-      20250217: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png" // Xphere
-    };
-    return logos[chainId] || "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png";
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'text-green-600';
+      case 'failed':
+        return 'text-red-600';
+      case 'processing':
+        return 'text-blue-600';
+      default:
+        return 'text-yellow-600';
+    }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4 text-orange-500" />;
-      case 'confirmed':
-        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'failed':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="w-4 h-4 text-red-600" />;
+      case 'processing':
+        return <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-500" />;
+        return <Clock className="w-4 h-4 text-yellow-600" />;
     }
   };
 
-  // Network logo component with error handling
-  const NetworkLogo = ({ chainId, name, className = "w-5 h-5" }: { chainId: number; name: string; className?: string }) => {
-    const [hasError, setHasError] = useState(false);
-    
-    if (hasError) {
-      return <Globe className={`${className} text-muted-foreground`} />;
-    }
-    
+  if (!wallet.connected) {
     return (
-      <img 
-        src={getNetworkLogo(chainId)} 
-        alt={name}
-        className={`${className} rounded-full`}
-        onError={() => setHasError(true)}
-      />
-    );
-  };
-
-  // Token logo component with error handling
-  const TokenLogo = ({ symbol, name, className = "w-5 h-5" }: { symbol: string; name: string; className?: string }) => {
-    const [hasError, setHasError] = useState(false);
-    
-    if (hasError) {
-      return <Coins className={`${className} text-muted-foreground`} />;
-    }
-    
-    return (
-      <img 
-        src={getTokenIcon(symbol)} 
-        alt={name}
-        className={`${className} rounded-full`}
-        onError={() => setHasError(true)}
-      />
-    );
-  };
-
-  const availableTokens = getAvailableTokens();
-
-  return (
-    <div className="space-y-6">
-      {/* Bridge Interface */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ArrowLeftRight className="w-5 h-5" />
-            Cross-Chain Bridge
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Network Selection */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-              {/* From Network */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">From Network</label>
-                <Select value={fromNetwork?.chainId.toString()} onValueChange={(value) => {
-                  const network = networks.find((n: SupportedNetwork) => n.chainId.toString() === value);
-                  setFromNetwork(network);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select network" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {networks.map((network: SupportedNetwork) => (
-                      <SelectItem key={network.chainId} value={network.chainId.toString()}>
-                        <div className="flex items-center gap-2">
-                          <NetworkLogo chainId={network.chainId} name={network.name} />
-                          {network.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Swap Button */}
-              <div className="flex justify-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full p-2"
-                  onClick={handleSwapNetworks}
-                >
-                  <ArrowUpDown className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* To Network */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">To Network</label>
-                <Select value={toNetwork?.chainId.toString()} onValueChange={(value) => {
-                  const network = networks.find((n: SupportedNetwork) => n.chainId.toString() === value);
-                  setToNetwork(network);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select network" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {networks.map((network: SupportedNetwork) => (
-                      <SelectItem key={network.chainId} value={network.chainId.toString()}>
-                        <div className="flex items-center gap-2">
-                          <NetworkLogo chainId={network.chainId} name={network.name} />
-                          {network.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Token Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Select Token</label>
-            <Select value={selectedToken?.symbol} onValueChange={(value) => {
-              const token = availableTokens.find((t: BridgeToken) => t.symbol === value);
-              setSelectedToken(token);
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select token to bridge" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTokens.map((token: BridgeToken) => (
-                  <SelectItem key={token.symbol} value={token.symbol}>
-                    <div className="flex items-center gap-2">
-                      <TokenLogo symbol={token.symbol} name={token.name} />
-                      <span>{token.symbol}</span>
-                      <span className="text-muted-foreground">- {token.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Amount Input */}
-          {selectedToken && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Amount</span>
-                <span>Balance: 0.000 {selectedToken.symbol}</span>
-              </div>
-              <div className="rounded-lg border p-3">
-                <div className="flex justify-between items-center">
-                  <Input
-                    placeholder="0.0"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="border-0 text-xl font-semibold p-0 h-auto"
-                    type="number"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={handleMaxClick}>
-                      MAX
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src={getTokenIcon(selectedToken.symbol)} 
-                        alt={selectedToken.symbol}
-                        className="w-6 h-6 rounded-full"
-                      />
-                      <span className="font-semibold">{selectedToken.symbol}</span>
-                    </div>
-                  </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+        <div className="max-w-2xl mx-auto pt-20">
+          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-8 h-8 text-white" />
                 </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
+                <p className="text-gray-300">Connect your wallet to access cross-chain bridge functionality</p>
               </div>
-            </div>
-          )}
-
-          {/* Bridge Details */}
-          {fromNetwork && toNetwork && selectedToken && (
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Bridge Fee</span>
-                <span>{fromNetwork.bridgeFee} {selectedToken.symbol}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Estimated Time</span>
-                <span>{fromNetwork.estimatedTime}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Confirmations Required</span>
-                <span>{fromNetwork.confirmations}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Action Button */}
-          <div className="space-y-2">
-            {!wallet.isConnected ? (
-              <Button className="w-full" onClick={connectWallet}>
+              <Button onClick={connectWallet} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
                 Connect Wallet
               </Button>
-            ) : !amount || !selectedToken ? (
-              <Button className="w-full" disabled>
-                Enter Amount
-              </Button>
-            ) : estimateBridgeMutation.isPending ? (
-              <Button className="w-full" disabled>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Estimating...
-              </Button>
-            ) : (
-              <Button className="w-full" onClick={handleBridge}>
-                Bridge {selectedToken.symbol}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-      {/* Bridge History */}
-      {wallet.isConnected && bridgeHistory.length > 0 && (
-        <Card>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center py-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Cross-Chain Bridge</h1>
+          <p className="text-gray-300">Transfer tokens seamlessly across different blockchain networks</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bridge Interface */}
+          <div className="lg:col-span-2">
+            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Repeat className="w-5 h-5" />
+                  Bridge Assets
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Network Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">From Network</label>
+                    <Select value={fromNetwork?.chainId.toString()} onValueChange={(value) => {
+                      const network = networks.find((n: SupportedNetwork) => n.chainId.toString() === value);
+                      setFromNetwork(network || null);
+                    }}>
+                      <SelectTrigger className="bg-black/20 border-white/10 text-white">
+                        <SelectValue placeholder="Select network" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {networks.map((network: SupportedNetwork) => (
+                          <SelectItem key={network.chainId} value={network.chainId.toString()}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 rounded-full bg-blue-500" />
+                              {network.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">To Network</label>
+                    <Select value={toNetwork?.chainId.toString()} onValueChange={(value) => {
+                      const network = networks.find((n: SupportedNetwork) => n.chainId.toString() === value);
+                      setToNetwork(network || null);
+                    }}>
+                      <SelectTrigger className="bg-black/20 border-white/10 text-white">
+                        <SelectValue placeholder="Select network" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {networks.map((network: SupportedNetwork) => (
+                          <SelectItem key={network.chainId} value={network.chainId.toString()}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 rounded-full bg-green-500" />
+                              {network.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Swap Networks Button */}
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSwapNetworks}
+                    className="bg-black/20 border-white/10 text-white hover:bg-white/10"
+                  >
+                    <ArrowUpDown className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Token Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-300">Select Token</label>
+                  <Select value={selectedToken?.symbol} onValueChange={(value) => {
+                    const token = getAvailableTokens().find((t: BridgeToken) => t.symbol === value);
+                    setSelectedToken(token || null);
+                  }}>
+                    <SelectTrigger className="bg-black/20 border-white/10 text-white">
+                      <SelectValue placeholder="Select token" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableTokens().map((token: BridgeToken) => (
+                        <SelectItem key={token.symbol} value={token.symbol}>
+                          <div className="flex items-center gap-2">
+                            <img src={getTokenIcon(token.symbol)} alt={token.symbol} className="w-4 h-4" />
+                            {token.symbol} - {token.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Amount Input */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-300">Amount</label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.0"
+                      className="bg-black/20 border-white/10 text-white pr-16"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleMaxClick}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-300"
+                    >
+                      MAX
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Bridge Button */}
+                <Button
+                  onClick={getBridgeQuote}
+                  disabled={!fromNetwork || !toNetwork || !selectedToken || !amount || bridgeQuoteMutation.isPending}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                >
+                  {bridgeQuoteMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Get Bridge Quote
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Multi-Chain Balances */}
+          <div>
+            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Coins className="w-5 h-5" />
+                  Multi-Chain Balances
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {multiChainBalances.map((balance: any) => (
+                  <div key={balance.chainId} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-blue-500" />
+                        <span className="text-sm text-gray-300">{balance.chainName}</span>
+                      </div>
+                      <Badge variant="secondary" className="bg-white/10 text-white">
+                        {parseFloat(balance.nativeBalance).toFixed(4)}
+                      </Badge>
+                    </div>
+                    {balance.tokens.map((token: any) => (
+                      <div key={token.symbol} className="flex items-center justify-between pl-6">
+                        <div className="flex items-center gap-2">
+                          <img src={getTokenIcon(token.symbol)} alt={token.symbol} className="w-3 h-3" />
+                          <span className="text-xs text-gray-400">{token.symbol}</span>
+                        </div>
+                        <span className="text-xs text-gray-400">{parseFloat(token.balance).toFixed(4)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Bridge History */}
+        <Card className="bg-black/20 backdrop-blur-lg border-white/10">
           <CardHeader>
-            <CardTitle>Bridge History</CardTitle>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Bridge History
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {bridgeHistory.map((tx: BridgeTransaction) => (
-                <div key={tx.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(tx.status)}
-                      <div>
-                        <div className="font-medium">
-                          {tx.amount} {tx.token.symbol}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {tx.fromNetwork.name} → {tx.toNetwork.name}
+              {bridgeHistory.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  No bridge transactions found
+                </div>
+              ) : (
+                bridgeHistory.map((tx: BridgeTransaction) => (
+                  <div key={tx.id} className="p-4 bg-black/20 rounded-lg border border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(tx.status)}
+                        <span className="text-sm font-medium text-white">
+                          {tx.fromToken.symbol} → {tx.toToken.symbol}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-white">{tx.amount} {tx.fromToken.symbol}</div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(tx.timestamp).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <Badge variant={
-                      tx.status === 'completed' ? 'default' :
-                      tx.status === 'failed' ? 'destructive' :
-                      'secondary'
-                    }>
-                      {tx.status}
-                    </Badge>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {new Date(tx.timestamp).toLocaleDateString()}
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                      <span className={getStatusColor(tx.status)}>{tx.status.toUpperCase()}</span>
+                      {tx.fromTxHash && (
+                        <Button variant="ghost" size="sm" className="text-xs text-purple-400 hover:text-purple-300">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  
-                  <Button variant="ghost" size="sm">
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
-      )}
+      </div>
 
       {/* Bridge Confirmation Dialog */}
-      {confirmationOpen && fromNetwork && toNetwork && selectedToken && (
+      {bridgeData && (
         <BridgeConfirmation
           isOpen={confirmationOpen}
           onClose={() => setConfirmationOpen(false)}
-          bridgeData={{
-            fromNetwork,
-            toNetwork,
-            token: selectedToken,
-            amount,
-            fee: fromNetwork.bridgeFee,
-            estimatedTime: fromNetwork.estimatedTime
-          }}
-          onConfirm={() => executeBridgeMutation.mutate()}
+          bridgeData={bridgeData}
+          onConfirm={handleConfirmBridge}
         />
       )}
     </div>

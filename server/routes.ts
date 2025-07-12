@@ -4049,6 +4049,593 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // Cross-chain bridge endpoints
+  app.get('/api/multichain/balances/:address', async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      if (!address || !ethers.isAddress(address)) {
+        return res.status(400).json({ error: 'Invalid address' });
+      }
+
+      // Mock multi-chain balances (in production, use real RPC calls)
+      const multiChainBalances = [
+        {
+          chainId: 1,
+          chainName: 'Ethereum',
+          nativeBalance: '0.1234',
+          tokens: [
+            { address: '0xA0b86a33E6441b4ba578d6E1B51A916D05bF9fd7', symbol: 'USDT', name: 'Tether USD', balance: '1000.0', decimals: 6 },
+            { address: '0xA0b86a33E6441b4ba578d6E1B51A916D05bF9fd7', symbol: 'USDC', name: 'USD Coin', balance: '500.0', decimals: 6 }
+          ]
+        },
+        {
+          chainId: 56,
+          chainName: 'Binance Smart Chain',
+          nativeBalance: '2.5678',
+          tokens: [
+            { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Tether USD', balance: '750.0', decimals: 18 },
+            { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', name: 'USD Coin', balance: '250.0', decimals: 18 }
+          ]
+        },
+        {
+          chainId: 137,
+          chainName: 'Polygon',
+          nativeBalance: '100.0',
+          tokens: [
+            { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', symbol: 'USDT', name: 'Tether USD', balance: '300.0', decimals: 6 },
+            { address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', symbol: 'USDC', name: 'USD Coin', balance: '200.0', decimals: 6 }
+          ]
+        },
+        {
+          chainId: 20250217,
+          chainName: 'Xphere',
+          nativeBalance: '86.5260',
+          tokens: [
+            { address: '0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2', symbol: 'XPS', name: 'XpSwap Token', balance: '1000.0', decimals: 18 }
+          ]
+        }
+      ];
+
+      res.json(multiChainBalances);
+    } catch (error) {
+      console.error('Failed to get multi-chain balances:', error);
+      res.status(500).json({ error: 'Failed to get multi-chain balances' });
+    }
+  });
+
+  app.post('/api/bridge/quote', async (req, res) => {
+    try {
+      const { 
+        fromChainId, 
+        toChainId, 
+        fromTokenAddress, 
+        toTokenAddress, 
+        amount, 
+        userAddress 
+      } = req.body;
+
+      // Validate inputs
+      if (!fromChainId || !toChainId || !fromTokenAddress || !toTokenAddress || !amount || !userAddress) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      // Mock bridge quote (in production, use LI.FI SDK)
+      const quote = {
+        fromChainId: parseInt(fromChainId),
+        toChainId: parseInt(toChainId),
+        fromToken: {
+          address: fromTokenAddress,
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6
+        },
+        toToken: {
+          address: toTokenAddress,
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6
+        },
+        fromAmount: amount,
+        toAmount: (parseFloat(amount) * 0.998).toFixed(6), // 0.2% bridge fee
+        estimatedTime: 300, // 5 minutes
+        fees: {
+          gas: '0.01',
+          bridge: '0.002',
+          total: '0.012'
+        },
+        priceImpact: '0.1',
+        route: {
+          id: `route_${Date.now()}`,
+          fromChainId: parseInt(fromChainId),
+          toChainId: parseInt(toChainId),
+          steps: [
+            { name: 'Approval', status: 'pending' },
+            { name: 'Bridge', status: 'pending' },
+            { name: 'Confirmation', status: 'pending' }
+          ]
+        }
+      };
+
+      res.json(quote);
+    } catch (error) {
+      console.error('Failed to get bridge quote:', error);
+      res.status(500).json({ error: 'Failed to get bridge quote' });
+    }
+  });
+
+  app.post('/api/bridge/execute', async (req, res) => {
+    try {
+      const { 
+        fromChainId, 
+        toChainId, 
+        fromTokenAddress, 
+        toTokenAddress, 
+        amount, 
+        userAddress, 
+        slippage 
+      } = req.body;
+
+      // Validate inputs
+      if (!fromChainId || !toChainId || !fromTokenAddress || !toTokenAddress || !amount || !userAddress) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      // Mock bridge execution (in production, use LI.FI SDK)
+      const transaction = {
+        id: `bridge_${Date.now()}`,
+        fromChainId: parseInt(fromChainId),
+        toChainId: parseInt(toChainId),
+        fromToken: {
+          address: fromTokenAddress,
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6
+        },
+        toToken: {
+          address: toTokenAddress,
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6
+        },
+        amount: amount,
+        status: 'processing',
+        fromTxHash: '0x' + Math.random().toString(16).substr(2, 64),
+        timestamp: Date.now(),
+        estimatedCompletion: Date.now() + 300000, // 5 minutes
+        currentStep: 'Initiating bridge transaction',
+        steps: [
+          { name: 'Token Approval', status: 'completed', txHash: '0x' + Math.random().toString(16).substr(2, 64) },
+          { name: 'Bridge Transaction', status: 'processing', txHash: '0x' + Math.random().toString(16).substr(2, 64) },
+          { name: 'Destination Confirmation', status: 'pending' }
+        ]
+      };
+
+      res.json(transaction);
+    } catch (error) {
+      console.error('Failed to execute bridge:', error);
+      res.status(500).json({ error: 'Failed to execute bridge' });
+    }
+  });
+
+  app.get('/api/bridge/status/:transactionId', async (req, res) => {
+    try {
+      const { transactionId } = req.params;
+
+      // Mock bridge status tracking (in production, use LI.FI SDK)
+      const statuses = ['processing', 'processing', 'completed'];
+      const currentStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      const transaction = {
+        id: transactionId,
+        fromChainId: 1,
+        toChainId: 56,
+        fromToken: {
+          address: '0xA0b86a33E6441b4ba578d6E1B51A916D05bF9fd7',
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6
+        },
+        toToken: {
+          address: '0x55d398326f99059fF775485246999027B3197955',
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 18
+        },
+        amount: '100.0',
+        status: currentStatus,
+        fromTxHash: '0x' + Math.random().toString(16).substr(2, 64),
+        toTxHash: currentStatus === 'completed' ? '0x' + Math.random().toString(16).substr(2, 64) : undefined,
+        timestamp: Date.now() - 120000, // 2 minutes ago
+        estimatedCompletion: Date.now() + 180000, // 3 minutes from now
+        currentStep: currentStatus === 'completed' ? 'Bridge completed' : 'Processing on destination chain',
+        steps: [
+          { name: 'Token Approval', status: 'completed', txHash: '0x' + Math.random().toString(16).substr(2, 64) },
+          { name: 'Bridge Transaction', status: 'completed', txHash: '0x' + Math.random().toString(16).substr(2, 64) },
+          { name: 'Destination Confirmation', status: currentStatus === 'completed' ? 'completed' : 'processing' }
+        ]
+      };
+
+      res.json(transaction);
+    } catch (error) {
+      console.error('Failed to get bridge status:', error);
+      res.status(500).json({ error: 'Failed to get bridge status' });
+    }
+  });
+
+  app.get('/api/bridge/history/:address', async (req, res) => {
+    try {
+      const { address } = req.params;
+
+      if (!address || !ethers.isAddress(address)) {
+        return res.status(400).json({ error: 'Invalid address' });
+      }
+
+      // Mock bridge history (in production, query from database)
+      const history = [
+        {
+          id: 'bridge_1',
+          fromChainId: 1,
+          toChainId: 56,
+          fromToken: { symbol: 'USDT', name: 'Tether USD' },
+          toToken: { symbol: 'USDT', name: 'Tether USD' },
+          amount: '100.0',
+          status: 'completed',
+          fromTxHash: '0x' + Math.random().toString(16).substr(2, 64),
+          toTxHash: '0x' + Math.random().toString(16).substr(2, 64),
+          timestamp: Date.now() - 86400000, // 1 day ago
+          estimatedCompletion: Date.now() - 86400000 + 300000
+        },
+        {
+          id: 'bridge_2',
+          fromChainId: 56,
+          toChainId: 137,
+          fromToken: { symbol: 'USDC', name: 'USD Coin' },
+          toToken: { symbol: 'USDC', name: 'USD Coin' },
+          amount: '250.0',
+          status: 'processing',
+          fromTxHash: '0x' + Math.random().toString(16).substr(2, 64),
+          timestamp: Date.now() - 600000, // 10 minutes ago
+          estimatedCompletion: Date.now() + 120000 // 2 minutes from now
+        }
+      ];
+
+      res.json(history);
+    } catch (error) {
+      console.error('Failed to get bridge history:', error);
+      res.status(500).json({ error: 'Failed to get bridge history' });
+    }
+  });
+
+  app.get('/api/bridge/supported-chains', async (req, res) => {
+    try {
+      const supportedChains = [
+        {
+          chainId: 1,
+          name: 'Ethereum',
+          symbol: 'ETH',
+          logo: '/api/placeholder/32/32',
+          rpcUrl: 'https://mainnet.infura.io/v3/YOUR_KEY',
+          blockExplorer: 'https://etherscan.io',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          isConnected: false
+        },
+        {
+          chainId: 56,
+          name: 'Binance Smart Chain',
+          symbol: 'BNB',
+          logo: '/api/placeholder/32/32',
+          rpcUrl: 'https://bsc-dataseed1.binance.org',
+          blockExplorer: 'https://bscscan.com',
+          nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+          isConnected: false
+        },
+        {
+          chainId: 137,
+          name: 'Polygon',
+          symbol: 'MATIC',
+          logo: '/api/placeholder/32/32',
+          rpcUrl: 'https://polygon-rpc.com',
+          blockExplorer: 'https://polygonscan.com',
+          nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+          isConnected: false
+        },
+        {
+          chainId: 42161,
+          name: 'Arbitrum',
+          symbol: 'ETH',
+          logo: '/api/placeholder/32/32',
+          rpcUrl: 'https://arb1.arbitrum.io/rpc',
+          blockExplorer: 'https://arbiscan.io',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          isConnected: false
+        },
+        {
+          chainId: 10,
+          name: 'Optimism',
+          symbol: 'ETH',
+          logo: '/api/placeholder/32/32',
+          rpcUrl: 'https://mainnet.optimism.io',
+          blockExplorer: 'https://optimistic.etherscan.io',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          isConnected: false
+        },
+        {
+          chainId: 20250217,
+          name: 'Xphere',
+          symbol: 'XP',
+          logo: '/api/placeholder/32/32',
+          rpcUrl: 'https://en-bkk.x-phere.com',
+          blockExplorer: 'https://explorer.x-phere.com',
+          nativeCurrency: { name: 'XP', symbol: 'XP', decimals: 18 },
+          isConnected: true
+        }
+      ];
+
+      res.json(supportedChains);
+    } catch (error) {
+      console.error('Failed to get supported chains:', error);
+      res.status(500).json({ error: 'Failed to get supported chains' });
+    }
+  });
+
+  // Cross-chain bridge API endpoints
+  app.get("/api/bridge/supported-chains", async (req, res) => {
+    try {
+      const supportedChains = [
+        {
+          chainId: 1,
+          name: "Ethereum",
+          symbol: "ETH",
+          logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
+          rpcUrl: "https://eth-mainnet.public.blastapi.io",
+          blockExplorer: "https://etherscan.io",
+          nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+          isConnected: true
+        },
+        {
+          chainId: 56,
+          name: "BSC",
+          symbol: "BNB",
+          logo: "https://cryptologos.cc/logos/bnb-bnb-logo.png",
+          rpcUrl: "https://bsc-dataseed.binance.org",
+          blockExplorer: "https://bscscan.com",
+          nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+          isConnected: true
+        },
+        {
+          chainId: 137,
+          name: "Polygon",
+          symbol: "MATIC",
+          logo: "https://cryptologos.cc/logos/polygon-matic-logo.png",
+          rpcUrl: "https://polygon-rpc.com",
+          blockExplorer: "https://polygonscan.com",
+          nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+          isConnected: true
+        },
+        {
+          chainId: 42161,
+          name: "Arbitrum",
+          symbol: "ETH",
+          logo: "https://cryptologos.cc/logos/arbitrum-arb-logo.png",
+          rpcUrl: "https://arb1.arbitrum.io/rpc",
+          blockExplorer: "https://arbiscan.io",
+          nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+          isConnected: true
+        },
+        {
+          chainId: 10,
+          name: "Optimism",
+          symbol: "ETH",
+          logo: "https://cryptologos.cc/logos/optimism-ethereum-op-logo.png",
+          rpcUrl: "https://mainnet.optimism.io",
+          blockExplorer: "https://optimistic.etherscan.io",
+          nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+          isConnected: true
+        },
+        {
+          chainId: 20250217,
+          name: "Xphere",
+          symbol: "XP",
+          logo: "https://tamsa.io/static/images/logo-blue-bg.svg",
+          rpcUrl: "https://en-bkk.x-phere.com",
+          blockExplorer: "https://explorer.x-phere.com",
+          nativeCurrency: { name: "XP", symbol: "XP", decimals: 18 },
+          isConnected: true
+        }
+      ];
+      
+      res.json(supportedChains);
+    } catch (error) {
+      console.error("Error fetching supported chains:", error);
+      res.status(500).json({ message: "Failed to fetch supported chains" });
+    }
+  });
+
+  app.post("/api/bridge/quote", async (req, res) => {
+    try {
+      const { fromChainId, toChainId, fromTokenAddress, toTokenAddress, amount, userAddress } = req.body;
+      
+      // Mock bridge quote response
+      const mockQuote = {
+        fromChainId,
+        toChainId,
+        fromToken: { address: fromTokenAddress, symbol: "USDT" },
+        toToken: { address: toTokenAddress, symbol: "USDT" },
+        fromAmount: amount,
+        toAmount: (parseFloat(amount) * 0.995).toString(), // 0.5% fee
+        estimatedTime: 300, // 5 minutes in seconds
+        fees: {
+          gas: "0.002",
+          bridge: "0.005",
+          total: (parseFloat(amount) * 0.005).toString()
+        },
+        route: {
+          steps: [
+            { type: "swap", protocol: "LiFi" },
+            { type: "bridge", protocol: "Stargate" },
+            { type: "swap", protocol: "1inch" }
+          ]
+        }
+      };
+      
+      res.json(mockQuote);
+    } catch (error) {
+      console.error("Error getting bridge quote:", error);
+      res.status(500).json({ message: "Failed to get bridge quote" });
+    }
+  });
+
+  app.post("/api/bridge/execute", async (req, res) => {
+    try {
+      const { fromChainId, toChainId, fromTokenAddress, toTokenAddress, amount, userAddress, slippage } = req.body;
+      
+      // Mock bridge execution response
+      const mockExecution = {
+        id: `bridge-${Date.now()}`,
+        status: "pending",
+        fromTxHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        estimatedCompletion: Date.now() + 300000, // 5 minutes
+        currentStep: "Initiating bridge transaction"
+      };
+      
+      res.json(mockExecution);
+    } catch (error) {
+      console.error("Error executing bridge:", error);
+      res.status(500).json({ message: "Failed to execute bridge" });
+    }
+  });
+
+  app.get("/api/bridge/history/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      // Mock bridge history
+      const mockHistory = [
+        {
+          id: "bridge-1",
+          fromChainId: 1,
+          toChainId: 137,
+          fromToken: { symbol: "USDT", name: "Tether USD" },
+          toToken: { symbol: "USDT", name: "Tether USD" },
+          amount: "100.0",
+          status: "completed",
+          fromTxHash: "0xabc123...",
+          toTxHash: "0xdef456...",
+          timestamp: Date.now() - 3600000,
+          estimatedCompletion: Date.now() - 3300000
+        },
+        {
+          id: "bridge-2",
+          fromChainId: 56,
+          toChainId: 1,
+          fromToken: { symbol: "USDC", name: "USD Coin" },
+          toToken: { symbol: "USDC", name: "USD Coin" },
+          amount: "500.0",
+          status: "processing",
+          fromTxHash: "0x789abc...",
+          timestamp: Date.now() - 300000,
+          estimatedCompletion: Date.now() + 120000
+        }
+      ];
+      
+      res.json(mockHistory);
+    } catch (error) {
+      console.error("Error fetching bridge history:", error);
+      res.status(500).json({ message: "Failed to fetch bridge history" });
+    }
+  });
+
+  // Multi-chain portfolio API endpoints
+  app.get("/api/multichain/balances/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      // Mock multi-chain balance data
+      const mockBalances = [
+        {
+          chainId: 1,
+          chainName: "Ethereum",
+          symbol: "ETH",
+          nativeBalance: "2.5",
+          tokens: [
+            {
+              address: "0xA0b86a33E6417aB8100a90F83d5F28d9BDDC5A6c",
+              symbol: "USDT",
+              name: "Tether USD",
+              balance: "1000.0",
+              decimals: 6
+            },
+            {
+              address: "0xa0bEd124a09ac2Bd941b10349d8d224fe3c955eb",
+              symbol: "USDC",
+              name: "USD Coin",
+              balance: "500.0",
+              decimals: 6
+            }
+          ]
+        },
+        {
+          chainId: 56,
+          chainName: "BSC",
+          symbol: "BNB",
+          nativeBalance: "10.0",
+          tokens: [
+            {
+              address: "0x55d398326f99059fF775485246999027B3197955",
+              symbol: "USDT",
+              name: "Tether USD",
+              balance: "750.0",
+              decimals: 18
+            },
+            {
+              address: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+              symbol: "CAKE",
+              name: "PancakeSwap Token",
+              balance: "200.0",
+              decimals: 18
+            }
+          ]
+        },
+        {
+          chainId: 137,
+          chainName: "Polygon",
+          symbol: "MATIC",
+          nativeBalance: "500.0",
+          tokens: [
+            {
+              address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+              symbol: "USDT",
+              name: "Tether USD",
+              balance: "300.0",
+              decimals: 6
+            }
+          ]
+        },
+        {
+          chainId: 20250217,
+          chainName: "Xphere",
+          symbol: "XP",
+          nativeBalance: "1000.0",
+          tokens: [
+            {
+              address: "0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2",
+              symbol: "XPS",
+              name: "XpSwap Token",
+              balance: "150.0",
+              decimals: 18
+            }
+          ]
+        }
+      ];
+      
+      res.json(mockBalances);
+    } catch (error) {
+      console.error("Error fetching multi-chain balances:", error);
+      res.status(500).json({ message: "Failed to fetch multi-chain balances" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
