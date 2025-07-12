@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertCircle, TrendingUp, Calendar, Award, Zap, Shield } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { xpsService, XPSStakingInfo, XPSTokenInfo } from '@/lib/xpsService';
+import { xpsService, XPSStakingInfo, XPSTokenInfo, XPSService } from '@/lib/xpsService';
 import { web3Service } from '@/lib/web3';
 import { useToast } from '@/hooks/use-toast';
 
@@ -166,15 +166,15 @@ export function XPSStakingInterface() {
 
   const getFeeDiscountTier = (balance: number) => {
     const totalBalance = balance + parseFloat(stakingInfo?.stakedAmount || '0');
-    return xpsService.getFeeDiscountTier(totalBalance);
+    return XPSService.getFeeDiscountTier(totalBalance);
   };
 
   const getStakingMultiplier = (lockDays: number) => {
-    return xpsService.getStakingMultiplier(lockDays);
+    return XPSService.getStakingMultiplier(lockDays);
   };
 
   const formatDuration = (seconds: number) => {
-    return xpsService.formatStakingDuration(seconds);
+    return XPSService.formatStakingDuration(seconds);
   };
 
   const tier = getFeeDiscountTier(parseFloat(xpsBalance));
@@ -206,7 +206,7 @@ export function XPSStakingInterface() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Fee Discount</p>
               <Badge variant={tier.discount > 0 ? "default" : "secondary"}>
-                {tier.tier} - {xpsService.formatFeeDiscount(tier.discount)}
+                {tier.tier} - {XPSService.formatFeeDiscount(tier.discount)}
               </Badge>
             </div>
           </div>
@@ -402,7 +402,7 @@ export function XPSStakingInterface() {
                   </div>
                   <div className="flex justify-between">
                     <span>Current Discount</span>
-                    <span className="font-semibold text-blue-500">{xpsService.formatFeeDiscount(tier.discount)}</span>
+                    <span className="font-semibold text-blue-500">{XPSService.formatFeeDiscount(tier.discount)}</span>
                   </div>
                 </div>
               </CardContent>
