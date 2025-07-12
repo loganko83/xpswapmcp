@@ -1,4 +1,3 @@
-import { Layout } from '@/components/Layout';
 import { XPSStakingInterface } from '@/components/XPSStakingInterface';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,8 +5,7 @@ import { Coins, TrendingUp, Shield, Zap } from 'lucide-react';
 
 export default function XPSStakingPage() {
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -121,6 +119,5 @@ export default function XPSStakingPage() {
           </Card>
         </div>
       </div>
-    </Layout>
   );
 }
