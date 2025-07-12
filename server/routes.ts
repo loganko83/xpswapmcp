@@ -6,6 +6,9 @@ import { insertTokenSchema, insertTradingPairSchema, insertTransactionSchema, in
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // In-memory storage for staking records
+  const stakingRecords: any[] = [];
+  
   // Token routes
   app.get("/api/tokens", async (req, res) => {
     try {
@@ -3298,6 +3301,9 @@ Submitted at: ${new Date().toISOString()}
         rewardSource: "0xf0C5d4889cb250956841c339b5F3798320303D5f" // 판매자 지갑
       };
 
+      // Store staking record
+      stakingRecords.push(stakingRecord);
+      
       console.log("XPS Staking record:", stakingRecord);
 
       res.json({
@@ -3389,6 +3395,102 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // Multi-chain balance endpoint
+  app.get("/api/multichain/balance", async (req, res) => {
+    try {
+      const { address } = req.query;
+      
+      // Mock multi-chain balance data
+      const mockBalance = {
+        address: address || "0x1234567890123456789012345678901234567890",
+        balances: {
+          ethereum: {
+            "ETH": { balance: "2.5", usdValue: 6125 },
+            "USDT": { balance: "1000", usdValue: 1000 },
+            "USDC": { balance: "500", usdValue: 500 },
+            "WBTC": { balance: "0.1", usdValue: 4200 }
+          },
+          bsc: {
+            "BNB": { balance: "5.2", usdValue: 3540 },
+            "BUSD": { balance: "800", usdValue: 800 },
+            "CAKE": { balance: "150", usdValue: 450 }
+          },
+          xphere: {
+            "XP": { balance: "10000", usdValue: 165.78 },
+            "ml": { balance: "5000", usdValue: 50 },
+            "XCR": { balance: "2000", usdValue: 20 }
+          }
+        },
+        totalUsdValue: 16850.78
+      };
+      
+      res.json(mockBalance);
+    } catch (error) {
+      console.error("Failed to fetch multi-chain balance:", error);
+      res.status(500).json({ error: "Failed to fetch multi-chain balance" });
+    }
+  });
+
+  // Multi-chain transactions endpoint
+  app.get("/api/multichain/transactions", async (req, res) => {
+    try {
+      const { address, network } = req.query;
+      
+      // Mock transaction data
+      const mockTransactions = {
+        transactions: [
+          {
+            hash: "0x123456789abcdef",
+            network: "ethereum",
+            type: "send",
+            token: "ETH",
+            amount: "1.5",
+            usdValue: 3675,
+            from: "0x1234567890123456789012345678901234567890",
+            to: "0x9876543210987654321098765432109876543210",
+            timestamp: Date.now() - 3600000,
+            status: "confirmed",
+            gasUsed: "21000",
+            gasFee: "0.005"
+          },
+          {
+            hash: "0xabcdef123456789",
+            network: "bsc",
+            type: "receive",
+            token: "BNB",
+            amount: "2.0",
+            usdValue: 1362,
+            from: "0x9876543210987654321098765432109876543210",
+            to: "0x1234567890123456789012345678901234567890",
+            timestamp: Date.now() - 7200000,
+            status: "confirmed",
+            gasUsed: "25000",
+            gasFee: "0.002"
+          },
+          {
+            hash: "0x987654321fedcba",
+            network: "xphere",
+            type: "swap",
+            token: "XP",
+            amount: "1000",
+            usdValue: 16.58,
+            from: "0x1234567890123456789012345678901234567890",
+            to: "0x0000000000000000000000000000000000000000",
+            timestamp: Date.now() - 10800000,
+            status: "confirmed",
+            gasUsed: "35000",
+            gasFee: "0.001"
+          }
+        ]
+      };
+      
+      res.json(mockTransactions);
+    } catch (error) {
+      console.error("Failed to fetch multi-chain transactions:", error);
+      res.status(500).json({ error: "Failed to fetch multi-chain transactions" });
+    }
+  });
+
   // XPS staking analytics endpoint
   app.get("/api/xps/staking-analytics", async (req, res) => {
     try {
@@ -3399,10 +3501,14 @@ Submitted at: ${new Date().toISOString()}
         !address || record.walletAddress.toLowerCase() === address.toString().toLowerCase()
       );
       
-      // Calculate analytics
+      // Calculate analytics - handle cases where estimatedRewards might be a string
       const totalStaked = userStakings.reduce((sum, record) => sum + record.amount, 0);
       const activeStakings = userStakings.filter(record => record.status === 'active');
-      const totalRewards = userStakings.reduce((sum, record) => sum + parseFloat(record.estimatedRewards), 0);
+      const totalRewards = userStakings.reduce((sum, record) => {
+        const rewards = typeof record.estimatedRewards === 'string' ? 
+          parseFloat(record.estimatedRewards) : record.estimatedRewards;
+        return sum + (isNaN(rewards) ? 0 : rewards);
+      }, 0);
       const averageAPY = activeStakings.length > 0 ? 
         activeStakings.reduce((sum, record) => sum + record.apy, 0) / activeStakings.length : 0;
       
@@ -3419,7 +3525,8 @@ Submitted at: ${new Date().toISOString()}
             lockPeriod: record.lockPeriod,
             apy: record.apy,
             unlockDate: record.unlockDate,
-            estimatedRewards: record.estimatedRewards
+            estimatedRewards: typeof record.estimatedRewards === 'string' ? 
+              parseFloat(record.estimatedRewards) : record.estimatedRewards
           }))
         }
       });

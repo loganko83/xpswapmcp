@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useWeb3 } from './useWeb3';
 
@@ -52,31 +53,75 @@ export function useMultiChainBalance() {
     refetchInterval: 60000, // Refresh every minute
   });
 
-  // Convert balances to structured format
-  const formattedBalances = (balances as MultiChainBalance)?.balances ? Object.entries((balances as MultiChainBalance).balances).reduce((acc, [network, tokens]) => {
-    acc[network] = Object.entries(tokens).map(([symbol, data]) => ({
-      symbol,
-      name: symbol, // In production, this would be fetched from token metadata
-      network,
-      balance: data.balance,
-      usdValue: data.usdValue,
-    }));
-    return acc;
-  }, {} as Record<string, MultiChainToken[]>) : {};
+  // Convert balances to structured format with error handling
+  const formattedBalances = React.useMemo(() => {
+    try {
+      if (!balances || typeof balances !== 'object') return {};
+      
+      const bal = balances as MultiChainBalance;
+      if (!bal.balances || typeof bal.balances !== 'object') return {};
+      
+      return Object.entries(bal.balances).reduce((acc, [network, tokens]) => {
+        if (!tokens || typeof tokens !== 'object') return acc;
+        
+        acc[network] = Object.entries(tokens).map(([symbol, data]) => ({
+          symbol,
+          name: symbol, // In production, this would be fetched from token metadata
+          network,
+          balance: data?.balance || '0',
+          usdValue: data?.usdValue || 0,
+        }));
+        return acc;
+      }, {} as Record<string, MultiChainToken[]>);
+    } catch (error) {
+      console.error('Error formatting balances:', error);
+      return {};
+    }
+  }, [balances]);
 
   // Get total value across all networks
-  const totalValue = (balances as MultiChainBalance)?.totalUsdValue || 0;
+  const totalValue = React.useMemo(() => {
+    try {
+      return (balances as MultiChainBalance)?.totalUsdValue || 0;
+    } catch (error) {
+      console.error('Error calculating total value:', error);
+      return 0;
+    }
+  }, [balances]);
 
   // Get network totals
-  const networkTotals = (balances as MultiChainBalance)?.balances ? Object.entries((balances as MultiChainBalance).balances).reduce((acc, [network, tokens]) => {
-    acc[network] = Object.values(tokens).reduce((total, token) => total + token.usdValue, 0);
-    return acc;
-  }, {} as Record<string, number>) : {};
+  const networkTotals = React.useMemo(() => {
+    try {
+      if (!balances || typeof balances !== 'object') return {};
+      
+      const bal = balances as MultiChainBalance;
+      if (!bal.balances || typeof bal.balances !== 'object') return {};
+      
+      return Object.entries(bal.balances).reduce((acc, [network, tokens]) => {
+        if (!tokens || typeof tokens !== 'object') return acc;
+        
+        acc[network] = Object.values(tokens).reduce((total, token) => {
+          return total + (token?.usdValue || 0);
+        }, 0);
+        return acc;
+      }, {} as Record<string, number>);
+    } catch (error) {
+      console.error('Error calculating network totals:', error);
+      return {};
+    }
+  }, [balances]);
 
   // Get top tokens by value
-  const topTokens = Object.values(formattedBalances).flat()
-    .sort((a, b) => b.usdValue - a.usdValue)
-    .slice(0, 10);
+  const topTokens = React.useMemo(() => {
+    try {
+      return Object.values(formattedBalances).flat()
+        .sort((a, b) => b.usdValue - a.usdValue)
+        .slice(0, 10);
+    } catch (error) {
+      console.error('Error sorting top tokens:', error);
+      return [];
+    }
+  }, [formattedBalances]);
 
   return {
     balances: formattedBalances,

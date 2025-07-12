@@ -124,6 +124,13 @@ export function MultiChainPortfolio() {
         <div className="text-center">
           <p className="text-red-500 text-lg">Failed to load multi-chain portfolio data</p>
           <p className="text-muted-foreground mt-2">Please check your connection and try again</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="mt-4"
+            variant="outline"
+          >
+            Retry
+          </Button>
         </div>
       </div>
     );
