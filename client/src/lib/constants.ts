@@ -4,22 +4,22 @@ export const CONTRACT_ADDRESSES = {
   XPSToken: "0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2",
   
   // DEX Core Contracts
-  XpSwapDEX: "0x5b0bcfa1490d",
-  XpSwapLiquidityPool: "0xe909098d05c06",
-  XpSwapAdvancedAMM: "0x123c1d407d04a",
+  XpSwapDEX: "0x5b0bcfa1490d000000000000000000000000000",
+  XpSwapLiquidityPool: "0xe909098d05c06000000000000000000000000000",
+  XpSwapAdvancedAMM: "0x123c1d407d04a000000000000000000000000000",
   
   // Staking and Rewards
-  XpSwapStaking: "0xdcbe5c4f166a3",
-  XpSwapFarmingRewards: "0xb99484ee2d452",
+  XpSwapStaking: "0xdcbe5c4f166a3000000000000000000000000000",
+  XpSwapFarmingRewards: "0xb99484ee2d452000000000000000000000000000",
   
   // Governance
-  XpSwapGovernanceToken: "0xa62a2b8601833",
+  XpSwapGovernanceToken: "0xa62a2b8601833000000000000000000000000000",
   
   // Revenue Management
-  XpSwapRevenueManager: "0xb3cde158e6838",
+  XpSwapRevenueManager: "0xb3cde158e6838000000000000000000000000000",
   
   // Cross-chain Bridge
-  XpSwapCrosschainBridge: "0x1301bc0dccf81"
+  XpSwapCrosschainBridge: "0x1301bc0dccf81000000000000000000000000000"
 };
 
 // Network Configuration

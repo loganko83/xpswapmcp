@@ -27,6 +27,20 @@ export class DirectWeb3Service {
       const xpsTokenAddress = CONTRACT_ADDRESSES.XPSToken;
       const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
 
+      console.log('Contract addresses:', { xpsTokenAddress, stakingAddress });
+
+      // 주소 유효성 검증
+      if (!xpsTokenAddress || !stakingAddress) {
+        throw new Error('Contract addresses not configured');
+      }
+
+      // 주소 형식 검증
+      const isValidAddress = (addr: string) => /^0x[0-9a-fA-F]{40}$/.test(addr);
+      if (!isValidAddress(xpsTokenAddress) || !isValidAddress(stakingAddress)) {
+        console.error('Invalid address format:', { xpsTokenAddress, stakingAddress });
+        throw new Error(`Invalid contract address format: XPS=${xpsTokenAddress}, Staking=${stakingAddress}`);
+      }
+
       // 1. 토큰 승인 (approve)
       const approveData = '0x095ea7b3' + // approve(address,uint256)
                          stakingAddress.slice(2).padStart(64, '0') + // spender
@@ -113,6 +127,13 @@ export class DirectWeb3Service {
 
       const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
       
+      // 주소 유효성 검증
+      const isValidAddress = (addr: string) => /^0x[0-9a-fA-F]{40}$/.test(addr);
+      if (!isValidAddress(stakingAddress) || !isValidAddress(address)) {
+        console.error('Invalid address format:', { stakingAddress, address });
+        return null;
+      }
+      
       // getStakeInfo(address) 함수 호출
       const callData = '0x7d49d875' + // getStakeInfo(address)
                       address.slice(2).padStart(64, '0'); // address
@@ -161,6 +182,12 @@ export class DirectWeb3Service {
 
       const userAddress = accounts[0];
       const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
+
+      // 주소 유효성 검증
+      const isValidAddress = (addr: string) => /^0x[0-9a-fA-F]{40}$/.test(addr);
+      if (!isValidAddress(stakingAddress)) {
+        throw new Error('Invalid staking contract address');
+      }
 
       // claimRewards() 함수 호출
       const claimData = '0xe6f1daf2'; // claimRewards()
