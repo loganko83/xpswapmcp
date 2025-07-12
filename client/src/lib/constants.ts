@@ -44,3 +44,107 @@ export const XPS_TOKEN_INFO = {
   totalSupply: "1000000000", // 1B tokens
   priceUSD: 1.0 // 1 XPS = 1 USD
 };
+
+// Default tokens for the platform
+export const DEFAULT_TOKENS = [
+  {
+    id: 1,
+    symbol: "XP",
+    name: "Xphere",
+    address: "0x0000000000000000000000000000000000000000",
+    decimals: 18,
+    isNative: true,
+    network: "xphere",
+    iconUrl: "https://tamsa.tamadoge.com/images/xp-phere.png"
+  },
+  {
+    id: 2,
+    symbol: "XPS",
+    name: "XpSwap Token",
+    address: CONTRACT_ADDRESSES.XPSToken,
+    decimals: 18,
+    isNative: false,
+    network: "xphere",
+    iconUrl: "https://tamsa.tamadoge.com/images/xp-phere.png"
+  },
+  {
+    id: 3,
+    symbol: "BTC",
+    name: "Bitcoin",
+    address: "0x",
+    decimals: 18,
+    isNative: false,
+    network: "ethereum",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/1.png"
+  },
+  {
+    id: 4,
+    symbol: "ETH",
+    name: "Ethereum",
+    address: "0x",
+    decimals: 18,
+    isNative: false,
+    network: "ethereum",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/1027.png"
+  },
+  {
+    id: 5,
+    symbol: "USDT",
+    name: "Tether",
+    address: "0x",
+    decimals: 6,
+    isNative: false,
+    network: "ethereum",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/825.png"
+  },
+  {
+    id: 6,
+    symbol: "BNB",
+    name: "BNB",
+    address: "0x",
+    decimals: 18,
+    isNative: false,
+    network: "bsc",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/1839.png"
+  },
+  {
+    id: 7,
+    symbol: "USDC",
+    name: "USD Coin",
+    address: "0x",
+    decimals: 6,
+    isNative: false,
+    network: "ethereum",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/3408.png"
+  },
+  {
+    id: 8,
+    symbol: "SOL",
+    name: "Solana",
+    address: "0x",
+    decimals: 9,
+    isNative: false,
+    network: "solana",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/5426.png"
+  },
+  {
+    id: 9,
+    symbol: "DOGE",
+    name: "Dogecoin",
+    address: "0x",
+    decimals: 8,
+    isNative: false,
+    network: "dogecoin",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/74.png"
+  },
+  {
+    id: 10,
+    symbol: "MATIC",
+    name: "Polygon",
+    address: "0x",
+    decimals: 18,
+    isNative: false,
+    network: "polygon",
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/32x32/3890.png"
+  }
+];
