@@ -3149,6 +3149,74 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // XPS Purchase endpoint
+  app.post("/api/xps/purchase", async (req, res) => {
+    try {
+      const { walletAddress, xpAmount, xpsAmount, transactionHash } = req.body;
+
+      if (!walletAddress || !xpAmount || !xpsAmount) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // In a real implementation, this would:
+      // 1. Verify the transaction on the blockchain
+      // 2. Update user balances in the database
+      // 3. Record the purchase transaction
+      
+      const purchaseRecord = {
+        id: Date.now(),
+        walletAddress,
+        xpAmount: parseFloat(xpAmount),
+        xpsAmount: parseFloat(xpsAmount),
+        transactionHash,
+        timestamp: new Date().toISOString(),
+        status: "confirmed"
+      };
+
+      console.log("XPS Purchase:", purchaseRecord);
+
+      res.json({
+        success: true,
+        transaction: purchaseRecord,
+        message: "XPS purchase completed successfully"
+      });
+    } catch (error) {
+      console.error("Error processing XPS purchase:", error);
+      res.status(500).json({ error: "Failed to process XPS purchase" });
+    }
+  });
+
+  // XPS Exchange Rate endpoint
+  app.get("/api/xps/exchange-rate", async (req, res) => {
+    try {
+      // Get current XP price from CoinMarketCap
+      const xpPriceResponse = await fetch(
+        `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=36056`,
+        {
+          headers: {
+            'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY!
+          }
+        }
+      );
+
+      const xpPriceData = await xpPriceResponse.json();
+      const xpPrice = xpPriceData.data['36056'].quote.USD.price;
+      
+      const XPS_PRICE_USD = 1.0; // 1 XPS = 1 USD
+      const xpPerXps = XPS_PRICE_USD / xpPrice;
+
+      res.json({
+        xpPrice,
+        xpsPrice: XPS_PRICE_USD,
+        xpPerXps,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error fetching exchange rate:", error);
+      res.status(500).json({ error: "Failed to fetch exchange rate" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

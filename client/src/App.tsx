@@ -17,6 +17,7 @@ import TermsOfServicePage from "@/pages/terms-of-service";
 import BugBountyPage from "@/pages/bug-bounty";
 import MultiChainPortfolioPage from "@/pages/multichain-portfolio";
 import XPSStakingPage from "@/pages/xps-staking";
+import XPSPurchasePage from "@/pages/xps-purchase";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -35,6 +36,7 @@ function Router() {
         <Route path="/bug-bounty" component={BugBountyPage} />
         <Route path="/multichain-portfolio" component={MultiChainPortfolioPage} />
         <Route path="/xps-staking" component={XPSStakingPage} />
+        <Route path="/xps-purchase" component={XPSPurchasePage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

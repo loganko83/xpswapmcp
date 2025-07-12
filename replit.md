@@ -9,6 +9,12 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Smart Contracts**: DEPLOYED on Xphere Network with 20 XP tokens funding
 
 ## Recent Changes
+- **2025-01-12**: Successfully implemented XPS token purchase system with XP-to-XPS conversion (1 XPS = 1 USD)
+- **2025-01-12**: Created comprehensive XPS purchase page (/xps-purchase) with real-time price calculations
+- **2025-01-12**: Integrated XPS purchase functionality with seller address (0xf0C5d4889cb250956841c339b5F3798320303D5f)
+- **2025-01-12**: Added XPS purchase backend API endpoints for transaction recording and exchange rates
+- **2025-01-12**: Enhanced Web3 service with XPS purchase transaction capabilities
+- **2025-01-12**: Added "Buy XPS" navigation link to both desktop and mobile menus
 - **2025-01-12**: Successfully integrated XPS native token (0xf1ba1af6fae54c0f9d82c1d12aef0c57543f12e2) into XpSwap platform
 - **2025-01-12**: Created comprehensive XPS staking system with fee discount tiers and APY calculations
 - **2025-01-12**: Implemented XPS-specific API endpoints for token info, staking tiers, and revenue stats
@@ -225,6 +231,8 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - `GET /api/xps/staking-tiers` - Staking tier information with APY and boosting
 - `GET /api/xps/revenue-stats` - Protocol revenue distribution and burn statistics
 - `POST /api/xps/calculate-fee-discount` - Calculate fee discounts for XPS holders
+- `POST /api/xps/purchase` - Process XPS token purchase transactions
+- `GET /api/xps/exchange-rate` - Real-time XP to XPS exchange rate calculations
 
 ### XPS Native Token API Endpoints
 - `GET /api/xps/info` - XPS token information, supply, and market data

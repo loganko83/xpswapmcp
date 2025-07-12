@@ -126,6 +126,13 @@ export function Layout({ children }: LayoutProps) {
                 }`}>
                   XPS Staking
                 </Link>
+                <Link href="/xps-purchase" className={`text-sm font-medium transition-colors ${
+                  isActivePage("/xps-purchase") 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}>
+                  Buy XPS
+                </Link>
               </nav>
             </div>
 
@@ -255,6 +262,15 @@ export function Layout({ children }: LayoutProps) {
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}>
                     XPS Staking
+                  </div>
+                </Link>
+                <Link href="/xps-purchase" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/xps-purchase") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Buy XPS
                   </div>
                 </Link>
               </nav>
