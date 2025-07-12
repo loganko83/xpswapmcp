@@ -129,63 +129,241 @@ const apiEndpoints = [
   },
   "timestamp": 1672531200
 }`
+  },
+  {
+    method: "GET",
+    path: "/api/xps/info",
+    description: "Get XPS token information and market data",
+    response: `{
+  "name": "XpSwap Token",
+  "symbol": "XPS",
+  "decimals": 18,
+  "totalSupply": "1000000000",
+  "price": "1.00",
+  "contract": "0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2",
+  "marketData": {
+    "volume24h": "150000",
+    "holders": "1250",
+    "totalBurned": "5000000"
+  }
+}`
+  },
+  {
+    method: "GET",
+    path: "/api/xps/staking-tiers",
+    description: "Get XPS staking tiers and APY information",
+    response: `{
+  "stakingTiers": [
+    {
+      "period": "30 days",
+      "apy": "100%",
+      "minAmount": "10",
+      "lockPeriod": 2592000
+    },
+    {
+      "period": "90 days", 
+      "apy": "150%",
+      "minAmount": "50",
+      "lockPeriod": 7776000
+    },
+    {
+      "period": "180 days",
+      "apy": "250%", 
+      "minAmount": "100",
+      "lockPeriod": 15552000
+    },
+    {
+      "period": "365 days",
+      "apy": "400%",
+      "minAmount": "500",
+      "lockPeriod": 31536000
+    }
+  ]
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/xps/purchase",
+    description: "Purchase XPS tokens with XP",
+    body: `{
+  "walletAddress": "0x...",
+  "xpAmount": "60.11",
+  "xpsAmount": "1.0",
+  "transactionHash": "0x..."
+}`,
+    response: `{
+  "success": true,
+  "transactionHash": "0x...",
+  "xpsAmount": "1.0",
+  "exchangeRate": "60.11",
+  "timestamp": 1672531200
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/xps/stake",
+    description: "Stake XPS tokens for rewards",
+    body: `{
+  "walletAddress": "0x...",
+  "amount": "100",
+  "lockPeriod": 7776000
+}`,
+    response: `{
+  "success": true,
+  "stakingId": "stake_123",
+  "amount": "100",
+  "apy": "150%",
+  "unlockTime": 1680307200,
+  "transactionHash": "0x..."
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/xps/calculate-fee-discount",
+    description: "Calculate fee discount based on XPS holdings",
+    body: `{
+  "xpsBalance": "1000",
+  "tradeAmount": "500"
+}`,
+    response: `{
+  "feeDiscountTier": "Silver",
+  "discountPercentage": "25%",
+  "originalFee": "1.5",
+  "discountedFee": "1.125",
+  "savings": "0.375"
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/add-liquidity",
+    description: "Add liquidity to pools with XPS rewards",
+    body: `{
+  "tokenA": "XP",
+  "tokenB": "USDT",
+  "amountA": "1000",
+  "amountB": "16.58",
+  "userAddress": "0x..."
+}`,
+    response: `{
+  "success": true,
+  "liquidityPool": {
+    "id": 1,
+    "totalLiquidity": "1016.58",
+    "baseAPR": "15.2%",
+    "xpsBonus": "12.8%",
+    "totalAPR": "28.0%"
+  },
+  "transactionHash": "0x..."
+}`
   }
 ];
 
 const smartContracts = [
   {
+    name: "XpSwapToken (XPS)",
+    address: "0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2",
+    description: "Native XPS token with fee discount tiers and deflationary mechanisms",
+    functions: [
+      "transfer",
+      "approve",
+      "burn",
+      "getFeeDiscountTier",
+      "updateFeeDiscountTier"
+    ]
+  },
+  {
+    name: "XpSwapDEX",
+    address: "0x5b0bcfa1490d",
+    description: "Main DEX router with real AMM algorithms (x * y = k)",
+    functions: [
+      "swapExactTokensForTokens",
+      "addLiquidity",
+      "removeLiquidity",
+      "getAmountOut",
+      "getAmountIn"
+    ]
+  },
+  {
     name: "XpSwapAdvancedAMM",
-    address: "0x...",
+    address: "0x123c1d407d04a",
     description: "Advanced automated market maker with MEV protection",
     functions: [
       "swapExactTokensForTokens",
       "addLiquidity",
       "removeLiquidity",
-      "getAmountOut"
+      "getAmountOut",
+      "calculateMevRisk"
     ]
   },
   {
     name: "XpSwapLiquidityPool",
-    address: "0x...",
+    address: "0xe909098d05c06",
     description: "Time-locked liquidity and auto-compounding system",
     functions: [
       "stake",
       "unstake",
       "claimRewards",
-      "compound"
+      "compound",
+      "getPoolInfo"
     ]
   },
   {
-    name: "XpSwapGovernanceToken",
-    address: "0x...",
-    description: "Governance with delegated voting and vesting schedules",
+    name: "XpSwapStaking",
+    address: "0xdcbe5c4f166a3",
+    description: "XPS staking rewards with APY up to 400%",
     functions: [
-      "delegate",
-      "propose",
-      "vote",
-      "execute"
+      "stakeXPS",
+      "unstakeXPS",
+      "claimRewards",
+      "getStakingInfo",
+      "calculateRewards"
     ]
   },
   {
     name: "XpSwapFarmingRewards",
-    address: "0x...",
+    address: "0xb99484ee2d452",
     description: "Yield farming with governance token boosting",
     functions: [
       "stakeLPTokens",
       "claimRewards",
       "boostRewards",
-      "getRewardRate"
+      "getRewardRate",
+      "getUserFarmInfo"
+    ]
+  },
+  {
+    name: "XpSwapGovernanceToken",
+    address: "0xa62a2b8601833",
+    description: "Governance with delegated voting and vesting schedules",
+    functions: [
+      "delegate",
+      "propose",
+      "vote",
+      "execute",
+      "getVotingPower"
+    ]
+  },
+  {
+    name: "XpSwapRevenueManager",
+    address: "0xb3cde158e6838",
+    description: "Revenue distribution and XPS token burning mechanism",
+    functions: [
+      "distributeRevenue",
+      "burnXPS",
+      "updateBurnRate",
+      "getRevenueStats"
     ]
   },
   {
     name: "XpSwapCrosschainBridge",
-    address: "0x...",
+    address: "0x1301bc0dccf81",
     description: "Multi-network asset transfer bridge",
     functions: [
       "lockTokens",
       "unlockTokens",
       "verifyProof",
-      "emergencyPause"
+      "emergencyPause",
+      "getBridgeInfo"
     ]
   }
 ];
@@ -659,7 +837,7 @@ export async function checkNetworkStatus(rpcUrl: string): Promise<boolean> {
             <div>
               <h1 className="text-4xl font-bold mb-4">Smart Contracts</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                Detailed information about XpSwap's 5 core smart contracts
+                Detailed information about XpSwap's 9 deployed smart contracts on Xphere Network
               </p>
             </div>
 
@@ -680,7 +858,7 @@ export async function checkNetworkStatus(rpcUrl: string): Promise<boolean> {
                     <div>
                       <h4 className="font-semibold mb-2">Contract Address</h4>
                       <code className="bg-muted px-2 py-1 rounded text-sm">
-                        {contract.address}Coming Soon
+                        {contract.address}
                       </code>
                     </div>
                     <div>
@@ -715,6 +893,17 @@ export async function checkNetworkStatus(rpcUrl: string): Promise<boolean> {
                   <div>
                     <h4 className="font-semibold mb-2">Libraries</h4>
                     <p>OpenZeppelin Contracts v4.9.0</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Deployment Status</h4>
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                      <p className="text-sm text-green-800 dark:text-green-200">
+                        ✅ <strong>Successfully Deployed</strong> - All 9 smart contracts have been deployed to Xphere Network with 20 XP tokens funding
+                      </p>
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                        Deployment Date: January 12, 2025
+                      </p>
+                    </div>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2">Deployment Scripts</h4>
@@ -1089,6 +1278,36 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
                 <CardTitle>Token Distribution</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="mb-6">
+                  <h4 className="font-semibold mb-3">XPS Token Purchase System</h4>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      <strong>✨ New Feature:</strong> XPS tokens can now be purchased directly with XP tokens through our integrated purchase system.
+                    </p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="font-medium mb-2">Purchase Details</h5>
+                      <ul className="space-y-1 text-sm">
+                        <li>• <strong>Fixed Price:</strong> 1 XPS = 1 USD</li>
+                        <li>• <strong>Payment:</strong> XP tokens at current market rate</li>
+                        <li>• <strong>Current Rate:</strong> ~60 XP = 1 XPS</li>
+                        <li>• <strong>Instant Transfer:</strong> Real MetaMask integration</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="font-medium mb-2">How It Works</h5>
+                      <ul className="space-y-1 text-sm">
+                        <li>• Connect MetaMask wallet</li>
+                        <li>• Enter desired XPS amount</li>
+                        <li>• System calculates required XP</li>
+                        <li>• XP sent to seller address</li>
+                        <li>• XPS tokens transferred to buyer</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h4 className="font-semibold mb-3">Allocation Breakdown</h4>
@@ -1255,27 +1474,27 @@ function distributeRevenue(uint256 amount) {
                         <tbody>
                           <tr>
                             <td className="border border-muted p-2">30 days</td>
-                            <td className="border border-muted p-2">50%</td>
+                            <td className="border border-muted p-2">100%</td>
                             <td className="border border-muted p-2">1.2x</td>
-                            <td className="border border-muted p-2">100 XPS</td>
+                            <td className="border border-muted p-2">10 XPS</td>
                           </tr>
                           <tr>
                             <td className="border border-muted p-2">90 days</td>
-                            <td className="border border-muted p-2">100%</td>
+                            <td className="border border-muted p-2">150%</td>
                             <td className="border border-muted p-2">1.5x</td>
-                            <td className="border border-muted p-2">500 XPS</td>
+                            <td className="border border-muted p-2">50 XPS</td>
                           </tr>
                           <tr>
                             <td className="border border-muted p-2">180 days</td>
-                            <td className="border border-muted p-2">200%</td>
+                            <td className="border border-muted p-2">250%</td>
                             <td className="border border-muted p-2">2.0x</td>
-                            <td className="border border-muted p-2">1,000 XPS</td>
+                            <td className="border border-muted p-2">100 XPS</td>
                           </tr>
                           <tr>
                             <td className="border border-muted p-2">365 days</td>
                             <td className="border border-muted p-2">400%</td>
                             <td className="border border-muted p-2">2.5x</td>
-                            <td className="border border-muted p-2">5,000 XPS</td>
+                            <td className="border border-muted p-2">500 XPS</td>
                           </tr>
                         </tbody>
                       </table>

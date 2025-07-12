@@ -9,6 +9,13 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Smart Contracts**: DEPLOYED on Xphere Network with 20 XP tokens funding
 
 ## Recent Changes
+- **2025-01-12**: Updated Documentation and API Reference with deployed contract addresses and XPS integration
+- **2025-01-12**: Added comprehensive XPS API endpoints to documentation (/api/xps/info, /api/xps/staking-tiers, /api/xps/purchase, etc.)
+- **2025-01-12**: Updated Smart Contracts section with 9 deployed contract addresses on Xphere Network
+- **2025-01-12**: Enhanced XPS Whitepaper section with correct staking tiers (100%-400% APY) and purchase system details
+- **2025-01-12**: Added XPS token purchase system documentation with MetaMask integration details
+- **2025-01-12**: Updated API reference to include liquidity pool creation with XPS rewards (28% total APR)
+- **2025-01-12**: Converted entire Buy XPS page interface from Korean to English for international accessibility
 - **2025-01-12**: Successfully implemented complete XPS token purchase system with wallet integration
 - **2025-01-12**: Fixed XPS purchase and staking wallet connection issues with proper MetaMask integration
 - **2025-01-12**: Enhanced XPS purchase page to display user's XP balance after wallet connection
