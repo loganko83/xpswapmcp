@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Minus, TrendingUp, Search, Sparkles, ArrowRight } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +14,8 @@ import { getTokenIcon } from "@/lib/tokenUtils";
 export default function PoolPage() {
   const { wallet } = useWeb3();
   const [searchQuery, setSearchQuery] = useState("");
+  const [addLiquidityOpen, setAddLiquidityOpen] = useState(false);
+  const [selectedPool, setSelectedPool] = useState<any>(null);
 
   // Fetch real pool data from API
   const { data: pools = [], isLoading: poolsLoading } = useQuery({
@@ -30,6 +33,13 @@ export default function PoolPage() {
     pool.tokenA?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     pool.tokenB?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddLiquidity = () => {
+    if (pools.length > 0) {
+      setSelectedPool(pools[0]); // Use first pool as default
+      setAddLiquidityOpen(true);
+    }
+  };
 
 
 
@@ -176,7 +186,7 @@ export default function PoolPage() {
                   <p className="text-muted-foreground mb-4">
                     You haven't provided liquidity to any pools yet.
                   </p>
-                  <Button>Add Liquidity</Button>
+                  <Button onClick={handleAddLiquidity}>Add Liquidity</Button>
                 </div>
               ) : (
                 <div>
@@ -193,6 +203,106 @@ export default function PoolPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Liquidity Dialog */}
+      {selectedPool && (
+        <Dialog open={addLiquidityOpen} onOpenChange={setAddLiquidityOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Liquidity</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 mb-4">
+                  <div className="flex items-center -space-x-2">
+                    <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
+                      <img 
+                        src={getTokenIcon(selectedPool.tokenA?.symbol)} 
+                        alt={selectedPool.tokenA?.symbol}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
+                      <img 
+                        src={getTokenIcon(selectedPool.tokenB?.symbol)} 
+                        alt={selectedPool.tokenB?.symbol}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div className="text-lg font-semibold">
+                    {selectedPool.tokenA?.symbol}/{selectedPool.tokenB?.symbol}
+                  </div>
+                </div>
+                
+                <div className="text-sm text-muted-foreground mb-4">
+                  Add liquidity to earn trading fees and rewards
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="rounded-lg border p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Token A</span>
+                      <span className="text-sm text-muted-foreground">Balance: 0.000</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        placeholder="0.0"
+                        className="text-xl font-semibold"
+                        type="number"
+                      />
+                      <Button variant="outline" size="sm">MAX</Button>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {selectedPool.tokenA?.symbol}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <Plus className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  
+                  <div className="rounded-lg border p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Token B</span>
+                      <span className="text-sm text-muted-foreground">Balance: 0.000</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        placeholder="0.0"
+                        className="text-xl font-semibold"
+                        type="number"
+                      />
+                      <Button variant="outline" size="sm">MAX</Button>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {selectedPool.tokenB?.symbol}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 space-y-4">
+                  <div className="rounded-lg bg-muted p-4">
+                    <div className="flex justify-between items-center text-sm">
+                      <span>Pool Share</span>
+                      <span className="font-semibold">0%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span>APR</span>
+                      <span className="font-semibold text-green-600">{selectedPool.apr}%</span>
+                    </div>
+                  </div>
+                  
+                  <Button className="w-full" size="lg">
+                    Add Liquidity
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
