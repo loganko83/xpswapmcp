@@ -19,6 +19,17 @@ export class Web3Service {
     return CONTRACT_ADDRESSES;
   }
 
+  // Helper function to create ENS-disabled provider
+  private createENSDisabledProvider(): ethers.BrowserProvider {
+    const networkConfig = {
+      name: "xphere",
+      chainId: 20250217,
+      ensAddress: null, // Explicitly disable ENS
+      _defaultProvider: null // Prevent default provider lookup
+    };
+    return new ethers.BrowserProvider(window.ethereum, networkConfig);
+  }
+
   async isMetaMaskInstalled(): Promise<boolean> {
     return typeof window.ethereum !== "undefined";
   }
@@ -28,12 +39,8 @@ export class Web3Service {
       throw new Error("MetaMask is not installed");
     }
     
-    // Create provider without ENS support for Xphere network
-    this._provider = new ethers.BrowserProvider(window.ethereum, {
-      name: "xphere",
-      chainId: 20250217,
-      ensAddress: null // Disable ENS for Xphere network
-    });
+    // Create provider with explicit network config to avoid ENS issues
+    this._provider = this.createENSDisabledProvider();
     
     try {
       this.signer = await this._provider.getSigner();
@@ -62,11 +69,7 @@ export class Web3Service {
       }
 
       // Initialize provider and signer without ENS support
-      this._provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS for Xphere network
-      });
+      this._provider = this.createENSDisabledProvider();
       this.signer = await this._provider.getSigner();
 
       console.log("MetaMask connection successful:", accounts[0]);
@@ -286,12 +289,7 @@ export class Web3Service {
       }
 
       // ENS 비활성화된 provider 사용
-      const provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS
-      });
-      
+      const provider = this.createENSDisabledProvider();
       const signer = await provider.getSigner();
       
       // 판매자 주소 (XPS를 판매하는 주소)
@@ -340,11 +338,7 @@ export class Web3Service {
       }
 
       // ENS 비활성화된 provider로 판매자 지갑 생성
-      const provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS
-      });
+      const provider = this.createENSDisabledProvider();
       const sellerWallet = new ethers.Wallet(sellerPrivateKey, provider);
       
       // XPS 토큰 컨트랙트
@@ -396,12 +390,7 @@ export class Web3Service {
       }
 
       // ENS 비활성화된 provider 사용
-      const provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS
-      });
-      
+      const provider = this.createENSDisabledProvider();
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       
@@ -478,11 +467,7 @@ export class Web3Service {
       }
 
       // ENS 비활성화된 provider 사용
-      const provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS
-      });
+      const provider = this.createENSDisabledProvider();
 
       const stakingABI = [
         "function getStakeInfo(address staker) view returns (uint256 stakedAmount, uint256 lockPeriod, uint256 unlockTime, uint256 rewards)"
@@ -516,11 +501,7 @@ export class Web3Service {
       console.log(`Distributing ${rewardAmount} XPS rewards to ${toAddress}`);
       
       // 판매자 지갑으로 서명자 생성 (ENS 비활성화)
-      const provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS for Xphere network
-      });
+      const provider = this.createENSDisabledProvider();
       const sellerWallet = new ethers.Wallet(sellerPrivateKey, provider);
       
       // XPS 토큰 컨트랙트
@@ -564,12 +545,7 @@ export class Web3Service {
       }
 
       // ENS 비활성화된 provider 사용
-      const provider = new ethers.BrowserProvider(window.ethereum, {
-        name: "xphere",
-        chainId: 20250217,
-        ensAddress: null // Disable ENS
-      });
-      
+      const provider = this.createENSDisabledProvider();
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       
