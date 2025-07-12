@@ -363,6 +363,110 @@ export class Web3Service {
       return 60.1; // 기본값
     }
   }
+
+  // XPS 스테이킹 함수
+  async stakeXPS(amount: string, lockPeriod: number): Promise<{success: boolean; transactionHash?: string; error?: string}> {
+    try {
+      if (!this.provider) {
+        throw new Error('Web3 provider not available');
+      }
+
+      const signer = await this.provider.getSigner();
+      const userAddress = await signer.getAddress();
+      
+      console.log(`Staking ${amount} XPS for ${lockPeriod} days`);
+      
+      // XPS 토큰 컨트랙트 ABI
+      const xpsTokenABI = [
+        "function balanceOf(address account) view returns (uint256)",
+        "function approve(address spender, uint256 amount) returns (bool)",
+        "function allowance(address owner, address spender) view returns (uint256)"
+      ];
+      
+      // XPS 스테이킹 컨트랙트 ABI
+      const stakingABI = [
+        "function stake(uint256 amount, uint256 lockPeriod) returns (bool)",
+        "function getStakeInfo(address staker) view returns (uint256 stakedAmount, uint256 lockPeriod, uint256 unlockTime, uint256 rewards)"
+      ];
+      
+      // 컨트랙트 주소
+      const xpsTokenAddress = CONTRACT_ADDRESSES.XPSToken;
+      const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
+      
+      // 컨트랙트 인스턴스 생성
+      const xpsContract = new ethers.Contract(xpsTokenAddress, xpsTokenABI, signer);
+      const stakingContract = new ethers.Contract(stakingAddress, stakingABI, signer);
+      
+      // 토큰 양 변환 (18 decimals)
+      const tokenAmount = ethers.parseUnits(amount, 18);
+      
+      // 잔액 확인
+      const balance = await xpsContract.balanceOf(userAddress);
+      if (balance < tokenAmount) {
+        return {
+          success: false,
+          error: "잔액이 부족합니다"
+        };
+      }
+      
+      // 1. 먼저 스테이킹 컨트랙트에 토큰 승인
+      const allowance = await xpsContract.allowance(userAddress, stakingAddress);
+      if (allowance < tokenAmount) {
+        console.log('Approving XPS tokens for staking...');
+        const approveTx = await xpsContract.approve(stakingAddress, tokenAmount);
+        await approveTx.wait();
+        console.log('XPS tokens approved');
+      }
+      
+      // 2. 스테이킹 실행
+      console.log('Executing staking transaction...');
+      const stakeTx = await stakingContract.stake(tokenAmount, lockPeriod);
+      const receipt = await stakeTx.wait();
+      
+      console.log('Staking completed successfully:', receipt.transactionHash);
+      
+      return {
+        success: true,
+        transactionHash: receipt.transactionHash
+      };
+      
+    } catch (error: any) {
+      console.error('XPS staking failed:', error);
+      return {
+        success: false,
+        error: error.message || "스테이킹 실행 중 오류가 발생했습니다"
+      };
+    }
+  }
+
+  // 스테이킹 정보 조회
+  async getStakingInfo(address: string): Promise<{stakedAmount: string; lockPeriod: number; unlockTime: number; rewards: string} | null> {
+    try {
+      if (!this.provider) {
+        return null;
+      }
+
+      const stakingABI = [
+        "function getStakeInfo(address staker) view returns (uint256 stakedAmount, uint256 lockPeriod, uint256 unlockTime, uint256 rewards)"
+      ];
+      
+      const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
+      const stakingContract = new ethers.Contract(stakingAddress, stakingABI, this.provider);
+      
+      const stakeInfo = await stakingContract.getStakeInfo(address);
+      
+      return {
+        stakedAmount: ethers.formatUnits(stakeInfo[0], 18),
+        lockPeriod: Number(stakeInfo[1]),
+        unlockTime: Number(stakeInfo[2]),
+        rewards: ethers.formatUnits(stakeInfo[3], 18)
+      };
+      
+    } catch (error) {
+      console.error('Failed to get staking info:', error);
+      return null;
+    }
+  }
 }
 
 export const web3Service = new Web3Service();

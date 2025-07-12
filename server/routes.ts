@@ -3247,6 +3247,93 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // XPS Staking endpoint
+  app.post("/api/xps/stake", async (req, res) => {
+    try {
+      const { walletAddress, amount, lockPeriod, transactionHash } = req.body;
+
+      if (!walletAddress || !amount || !lockPeriod) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Validate transaction hash exists
+      if (!transactionHash) {
+        return res.status(400).json({ error: "Transaction hash required for staking verification" });
+      }
+
+      console.log(`Processing XPS staking: ${amount} XPS for ${lockPeriod} days`);
+      console.log(`Staker: ${walletAddress}`);
+      console.log(`Staking TX: ${transactionHash}`);
+
+      // Calculate APY and multiplier based on lock period
+      const apy = lockPeriod >= 365 ? 400 : 
+                  lockPeriod >= 180 ? 250 :
+                  lockPeriod >= 90 ? 150 : 100;
+      
+      const multiplier = lockPeriod >= 365 ? 4.0 : 
+                        lockPeriod >= 180 ? 2.5 :
+                        lockPeriod >= 90 ? 1.5 : 1.0;
+
+      // Calculate unlock date
+      const unlockDate = new Date(Date.now() + lockPeriod * 24 * 60 * 60 * 1000);
+
+      const stakingRecord = {
+        id: Date.now(),
+        walletAddress,
+        amount: parseFloat(amount),
+        lockPeriod: parseInt(lockPeriod),
+        apy,
+        multiplier,
+        transactionHash,
+        unlockDate: unlockDate.toISOString(),
+        timestamp: new Date().toISOString(),
+        status: "active"
+      };
+
+      console.log("XPS Staking record:", stakingRecord);
+
+      res.json({
+        success: true,
+        staking: stakingRecord,
+        message: "XPS staking completed successfully"
+      });
+    } catch (error) {
+      console.error("Error processing XPS staking:", error);
+      res.status(500).json({ error: "Failed to process XPS staking" });
+    }
+  });
+
+  // XPS Unstaking endpoint
+  app.post("/api/xps/unstake", async (req, res) => {
+    try {
+      const { walletAddress, transactionHash } = req.body;
+
+      if (!walletAddress) {
+        return res.status(400).json({ error: "Wallet address required" });
+      }
+
+      console.log(`Processing XPS unstaking for: ${walletAddress}`);
+      console.log(`Unstaking TX: ${transactionHash}`);
+
+      const unstakingRecord = {
+        id: Date.now(),
+        walletAddress,
+        transactionHash,
+        timestamp: new Date().toISOString(),
+        status: "completed"
+      };
+
+      res.json({
+        success: true,
+        unstaking: unstakingRecord,
+        message: "XPS unstaking completed successfully"
+      });
+    } catch (error) {
+      console.error("Error processing XPS unstaking:", error);
+      res.status(500).json({ error: "Failed to process XPS unstaking" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

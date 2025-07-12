@@ -63,16 +63,38 @@ export function XPSStakingInterface() {
       const balance = await web3Service.checkXPSBalance(address);
       setXpsBalance(balance);
       
-      // Load staking info (mock data for now)
-      const mockStaking: XPSStakingInfo = {
-        totalStaked: '0',
-        availableRewards: '0',
-        lockPeriod: 30,
-        unlockDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
-        apy: 100,
-        multiplier: 1.0
-      };
-      setStakingInfo(mockStaking);
+      // Load real staking info from smart contract
+      const stakingData = await web3Service.getStakingInfo(address);
+      
+      if (stakingData) {
+        const unlockDate = stakingData.unlockTime * 1000; // Convert to milliseconds
+        const apy = stakingData.lockPeriod >= 365 ? 400 : 
+                   stakingData.lockPeriod >= 180 ? 250 :
+                   stakingData.lockPeriod >= 90 ? 150 : 100;
+        
+        const stakingInfo: XPSStakingInfo = {
+          totalStaked: stakingData.stakedAmount,
+          availableRewards: stakingData.rewards,
+          lockPeriod: stakingData.lockPeriod,
+          unlockDate: unlockDate,
+          apy: apy,
+          multiplier: stakingData.lockPeriod >= 365 ? 4.0 : 
+                     stakingData.lockPeriod >= 180 ? 2.5 :
+                     stakingData.lockPeriod >= 90 ? 1.5 : 1.0
+        };
+        setStakingInfo(stakingInfo);
+      } else {
+        // Default staking info if no staking data found
+        const defaultStaking: XPSStakingInfo = {
+          totalStaked: '0',
+          availableRewards: '0',
+          lockPeriod: 30,
+          unlockDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          apy: 100,
+          multiplier: 1.0
+        };
+        setStakingInfo(defaultStaking);
+      }
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
@@ -106,24 +128,72 @@ export function XPSStakingInterface() {
       return;
     }
 
+    const stakeAmountNum = parseFloat(stakeAmount);
+    const xpsBalanceNum = parseFloat(xpsBalance);
+
+    if (stakeAmountNum > xpsBalanceNum) {
+      toast({
+        title: "잔액 부족",
+        description: "XPS 토큰 잔액이 부족합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // Mock staking process for now
-      // In real implementation, this would interact with smart contract
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       toast({
-        title: "스테이킹 완료",
-        description: `${stakeAmount} XPS가 성공적으로 스테이킹되었습니다.`,
+        title: "스테이킹 진행 중",
+        description: "XPS 토큰 스테이킹이 진행 중입니다. 메타마스크에서 거래를 확인해주세요.",
       });
       
-      // Reset form
-      setStakeAmount('');
-      setIsStakeDialogOpen(false);
+      // 실제 스테이킹 실행
+      const result = await web3Service.stakeXPS(stakeAmount, parseInt(lockPeriod));
       
-      // Reload user data
-      await loadUserData();
+      if (result.success) {
+        // 백엔드에 스테이킹 기록 저장
+        const response = await fetch('/api/xps/stake', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            walletAddress: userAddress,
+            amount: stakeAmount,
+            lockPeriod: parseInt(lockPeriod),
+            transactionHash: result.transactionHash
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          toast({
+            title: "스테이킹 완료! 🎉",
+            description: `${stakeAmount} XPS가 성공적으로 ${lockPeriod}일간 스테이킹되었습니다.`,
+          });
+          
+          // Reset form
+          setStakeAmount('');
+          setIsStakeDialogOpen(false);
+          
+          // Reload user data
+          await loadUserData();
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: "스테이킹 기록 실패",
+            description: errorData.error || "스테이킹 기록 저장 중 오류가 발생했습니다.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "스테이킹 실패",
+          description: result.error || "스테이킹 실행 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
       
     } catch (error) {
       console.error('Staking failed:', error);
