@@ -411,7 +411,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>To</span>
             <span>
-              Balance: {toTokenBalance} {toToken.symbol}
+              Balance: {toTokenBalanceAmount} {toToken.symbol}
             </span>
           </div>
           <div className="rounded-lg border p-3 space-y-2">
