@@ -28,7 +28,13 @@ export class Web3Service {
       throw new Error("MetaMask is not installed");
     }
     
-    this._provider = new ethers.BrowserProvider(window.ethereum);
+    // Create provider without ENS support for Xphere network
+    this._provider = new ethers.BrowserProvider(window.ethereum, {
+      name: "xphere",
+      chainId: 20250217,
+      ensAddress: null // Disable ENS for Xphere network
+    });
+    
     try {
       this.signer = await this._provider.getSigner();
     } catch (error) {
@@ -55,8 +61,12 @@ export class Web3Service {
         throw new Error("No accounts found. Please unlock MetaMask.");
       }
 
-      // Initialize provider and signer
-      this._provider = new ethers.BrowserProvider(window.ethereum);
+      // Initialize provider and signer without ENS support
+      this._provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS for Xphere network
+      });
       this.signer = await this._provider.getSigner();
 
       console.log("MetaMask connection successful:", accounts[0]);
@@ -477,8 +487,13 @@ export class Web3Service {
 
       console.log(`Distributing ${rewardAmount} XPS rewards to ${toAddress}`);
       
-      // 판매자 지갑으로 서명자 생성
-      const sellerWallet = new ethers.Wallet(sellerPrivateKey, this.provider);
+      // 판매자 지갑으로 서명자 생성 (ENS 비활성화)
+      const provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS for Xphere network
+      });
+      const sellerWallet = new ethers.Wallet(sellerPrivateKey, provider);
       
       // XPS 토큰 컨트랙트
       const xpsAddress = CONTRACT_ADDRESSES.XPSToken;

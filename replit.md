@@ -26,6 +26,9 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - **2025-01-12**: Added XPS staking reward claim functionality with /api/xps/claim-rewards endpoint
 - **2025-01-12**: Created distributeStakingRewards function in Web3 service for seller wallet reward transfers
 - **2025-01-12**: Enhanced XPS staking interface with claim rewards button and real-time reward display
+- **2025-01-12**: Fixed ENS (Ethereum Name Service) compatibility issues for Xphere network
+- **2025-01-12**: Disabled ENS support in Web3 provider initialization to prevent network errors
+- **2025-01-12**: Updated all provider instances to use Xphere-specific configuration without ENS
 - **2025-01-12**: Successfully integrated XPS native token (0xf1ba1af6fae54c0f9d82c1d12aef0c57543f12e2) into XpSwap platform
 - **2025-01-12**: Created comprehensive XPS staking system with fee discount tiers and APY calculations
 - **2025-01-12**: Implemented XPS-specific API endpoints for token info, staking tiers, and revenue stats

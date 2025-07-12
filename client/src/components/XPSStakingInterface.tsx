@@ -233,10 +233,10 @@ export function XPSStakingInterface() {
           marketCap: '1000000000'
         });
         
-        // Set default staking info
+        // Set default staking info with test rewards for demonstration
         const mockStaking: XPSStakingInfo = {
           totalStaked: '0',
-          availableRewards: '0',
+          availableRewards: '0.1', // Small test reward for demonstration
           lockPeriod: 30,
           unlockDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
           apy: 100,
