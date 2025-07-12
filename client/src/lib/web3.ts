@@ -174,6 +174,29 @@ export class Web3Service {
     this._provider = null;
     this.signer = null;
   }
+
+  // Add XPS token balance check
+  async checkXPSBalance(address: string): Promise<string> {
+    if (!this._provider) return "0";
+    
+    try {
+      // XPS token contract address from constants
+      const xpsAddress = CONTRACT_ADDRESSES.XPSToken;
+      
+      // ERC20 balanceOf ABI
+      const erc20ABI = [
+        "function balanceOf(address) view returns (uint256)"
+      ];
+      
+      const xpsContract = new ethers.Contract(xpsAddress, erc20ABI, this._provider);
+      const balance = await xpsContract.balanceOf(address);
+      
+      return ethers.formatEther(balance);
+    } catch (error) {
+      console.error('Failed to check XPS balance:', error);
+      return "0";
+    }
+  }
 }
 
 export const web3Service = new Web3Service();

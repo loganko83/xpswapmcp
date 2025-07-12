@@ -2966,6 +2966,189 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // XPS Token API endpoints
+  app.get('/api/xps/info', async (req, res) => {
+    try {
+      const xpsInfo = {
+        name: "XpSwap Token",
+        symbol: "XPS",
+        decimals: 18,
+        contractAddress: "0xf1ba1af6fae54c0f9d82c1d12aef0c57543f12e2",
+        totalSupply: "1000000000",
+        maxSupply: "1000000000",
+        totalBurned: "0",
+        circulatingSupply: "1000000000",
+        protocolRevenue: "0",
+        currentPrice: "0.1",
+        marketCap: "100000000",
+        volume24h: "0",
+        change24h: "0",
+        holders: "1",
+        transactions: "1",
+        deflationary: true,
+        burnRate: "40%",
+        lastUpdated: new Date().toISOString()
+      };
+      
+      res.json(xpsInfo);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch XPS info" });
+    }
+  });
+
+  app.get('/api/xps/staking-tiers', async (req, res) => {
+    try {
+      const stakingTiers = [
+        {
+          tier: "Basic",
+          requiredBalance: "1000",
+          feeDiscount: "10%",
+          discountBasisPoints: 1000,
+          color: "gray"
+        },
+        {
+          tier: "Bronze", 
+          requiredBalance: "5000",
+          feeDiscount: "20%",
+          discountBasisPoints: 2000,
+          color: "orange"
+        },
+        {
+          tier: "Silver",
+          requiredBalance: "10000", 
+          feeDiscount: "30%",
+          discountBasisPoints: 3000,
+          color: "gray"
+        },
+        {
+          tier: "Gold",
+          requiredBalance: "50000",
+          feeDiscount: "50%", 
+          discountBasisPoints: 5000,
+          color: "yellow"
+        },
+        {
+          tier: "Platinum",
+          requiredBalance: "100000",
+          feeDiscount: "75%",
+          discountBasisPoints: 7500,
+          color: "purple"
+        }
+      ];
+
+      const stakingInfo = {
+        baseAPY: "100%",
+        multipliers: {
+          "30": 1.0,
+          "90": 1.5,
+          "180": 2.5,
+          "365": 4.0
+        },
+        emergencyWithdrawPenalty: "25%",
+        tiers: stakingTiers
+      };
+
+      res.json(stakingInfo);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch staking tiers" });
+    }
+  });
+
+  app.get('/api/xps/revenue-stats', async (req, res) => {
+    try {
+      const revenueStats = {
+        totalRevenue: "0",
+        totalBurned: "0",
+        burnRate: "40%",
+        buybackAndBurn: "0",
+        lastBurnDate: new Date().toISOString(),
+        nextBurnScheduled: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        burnHistory: [
+          {
+            date: new Date().toISOString(),
+            amount: "0",
+            transactionHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            reason: "Protocol Revenue"
+          }
+        ],
+        deflationary: true,
+        burnMechanism: "40% of protocol revenue is used to buy back and burn XPS tokens"
+      };
+
+      res.json(revenueStats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch revenue stats" });
+    }
+  });
+
+  app.post('/api/xps/calculate-fee-discount', async (req, res) => {
+    try {
+      const { userAddress, xpsBalance, stakedBalance } = req.body;
+      
+      if (!userAddress) {
+        return res.status(400).json({ message: "User address is required" });
+      }
+
+      const totalBalance = parseFloat(xpsBalance || '0') + parseFloat(stakedBalance || '0');
+      
+      let discount = 0;
+      let tier = "None";
+      
+      if (totalBalance >= 100000) {
+        discount = 7500; // 75%
+        tier = "Platinum";
+      } else if (totalBalance >= 50000) {
+        discount = 5000; // 50%
+        tier = "Gold";
+      } else if (totalBalance >= 10000) {
+        discount = 3000; // 30%
+        tier = "Silver";
+      } else if (totalBalance >= 5000) {
+        discount = 2000; // 20%
+        tier = "Bronze";
+      } else if (totalBalance >= 1000) {
+        discount = 1000; // 10%
+        tier = "Basic";
+      }
+
+      function getNextTierBalance(currentBalance: number): string {
+        if (currentBalance < 1000) return "1000";
+        if (currentBalance < 5000) return "5000";
+        if (currentBalance < 10000) return "10000";
+        if (currentBalance < 50000) return "50000";
+        if (currentBalance < 100000) return "100000";
+        return "100000";
+      }
+
+      function getNextTierDiscount(currentBalance: number): number {
+        if (currentBalance < 1000) return 1000;
+        if (currentBalance < 5000) return 2000;
+        if (currentBalance < 10000) return 3000;
+        if (currentBalance < 50000) return 5000;
+        if (currentBalance < 100000) return 7500;
+        return 7500;
+      }
+
+      const result = {
+        userAddress,
+        totalBalance: totalBalance.toString(),
+        currentTier: tier,
+        discountBasisPoints: discount,
+        discountPercentage: (discount / 100).toFixed(1) + "%",
+        nextTier: totalBalance < 100000 ? {
+          requiredBalance: getNextTierBalance(totalBalance),
+          discountBasisPoints: getNextTierDiscount(totalBalance),
+          discountPercentage: (getNextTierDiscount(totalBalance) / 100).toFixed(1) + "%"
+        } : null,
+        effectiveFeeReduction: discount > 0 ? `${(discount / 100).toFixed(1)}%` : "0%"
+      };
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to calculate fee discount" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

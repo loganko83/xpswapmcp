@@ -22,7 +22,9 @@ export const CONTRACT_ADDRESSES = {
   XpSwapFarmingRewards: "0xb99484ee2d452",
   XpSwapGovernanceToken: "0xa62a2b8601833",
   XpSwapRevenueManager: "0xb3cde158e6838",
-  XpSwapCrosschainBridge: "0x1301bc0dccf81"
+  XpSwapCrosschainBridge: "0x1301bc0dccf81",
+  // XPS Native Token (User Deployed)
+  XPSToken: "0xf1ba1af6fae54c0f9d82c1d12aef0c57543f12e2"
 };
 
 export const DEFAULT_TOKENS = [
@@ -35,6 +37,17 @@ export const DEFAULT_TOKENS = [
     logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
     network: "Xphere",
     chainId: 20250217,
+  },
+  // XPS Native Token (Deployed)
+  {
+    symbol: "XPS",
+    name: "XpSwap Token",
+    address: "0xf1ba1af6fae54c0f9d82c1d12aef0c57543f12e2",
+    decimals: 18,
+    logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png", // Using XP logo temporarily
+    network: "Xphere",
+    chainId: 20250217,
+    isUtility: true,
   },
   // Real Xphere Network Tokens from Explorer
   {
