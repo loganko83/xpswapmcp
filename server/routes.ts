@@ -1070,6 +1070,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user staking information for specific farm
+  app.get("/api/farms/:farmId/user-info/:userAddress", async (req, res) => {
+    try {
+      const { farmId, userAddress } = req.params;
+      
+      if (!farmId || !userAddress) {
+        return res.status(400).json({ error: "Missing farmId or userAddress" });
+      }
+      
+      // Mock user staking data - in production, this would query actual contract
+      const mockUserStaking = {
+        farmId: parseInt(farmId),
+        userAddress,
+        totalStaked: "0.0",
+        pendingRewards: "0.0",
+        stakingHistory: [],
+        lastUpdate: Date.now()
+      };
+      
+      res.json(mockUserStaking);
+    } catch (error) {
+      console.error("Failed to get user staking info:", error);
+      res.status(500).json({ error: "Failed to get user staking info" });
+    }
+  });
+
+  // Claim staking rewards
+  app.post("/api/claim-rewards", async (req, res) => {
+    try {
+      const { farmId, userAddress } = req.body;
+      
+      if (!farmId || !userAddress) {
+        return res.status(400).json({ error: "Missing required parameters" });
+      }
+      
+      // Mock reward claiming - in production, this would call smart contract
+      const rewardAmount = (Math.random() * 10).toFixed(4);
+      
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        rewardAmount,
+        rewardToken: "XPS",
+        gasUsed: "0.001"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to claim rewards:", error);
+      res.status(500).json({ error: "Failed to claim rewards" });
+    }
+  });
+
+  // Unstake tokens
+  app.post("/api/unstake-tokens", async (req, res) => {
+    try {
+      const { farmId, amount, userAddress } = req.body;
+      
+      if (!amount || !userAddress) {
+        return res.status(400).json({ error: "Missing required parameters" });
+      }
+      
+      // Mock unstaking response - in production, this would call smart contract
+      const response = {
+        success: true,
+        transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
+        unstakedAmount: amount,
+        gasUsed: "0.001"
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to unstake tokens:", error);
+      res.status(500).json({ error: "Failed to unstake tokens" });
+    }
+  });
+
   app.post("/api/unstake-tokens", async (req, res) => {
     try {
       const { farmId, amount, userAddress } = req.body;

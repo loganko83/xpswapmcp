@@ -48,6 +48,13 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
 
   const { data: tokenPrices } = useTokenPrices([farm.stakingToken.symbol, farm.rewardToken.symbol]);
 
+  // Real-time token balance for staking
+  const { data: stakingTokenBalance } = useQuery({
+    queryKey: [`/api/blockchain/balance/${wallet.address}/${farm.stakingToken.symbol}`, wallet.address, farm.stakingToken.symbol],
+    enabled: !!wallet.address && !!farm.stakingToken.symbol,
+    refetchInterval: 5000,
+  });
+
   const stakeMutation = useMutation({
     mutationFn: async () => {
       if (!wallet.address) {
@@ -94,9 +101,25 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
   const dollarValue = amount ? (parseFloat(amount) * stakingPrice).toFixed(2) : "0.00";
 
   const calculateAPRBonus = (days: number) => {
-    const baseAPR = parseFloat(farm.apr);
-    const bonus = days === 30 ? 0 : days === 90 ? 10 : days === 180 ? 25 : days === 365 ? 50 : 0;
-    return (baseAPR + bonus).toFixed(1);
+    // Real APY calculation based on lock periods (matching backend)
+    const apyByLockPeriod = {
+      30: 100,   // 100% APY for 30 days
+      90: 150,   // 150% APY for 90 days  
+      180: 250,  // 250% APY for 180 days
+      365: 400   // 400% APY for 365 days
+    };
+    
+    return (apyByLockPeriod[days] || 100).toFixed(0);
+  };
+
+  const calculateEstimatedRewards = (stakeAmount: string, days: number) => {
+    if (!stakeAmount || parseFloat(stakeAmount) === 0) return "0";
+    
+    const principal = parseFloat(stakeAmount);
+    const apy = parseFloat(calculateAPRBonus(days)) / 100;
+    const timeRatio = days / 365;
+    
+    return (principal * apy * timeRatio).toFixed(4);
   };
 
   return (
@@ -114,7 +137,9 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Amount</span>
               <span>
-                Available: {action === 'stake' ? '0.000' : farm.userStaked} {farm.stakingToken.symbol}
+                Available: {action === 'stake' ? 
+                  (stakingTokenBalance?.balance || '0.000') : 
+                  farm.userStaked} {farm.stakingToken.symbol}
               </span>
             </div>
             <div className="rounded-lg border p-3">
@@ -130,7 +155,20 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => setAmount(action === 'stake' ? '0' : farm.userStaked)}
+                    onClick={() => {
+                      if (action === 'stake') {
+                        const balance = stakingTokenBalance?.balance || '0';
+                        // Leave some tokens for gas fees if it's XP
+                        if (farm.stakingToken.symbol === 'XP') {
+                          const maxAmount = Math.max(0, parseFloat(balance) - 0.01).toFixed(6);
+                          setAmount(maxAmount);
+                        } else {
+                          setAmount(balance);
+                        }
+                      } else {
+                        setAmount(farm.userStaked);
+                      }
+                    }}
                   >
                     MAX
                   </Button>
@@ -152,10 +190,10 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
               <label className="text-sm font-medium">Lock Period</label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { days: "30", label: "1 Month", bonus: "0%" },
-                  { days: "90", label: "3 Months", bonus: "+10%" },
-                  { days: "180", label: "6 Months", bonus: "+25%" },
-                  { days: "365", label: "1 Year", bonus: "+50%" }
+                  { days: "30", label: "1 Month", bonus: "100%" },
+                  { days: "90", label: "3 Months", bonus: "150%" },
+                  { days: "180", label: "6 Months", bonus: "250%" },
+                  { days: "365", label: "1 Year", bonus: "400%" }
                 ].map((option) => (
                   <Button
                     key={option.days}
@@ -171,12 +209,16 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
               </div>
               <div className="bg-muted/50 rounded-lg p-3">
                 <div className="flex justify-between text-sm">
-                  <span>Base APR</span>
-                  <span>{farm.apr}%</span>
+                  <span>Lock Period</span>
+                  <span>{lockPeriod} days</span>
                 </div>
                 <div className="flex justify-between text-sm font-medium">
-                  <span>Final APR</span>
+                  <span>APY</span>
                   <span className="text-green-600">{calculateAPRBonus(parseInt(lockPeriod))}%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Estimated Rewards</span>
+                  <span className="text-green-600">{calculateEstimatedRewards(amount, parseInt(lockPeriod))} {farm.rewardToken.symbol}</span>
                 </div>
               </div>
             </div>
@@ -185,17 +227,17 @@ function StakeDialog({ farm, isOpen, onClose, action }: StakeDialogProps) {
           {/* Staking Information */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Current APR</span>
-              <Badge variant="secondary" className="text-green-600">{farm.apr}%</Badge>
+              <span>Pool TVL</span>
+              <span>{farm.tvl}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>Pool Multiplier</span>
-              <span>{farm.multiplier}x</span>
+              <span>Total Staked</span>
+              <span>{farm.totalStaked}</span>
             </div>
             {action === 'stake' && (
               <div className="flex justify-between text-sm">
-                <span>Lock Period</span>
-                <span>{lockPeriod} days</span>
+                <span>Your Staked</span>
+                <span>{farm.userStaked} {farm.stakingToken.symbol}</span>
               </div>
             )}
           </div>
@@ -360,9 +402,9 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
 
                   <div className="grid grid-cols-3 gap-8 text-right">
                     <div>
-                      <p className="text-sm text-muted-foreground">APR</p>
+                      <p className="text-sm text-muted-foreground">APY</p>
                       <Badge variant="secondary" className="text-green-600 text-lg">
-                        {farm.apr}%
+                        100%-400%
                       </Badge>
                     </div>
                     <div>
@@ -457,8 +499,8 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                         <p className="font-semibold text-green-600">{getUserFarmData(farm.id)?.pendingRewards || '0.000'} XPS</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">APR</p>
-                        <Badge variant="secondary" className="text-green-600">{farm.apr}%</Badge>
+                        <p className="text-sm text-muted-foreground">APY</p>
+                        <Badge variant="secondary" className="text-green-600">100%-400%</Badge>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Pool Share</p>
