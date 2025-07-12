@@ -240,10 +240,9 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
       return response.json();
     },
     onSuccess: (data, farmId) => {
-      const farm = farms.find(f => f.id === farmId);
       toast({
         title: "Rewards Claimed",
-        description: `Successfully claimed ${farm?.userRewards} ${farm?.rewardToken.symbol}`,
+        description: `Successfully claimed ${data.rewardAmount} ${data.rewardToken}`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/farms"] });
     },
@@ -268,6 +267,24 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
     setStakeDialogOpen(true);
   };
 
+  // Fetch user-specific farm data
+  const { data: userFarmData } = useQuery({
+    queryKey: ["/api/farms", wallet.address],
+    queryFn: async () => {
+      if (!wallet.address) return null;
+      
+      const farmDataPromises = farms.map(async (farm) => {
+        const response = await fetch(`/api/farms/${farm.id}/user-info/${wallet.address}`);
+        if (!response.ok) return null;
+        return response.json();
+      });
+      
+      const results = await Promise.all(farmDataPromises);
+      return results.filter(Boolean);
+    },
+    enabled: !!wallet.address && farms.length > 0,
+  });
+
 
 
   const formatCurrency = (amount: string) => {
@@ -280,13 +297,21 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
     return `$${num.toLocaleString()}`;
   };
 
+  // Get user data for specific farm
+  const getUserFarmData = (farmId: number) => {
+    return userFarmData?.find((data: any) => data.farmId === farmId);
+  };
+
   const calculateRewardsValue = (farm: Farm) => {
     const rewardPrice = tokenPrices?.[farm.rewardToken.symbol]?.price || 0;
     const rewardAmount = parseFloat(farm.userRewards);
     return (rewardAmount * rewardPrice).toFixed(2);
   };
 
-  const userFarms = farms.filter(farm => parseFloat(farm.userStaked) > 0);
+  const userFarms = farms.filter(farm => {
+    const userData = getUserFarmData(farm.id);
+    return userData && parseFloat(userData.totalStaked) > 0;
+  });
   const availableFarms = farms.filter(farm => farm.isActive);
 
   return (
@@ -399,17 +424,17 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                         <div>
                           <h3 className="text-lg font-semibold">{farm.name}</h3>
                           <p className="text-sm text-muted-foreground">
-                            Staked: {farm.userStaked} {farm.stakingToken.symbol}
+                            Staked: {getUserFarmData(farm.id)?.totalStaked || '0.000'} {farm.stakingToken.symbol}
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right">
                         <div className="text-lg font-semibold text-green-600">
-                          {farm.userRewards} {farm.rewardToken.symbol}
+                          {getUserFarmData(farm.id)?.pendingRewards || '0.000'} XPS
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          ≈ ${calculateRewardsValue(farm)}
+                          ≈ ${parseFloat(getUserFarmData(farm.id)?.pendingRewards || '0').toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -418,11 +443,11 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                     <div className="grid grid-cols-4 gap-4 mb-4 p-4 bg-muted/50 rounded-lg">
                       <div>
                         <p className="text-sm text-muted-foreground">Staked Amount</p>
-                        <p className="font-semibold">{farm.userStaked} {farm.stakingToken.symbol}</p>
+                        <p className="font-semibold">{getUserFarmData(farm.id)?.totalStaked || '0.000'} {farm.stakingToken.symbol}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Pending Rewards</p>
-                        <p className="font-semibold text-green-600">{farm.userRewards} {farm.rewardToken.symbol}</p>
+                        <p className="font-semibold text-green-600">{getUserFarmData(farm.id)?.pendingRewards || '0.000'} XPS</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">APR</p>
@@ -456,10 +481,10 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                         size="sm" 
                         className="bg-green-600 hover:bg-green-700"
                         onClick={() => claimRewardsMutation.mutate(farm.id)}
-                        disabled={parseFloat(farm.userRewards) === 0 || claimRewardsMutation.isPending}
+                        disabled={parseFloat(getUserFarmData(farm.id)?.pendingRewards || '0') === 0 || claimRewardsMutation.isPending}
                       >
                         <Coins className="w-4 h-4 mr-1" />
-                        Claim Rewards
+                        {claimRewardsMutation.isPending ? 'Claiming...' : 'Claim Rewards'}
                       </Button>
                     </div>
                   </CardContent>
@@ -475,7 +500,13 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                   <p className="text-muted-foreground mb-4">
                     You haven't staked in any farms yet.
                   </p>
-                  <Button onClick={() => setStakeDialogOpen(true)}>Start Farming</Button>
+                  <Button onClick={() => {
+                    if (farms.length > 0) {
+                      setSelectedFarm(farms[0]);
+                      setStakeAction('stake');
+                      setStakeDialogOpen(true);
+                    }
+                  }}>Start Farming</Button>
                 </CardContent>
               </Card>
             )

@@ -9,6 +9,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // In-memory storage for staking records
   const stakingRecords: any[] = [];
   
+  // In-memory storage for farm staking records
+  const farmStakingRecords: any[] = [];
+  
   // Token routes
   app.get("/api/tokens", async (req, res) => {
     try {
@@ -2154,6 +2157,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to fetch market depth:", error);
       res.status(500).json({ error: "Failed to fetch market depth" });
+    }
+  });
+
+  // Farm Staking APIs
+  app.post("/api/stake-tokens", async (req, res) => {
+    try {
+      const { farmId, amount, lockPeriod, userAddress } = req.body;
+      
+      if (!farmId || !amount || !userAddress) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Create staking record
+      const stakeRecord = {
+        id: Date.now().toString(),
+        farmId,
+        userAddress,
+        amount: parseFloat(amount),
+        lockPeriod: parseInt(lockPeriod) || 30,
+        stakedAt: Date.now(),
+        unlockAt: Date.now() + (parseInt(lockPeriod) || 30) * 24 * 60 * 60 * 1000,
+        rewards: 0,
+        isActive: true
+      };
+      
+      farmStakingRecords.push(stakeRecord);
+      
+      res.json({
+        success: true,
+        message: "Tokens staked successfully",
+        stakeRecord
+      });
+    } catch (error) {
+      console.error("Stake tokens error:", error);
+      res.status(500).json({ error: "Failed to stake tokens" });
+    }
+  });
+  
+  app.post("/api/unstake-tokens", async (req, res) => {
+    try {
+      const { farmId, amount, userAddress } = req.body;
+      
+      if (!farmId || !amount || !userAddress) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Find user's staking record
+      const userStakes = farmStakingRecords.filter(record => 
+        record.farmId === farmId && 
+        record.userAddress === userAddress && 
+        record.isActive
+      );
+      
+      if (userStakes.length === 0) {
+        return res.status(400).json({ error: "No active stakes found" });
+      }
+      
+      // Check if lock period has passed
+      const now = Date.now();
+      let totalUnstaked = 0;
+      const unstakeAmount = parseFloat(amount);
+      
+      for (const stake of userStakes) {
+        if (now < stake.unlockAt) {
+          return res.status(400).json({ error: "Lock period has not ended" });
+        }
+        
+        if (totalUnstaked >= unstakeAmount) break;
+        
+        const amountToUnstake = Math.min(stake.amount, unstakeAmount - totalUnstaked);
+        stake.amount -= amountToUnstake;
+        totalUnstaked += amountToUnstake;
+        
+        if (stake.amount <= 0) {
+          stake.isActive = false;
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: "Tokens unstaked successfully",
+        unstakedAmount: totalUnstaked
+      });
+    } catch (error) {
+      console.error("Unstake tokens error:", error);
+      res.status(500).json({ error: "Failed to unstake tokens" });
+    }
+  });
+  
+  app.post("/api/claim-rewards", async (req, res) => {
+    try {
+      const { farmId, userAddress } = req.body;
+      
+      if (!farmId || !userAddress) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Find user's staking records
+      const userStakes = farmStakingRecords.filter(record => 
+        record.farmId === farmId && 
+        record.userAddress === userAddress && 
+        record.isActive
+      );
+      
+      if (userStakes.length === 0) {
+        return res.status(400).json({ error: "No active stakes found" });
+      }
+      
+      // Calculate rewards based on staking duration and amount
+      const now = Date.now();
+      let totalRewards = 0;
+      
+      for (const stake of userStakes) {
+        const stakingDuration = (now - stake.stakedAt) / (1000 * 60 * 60 * 24); // days
+        const dailyReward = (stake.amount * 0.435) / 365; // 43.5% APY
+        const lockBonus = stake.lockPeriod === 30 ? 1 : 
+                         stake.lockPeriod === 90 ? 1.1 : 
+                         stake.lockPeriod === 180 ? 1.25 : 
+                         stake.lockPeriod === 365 ? 1.5 : 1;
+        
+        const reward = dailyReward * stakingDuration * lockBonus;
+        totalRewards += reward;
+        
+        // Reset reward tracking
+        stake.rewards = 0;
+        stake.lastRewardClaim = now;
+      }
+      
+      res.json({
+        success: true,
+        message: "Rewards claimed successfully",
+        rewardAmount: totalRewards.toFixed(6),
+        rewardToken: "XPS"
+      });
+    } catch (error) {
+      console.error("Claim rewards error:", error);
+      res.status(500).json({ error: "Failed to claim rewards" });
+    }
+  });
+  
+  app.get("/api/farms/:id/user-info/:address", async (req, res) => {
+    try {
+      const { id, address } = req.params;
+      
+      // Find user's staking records for this farm
+      const userStakes = farmStakingRecords.filter(record => 
+        record.farmId === parseInt(id) && 
+        record.userAddress === address && 
+        record.isActive
+      );
+      
+      let totalStaked = 0;
+      let totalRewards = 0;
+      const now = Date.now();
+      
+      for (const stake of userStakes) {
+        totalStaked += stake.amount;
+        
+        // Calculate pending rewards
+        const stakingDuration = (now - (stake.lastRewardClaim || stake.stakedAt)) / (1000 * 60 * 60 * 24);
+        const dailyReward = (stake.amount * 0.435) / 365;
+        const lockBonus = stake.lockPeriod === 30 ? 1 : 
+                         stake.lockPeriod === 90 ? 1.1 : 
+                         stake.lockPeriod === 180 ? 1.25 : 
+                         stake.lockPeriod === 365 ? 1.5 : 1;
+        
+        totalRewards += dailyReward * stakingDuration * lockBonus;
+      }
+      
+      res.json({
+        farmId: parseInt(id),
+        userAddress: address,
+        totalStaked: totalStaked.toFixed(6),
+        pendingRewards: totalRewards.toFixed(6),
+        stakingRecords: userStakes.length
+      });
+    } catch (error) {
+      console.error("Get user farm info error:", error);
+      res.status(500).json({ error: "Failed to get user farm info" });
     }
   });
 
