@@ -28,7 +28,7 @@ export default function XPSPurchase() {
   const [xpBalance, setXpBalance] = useState('0');
   const [loading, setLoading] = useState(false);
 
-  // XP 가격 데이터 가져오기
+  // Fetch XP price data
   const { data: xpPriceData } = useQuery<XPPrice>({
     queryKey: ['/api/xp-price'],
     refetchInterval: 5000,
@@ -82,8 +82,8 @@ export default function XPSPurchase() {
     } catch (error) {
       console.error('Wallet connection failed:', error);
       toast({
-        title: "지갑 연결 실패",
-        description: "메타마스크 지갑 연결에 실패했습니다.",
+        title: "Wallet Connection Failed",
+        description: "Failed to connect to MetaMask wallet.",
         variant: "destructive",
       });
     } finally {
@@ -121,8 +121,8 @@ export default function XPSPurchase() {
   const handlePurchase = async () => {
     if (!isConnected) {
       toast({
-        title: "지갑 연결 필요",
-        description: "XPS 토큰을 구매하려면 먼저 지갑을 연결해주세요.",
+        title: "Wallet Connection Required",
+        description: "Please connect your wallet first to purchase XPS tokens.",
         variant: "destructive",
       });
       return;
@@ -133,8 +133,8 @@ export default function XPSPurchase() {
 
     if (xpNum <= 0) {
       toast({
-        title: "잘못된 금액",
-        description: "구매할 XPS 토큰 수량을 입력해주세요.",
+        title: "Invalid Amount",
+        description: "Please enter the amount of XPS tokens to purchase.",
         variant: "destructive",
       });
       return;
@@ -142,8 +142,8 @@ export default function XPSPurchase() {
 
     if (xpNum > xpBalanceNum) {
       toast({
-        title: "잔액 부족",
-        description: "XP 토큰 잔액이 부족합니다.",
+        title: "Insufficient Balance",
+        description: "Your XP token balance is insufficient.",
         variant: "destructive",
       });
       return;
@@ -152,15 +152,15 @@ export default function XPSPurchase() {
     setLoading(true);
     try {
       toast({
-        title: "구매 진행 중",
-        description: "XPS 토큰 구매가 진행 중입니다. 메타마스크에서 거래를 확인해주세요.",
+        title: "Purchase in Progress",
+        description: "XPS token purchase is in progress. Please confirm the transaction in MetaMask.",
       });
 
-      // 스마트 컨트랙트를 통한 XPS 구매
+      // Purchase XPS through smart contract
       const purchaseResult = await web3Service.purchaseXPS(xpAmount, xpsAmount);
       
       if (purchaseResult.success) {
-        // 백엔드에 구매 기록 저장
+        // Save purchase record to backend
         const response = await fetch('/api/xps/purchase', {
           method: 'POST',
           headers: {
@@ -177,14 +177,14 @@ export default function XPSPurchase() {
         if (response.ok) {
           const data = await response.json();
           toast({
-            title: "구매 완료! 🎉",
-            description: `${parseFloat(xpsAmount).toFixed(6)} XPS 토큰이 성공적으로 구매되었습니다. XPS 토큰이 지갑으로 전송되었습니다.`,
+            title: "Purchase Complete!",
+            description: `${parseFloat(xpsAmount).toFixed(6)} XPS tokens have been successfully purchased. XPS tokens have been sent to your wallet.`,
           });
           
-          // 잔액 업데이트
+          // Update balance
           await checkWalletConnection();
           
-          // 폼 초기화
+          // Reset form
           setXpAmount('');
           setXpsAmount('');
           setUsdAmount('');
@@ -198,8 +198,8 @@ export default function XPSPurchase() {
     } catch (error) {
       console.error('Purchase failed:', error);
       toast({
-        title: "구매 실패",
-        description: "XPS 토큰 구매에 실패했습니다. 다시 시도해주세요.",
+        title: "Purchase Failed",
+        description: "XPS token purchase failed. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -210,8 +210,8 @@ export default function XPSPurchase() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">XPS 토큰 구매</h1>
-        <p className="text-muted-foreground">XpSwap 생태계의 유틸리티 토큰을 구매하세요</p>
+        <h1 className="text-3xl font-bold mb-2">Buy XPS Tokens</h1>
+        <p className="text-muted-foreground">Purchase utility tokens for the XpSwap ecosystem</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -220,34 +220,34 @@ export default function XPSPurchase() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
-              XPS 토큰 구매
+              Buy XPS Tokens
             </CardTitle>
             <CardDescription>
-              XP 토큰으로 XPS 토큰을 구매하세요
+              Purchase XPS tokens with XP tokens
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {!isConnected ? (
               <div className="text-center py-8">
                 <Button onClick={connectWallet} className="w-full" disabled={loading}>
-                  {loading ? '연결 중...' : '지갑 연결하기'}
+                  {loading ? 'Connecting...' : 'Connect Wallet'}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="bg-muted p-3 rounded-lg">
                   <div className="flex justify-between text-sm">
-                    <span>지갑 주소:</span>
+                    <span>Wallet Address:</span>
                     <span className="font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>XP 잔액:</span>
+                    <span>XP Balance:</span>
                     <span className="font-semibold">{parseFloat(xpBalance).toFixed(6)} XP</span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="xp-amount">지불할 XP 수량</Label>
+                  <Label htmlFor="xp-amount">XP Amount to Pay</Label>
                   <Input
                     id="xp-amount"
                     type="number"
@@ -262,7 +262,7 @@ export default function XPSPurchase() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="xps-amount">받을 XPS 수량</Label>
+                  <Label htmlFor="xps-amount">XPS Amount to Receive</Label>
                   <Input
                     id="xps-amount"
                     type="number"
@@ -273,7 +273,7 @@ export default function XPSPurchase() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="usd-amount">USD 가치</Label>
+                  <Label htmlFor="usd-amount">USD Value</Label>
                   <Input
                     id="usd-amount"
                     type="number"
@@ -288,7 +288,7 @@ export default function XPSPurchase() {
                   className="w-full"
                   disabled={loading || !xpAmount || parseFloat(xpAmount) <= 0}
                 >
-                  {loading ? "구매 중..." : "XPS 토큰 구매하기"}
+                  {loading ? "Purchasing..." : "Buy XPS Tokens"}
                 </Button>
               </div>
             )}
@@ -300,20 +300,20 @@ export default function XPSPurchase() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              가격 정보
+              Price Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-muted rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">$1.00</div>
-                <div className="text-sm text-muted-foreground">XPS 가격</div>
+                <div className="text-sm text-muted-foreground">XPS Price</div>
               </div>
               <div className="text-center p-4 bg-muted rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
                   ${xpPriceUSD.toFixed(6)}
                 </div>
-                <div className="text-sm text-muted-foreground">XP 가격</div>
+                <div className="text-sm text-muted-foreground">XP Price</div>
               </div>
             </div>
 
@@ -321,21 +321,21 @@ export default function XPSPurchase() {
 
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span>환율:</span>
+                <span>Exchange Rate:</span>
                 <span className="font-semibold">{xpPerXps.toFixed(2)} XP = 1 XPS</span>
               </div>
               <div className="flex justify-between">
-                <span>24시간 변동:</span>
+                <span>24h Change:</span>
                 <Badge variant={xpPriceData?.change24h >= 0 ? "default" : "destructive"}>
                   {xpPriceData?.change24h >= 0 ? '+' : ''}{xpPriceData?.change24h.toFixed(2)}%
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span>XP 시가총액:</span>
+                <span>XP Market Cap:</span>
                 <span className="font-semibold">${xpPriceData?.marketCap.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span>24시간 거래량:</span>
+                <span>24h Volume:</span>
                 <span className="font-semibold">${xpPriceData?.volume24h.toLocaleString()}</span>
               </div>
             </div>
@@ -348,25 +348,25 @@ export default function XPSPurchase() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Info className="h-5 w-5" />
-            XPS 토큰 혜택
+            XPS Token Benefits
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
               <DollarSign className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold mb-1">수수료 할인</h3>
-              <p className="text-sm text-muted-foreground">최대 75% 거래 수수료 할인</p>
+              <h3 className="font-semibold mb-1">Fee Discounts</h3>
+              <p className="text-sm text-muted-foreground">Up to 75% trading fee discount</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg">
               <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-600" />
-              <h3 className="font-semibold mb-1">스테이킹 보상</h3>
-              <p className="text-sm text-muted-foreground">최대 400% APY 스테이킹 보상</p>
+              <h3 className="font-semibold mb-1">Staking Rewards</h3>
+              <p className="text-sm text-muted-foreground">Up to 400% APY staking rewards</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg">
               <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-              <h3 className="font-semibold mb-1">거버넌스 참여</h3>
-              <p className="text-sm text-muted-foreground">플랫폼 의사결정 참여</p>
+              <h3 className="font-semibold mb-1">Governance</h3>
+              <p className="text-sm text-muted-foreground">Participate in platform decisions</p>
             </div>
           </div>
         </CardContent>
@@ -375,11 +375,11 @@ export default function XPSPurchase() {
       <Alert className="mt-6">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>중요:</strong> XPS 토큰의 가격은 1 XPS = 1 USD로 고정되어 있습니다. 
-          현재 XP 가격 기준으로 약 {xpPerXps.toFixed(2)} XP가 1 XPS와 교환됩니다.
+          <strong>Important:</strong> XPS token price is fixed at 1 XPS = 1 USD. 
+          Based on current XP price, approximately {xpPerXps.toFixed(2)} XP equals 1 XPS.
           <br />
-          <strong>구매 방식:</strong> XP가 판매자 주소(0xf0C5...303D5f)로 전송되며, 
-          판매자가 XPS 토큰을 구매자에게 전송합니다.
+          <strong>Purchase Method:</strong> XP is sent to the seller address (0xf0C5...303D5f), 
+          and the seller transfers XPS tokens to the buyer.
         </AlertDescription>
       </Alert>
     </div>
