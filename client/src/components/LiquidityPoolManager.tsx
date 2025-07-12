@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Minus, ArrowUpDown, Info, TrendingUp, Zap } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { getTokenIcon } from "@/lib/tokenUtils";
@@ -42,8 +42,22 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
   const [amountA, setAmountA] = useState("");
   const [amountB, setAmountB] = useState("");
   const [slippage, setSlippage] = useState("0.5");
+  const [isOptimalRatio, setIsOptimalRatio] = useState(true);
 
   const { data: tokenPrices } = useTokenPrices([pool.tokenA.symbol, pool.tokenB.symbol]);
+
+  // Real-time token balances
+  const { data: balanceA } = useQuery({
+    queryKey: [`/api/blockchain/balance/${wallet.address}/${pool.tokenA.symbol}`, wallet.address, pool.tokenA.symbol],
+    enabled: !!wallet.address && !!pool.tokenA.symbol,
+    refetchInterval: 5000,
+  });
+
+  const { data: balanceB } = useQuery({
+    queryKey: [`/api/blockchain/balance/${wallet.address}/${pool.tokenB.symbol}`, wallet.address, pool.tokenB.symbol],
+    enabled: !!wallet.address && !!pool.tokenB.symbol,
+    refetchInterval: 5000,
+  });
 
   const addLiquidityMutation = useMutation({
     mutationFn: async () => {
@@ -90,15 +104,108 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
     }
   });
 
+  // Real AMM Calculations
   const calculateAmountB = (inputAmountA: string) => {
     if (!inputAmountA || !pool.reserveA || !pool.reserveB) return "";
-    const ratio = parseFloat(pool.reserveB) / parseFloat(pool.reserveA);
-    return (parseFloat(inputAmountA) * ratio).toFixed(6);
+    
+    // Constant product formula: x * y = k
+    // For optimal liquidity provision, maintain current pool ratio
+    const reserveA = parseFloat(pool.reserveA);
+    const reserveB = parseFloat(pool.reserveB);
+    const amountAValue = parseFloat(inputAmountA);
+    
+    if (reserveA === 0 || reserveB === 0) return "0";
+    
+    const ratio = reserveB / reserveA;
+    const calculatedAmountB = amountAValue * ratio;
+    
+    return calculatedAmountB.toFixed(6);
+  };
+
+  const calculateAmountA = (inputAmountB: string) => {
+    if (!inputAmountB || !pool.reserveA || !pool.reserveB) return "";
+    
+    const reserveA = parseFloat(pool.reserveA);
+    const reserveB = parseFloat(pool.reserveB);
+    const amountBValue = parseFloat(inputAmountB);
+    
+    if (reserveA === 0 || reserveB === 0) return "0";
+    
+    const ratio = reserveA / reserveB;
+    const calculatedAmountA = amountBValue * ratio;
+    
+    return calculatedAmountA.toFixed(6);
+  };
+
+  const calculatePoolShare = (amountA: string, amountB: string) => {
+    if (!amountA || !amountB || !pool.reserveA || !pool.reserveB) return "0.00";
+    
+    const reserveA = parseFloat(pool.reserveA);
+    const reserveB = parseFloat(pool.reserveB);
+    const inputA = parseFloat(amountA);
+    const inputB = parseFloat(amountB);
+    
+    if (reserveA === 0 || reserveB === 0) return "100.00"; // First liquidity provider
+    
+    // Calculate LP tokens to receive using geometric mean
+    const lpTokensA = (inputA / reserveA) * 100;
+    const lpTokensB = (inputB / reserveB) * 100;
+    const lpTokens = Math.min(lpTokensA, lpTokensB);
+    
+    // Calculate new pool share
+    const currentTotalSupply = 100; // Assume 100% total supply for simplicity
+    const newTotalSupply = currentTotalSupply + lpTokens;
+    const poolShare = (lpTokens / newTotalSupply) * 100;
+    
+    return poolShare.toFixed(2);
+  };
+
+  const calculatePriceImpact = (amountA: string, amountB: string) => {
+    if (!amountA || !amountB || !pool.reserveA || !pool.reserveB) return "0.00";
+    
+    const reserveA = parseFloat(pool.reserveA);
+    const reserveB = parseFloat(pool.reserveB);
+    const inputA = parseFloat(amountA);
+    const inputB = parseFloat(amountB);
+    
+    if (reserveA === 0 || reserveB === 0) return "0.00";
+    
+    // Calculate price impact based on constant product formula
+    const currentPrice = reserveB / reserveA;
+    const newReserveA = reserveA + inputA;
+    const newReserveB = reserveB + inputB;
+    const newPrice = newReserveB / newReserveA;
+    
+    const priceImpact = Math.abs((newPrice - currentPrice) / currentPrice) * 100;
+    
+    return priceImpact.toFixed(2);
+  };
+
+  const setMaxAmount = (token: 'A' | 'B') => {
+    const balance = token === 'A' ? balanceA?.balance || "0" : balanceB?.balance || "0";
+    const maxAmount = parseFloat(balance) * 0.99; // Leave 1% for gas fees
+    
+    if (token === 'A') {
+      setAmountA(maxAmount.toFixed(6));
+      setAmountB(calculateAmountB(maxAmount.toFixed(6)));
+    } else {
+      setAmountB(maxAmount.toFixed(6));
+      setAmountA(calculateAmountA(maxAmount.toFixed(6)));
+    }
   };
 
   const handleAmountAChange = (value: string) => {
     setAmountA(value);
-    setAmountB(calculateAmountB(value));
+    if (isOptimalRatio) {
+      setAmountB(calculateAmountB(value));
+    }
+  };
+
+  const handleAmountBChange = (value: string) => {
+    setAmountB(value);
+    if (isOptimalRatio) {
+      setAmountA(calculateAmountA(value));
+    }
   };
 
   const priceA = tokenPrices?.[pool.tokenA.symbol]?.price || 0;
@@ -106,6 +213,12 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
   const valueA = amountA ? (parseFloat(amountA) * priceA).toFixed(2) : "0.00";
   const valueB = amountB ? (parseFloat(amountB) * priceB).toFixed(2) : "0.00";
   const totalValue = (parseFloat(valueA) + parseFloat(valueB)).toFixed(2);
+  
+  // Real AMM calculations
+  const poolShare = calculatePoolShare(amountA, amountB);
+  const priceImpact = calculatePriceImpact(amountA, amountB);
+  const balanceAFormatted = balanceA?.balance ? parseFloat(balanceA.balance).toFixed(4) : "0.0000";
+  const balanceBFormatted = balanceB?.balance ? parseFloat(balanceB.balance).toFixed(4) : "0.0000";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -119,7 +232,7 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Token A</span>
-              <span>Balance: 0.000 {pool.tokenA.symbol}</span>
+              <span>Balance: {balanceAFormatted} {pool.tokenA.symbol}</span>
             </div>
             <div className="rounded-lg border p-3">
               <div className="flex justify-between items-center mb-2">
@@ -131,6 +244,14 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
                   type="number"
                 />
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMaxAmount('A')}
+                    className="text-xs px-2 py-1"
+                  >
+                    MAX
+                  </Button>
                   <img 
                     src={getTokenIcon(pool.tokenA.symbol)} 
                     alt={pool.tokenA.symbol}
@@ -154,17 +275,27 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Token B</span>
-              <span>Balance: 0.000 {pool.tokenB.symbol}</span>
+              <span>Balance: {balanceBFormatted} {pool.tokenB.symbol}</span>
             </div>
             <div className="rounded-lg border p-3">
               <div className="flex justify-between items-center mb-2">
                 <Input
                   placeholder="0.0"
                   value={amountB}
-                  readOnly
+                  onChange={(e) => handleAmountBChange(e.target.value)}
                   className="border-0 text-xl font-semibold p-0 h-auto"
+                  type="number"
+                  readOnly={isOptimalRatio}
                 />
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMaxAmount('B')}
+                    className="text-xs px-2 py-1"
+                  >
+                    MAX
+                  </Button>
                   <img 
                     src={getTokenIcon(pool.tokenB.symbol)} 
                     alt={pool.tokenB.symbol}
@@ -181,15 +312,42 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span>Pool Share</span>
-              <span>0.00%</span>
+              <span>{poolShare}%</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Total Value</span>
               <span>${totalValue}</span>
             </div>
             <div className="flex justify-between text-sm">
+              <span>Price Impact</span>
+              <Badge variant={parseFloat(priceImpact) > 3 ? "destructive" : "secondary"}>
+                {priceImpact}%
+              </Badge>
+            </div>
+            <div className="flex justify-between text-sm">
               <span>Current APR</span>
               <Badge variant="secondary" className="text-green-600">{pool.apr}%</Badge>
+            </div>
+          </div>
+
+          {/* Optimal Ratio Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="optimal-ratio"
+                checked={isOptimalRatio}
+                onChange={(e) => setIsOptimalRatio(e.target.checked)}
+                className="rounded"
+              />
+              <label htmlFor="optimal-ratio" className="text-sm font-medium">
+                Maintain optimal ratio
+              </label>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Reserve Ratio: {pool.reserveA && pool.reserveB ? 
+                (parseFloat(pool.reserveA) / parseFloat(pool.reserveB)).toFixed(6) : 'N/A'
+              }
             </div>
           </div>
 
@@ -277,14 +435,38 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
     }
   });
 
+  // Real AMM calculations for liquidity removal
+  const calculateRemoveAmounts = (removePercentage: number) => {
+    if (!pool.reserveA || !pool.reserveB || !pool.userLiquidity) return { amountA: "0", amountB: "0" };
+    
+    const reserveA = parseFloat(pool.reserveA);
+    const reserveB = parseFloat(pool.reserveB);
+    const userLPTokens = parseFloat(pool.userLiquidity);
+    
+    // Calculate user's share of the pool
+    const totalLPSupply = parseFloat(pool.lpTokens) || 100000; // Mock total LP supply
+    const userPoolShare = userLPTokens / totalLPSupply;
+    
+    // Calculate tokens to receive based on current pool reserves
+    const userReserveA = reserveA * userPoolShare;
+    const userReserveB = reserveB * userPoolShare;
+    
+    // Calculate amounts to remove based on percentage
+    const removeAmountA = userReserveA * (removePercentage / 100);
+    const removeAmountB = userReserveB * (removePercentage / 100);
+    
+    return {
+      amountA: removeAmountA.toFixed(6),
+      amountB: removeAmountB.toFixed(6)
+    };
+  };
+
   useEffect(() => {
-    if (pool.userLiquidity && percentage) {
-      const userLiquidityAmount = parseFloat(pool.userLiquidity);
-      const removePercentage = parseFloat(percentage) / 100;
-      setAmountA((userLiquidityAmount * removePercentage * 0.5).toFixed(6));
-      setAmountB((userLiquidityAmount * removePercentage * 0.5).toFixed(6));
-    }
-  }, [percentage, pool.userLiquidity]);
+    const removePercentage = parseFloat(percentage);
+    const amounts = calculateRemoveAmounts(removePercentage);
+    setAmountA(amounts.amountA);
+    setAmountB(amounts.amountB);
+  }, [percentage, pool.reserveA, pool.reserveB, pool.userLiquidity, pool.lpTokens]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -329,7 +511,12 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
                   />
                   <span className="font-semibold">{pool.tokenA.symbol}</span>
                 </div>
-                <div className="text-lg font-semibold">{amountA}</div>
+                <div className="text-right">
+                  <div className="text-lg font-semibold">{amountA}</div>
+                  <div className="text-sm text-muted-foreground">
+                    ${(parseFloat(amountA) * (tokenPrices?.[pool.tokenA.symbol]?.price || 0)).toFixed(2)}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -343,7 +530,12 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
                   />
                   <span className="font-semibold">{pool.tokenB.symbol}</span>
                 </div>
-                <div className="text-lg font-semibold">{amountB}</div>
+                <div className="text-right">
+                  <div className="text-lg font-semibold">{amountB}</div>
+                  <div className="text-sm text-muted-foreground">
+                    ${(parseFloat(amountB) * (tokenPrices?.[pool.tokenB.symbol]?.price || 0)).toFixed(2)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -352,7 +544,21 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span>Your Pool Share</span>
-              <span>0.01%</span>
+              <span>{(() => {
+                const totalLPSupply = parseFloat(pool.lpTokens) || 100000;
+                const userLPTokens = parseFloat(pool.userLiquidity) || 0;
+                const userPoolShare = (userLPTokens / totalLPSupply) * 100;
+                return userPoolShare.toFixed(4);
+              })()}%</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Total Value Removing</span>
+              <span>${(() => {
+                const priceA = tokenPrices?.[pool.tokenA.symbol]?.price || 0;
+                const priceB = tokenPrices?.[pool.tokenB.symbol]?.price || 0;
+                const totalValue = (parseFloat(amountA) * priceA) + (parseFloat(amountB) * priceB);
+                return totalValue.toFixed(2);
+              })()}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Pool APR</span>
