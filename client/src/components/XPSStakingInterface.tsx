@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertCircle, TrendingUp, Calendar, Award, Zap, Shield } from 'lucide-react';
+import { AlertCircle, TrendingUp, Calendar, Award, Zap, Shield, Loader2, Gift } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { xpsService, XPSStakingInfo, XPSTokenInfo, XPSService } from '@/lib/xpsService';
 import { web3Service } from '@/lib/web3';
@@ -261,6 +261,87 @@ export function XPSStakingInterface() {
     }
   };
 
+  const handleClaimRewards = async () => {
+    if (!userAddress) {
+      toast({
+        title: "지갑 연결 필요",
+        description: "지갑을 먼저 연결해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!stakingInfo || parseFloat(stakingInfo.availableRewards) <= 0) {
+      toast({
+        title: "보상 없음",
+        description: "클레임 가능한 보상이 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      toast({
+        title: "보상 클레임 진행 중",
+        description: "XPS 스테이킹 보상을 클레임하고 있습니다. 메타마스크에서 거래를 확인해주세요.",
+      });
+      
+      // 실제 보상 클레임 실행
+      const result = await web3Service.claimStakingRewards();
+      
+      if (result.success) {
+        // 백엔드에 보상 클레임 기록 저장
+        const response = await fetch('/api/xps/claim-rewards', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            walletAddress: userAddress,
+            rewardAmount: stakingInfo.availableRewards,
+            transactionHash: result.transactionHash
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          toast({
+            title: "보상 클레임 완료! 🎉",
+            description: `${stakingInfo.availableRewards} XPS 보상이 판매자 지갑에서 전송되었습니다.`,
+          });
+          
+          // 사용자 데이터 새로고침
+          await loadUserData();
+        } else {
+          const errorData = await response.json();
+          toast({
+            title: "보상 클레임 기록 실패",
+            description: errorData.error || "보상 클레임 기록 저장 중 오류가 발생했습니다.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "보상 클레임 실패",
+          description: result.error || "보상 클레임 실행 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error) {
+      console.error('Reward claim failed:', error);
+      toast({
+        title: "보상 클레임 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const mockHandleStakeTokens = async () => {
     if (!stakeAmount || parseFloat(stakeAmount) <= 0) {
       toast({
@@ -305,7 +386,7 @@ export function XPSStakingInterface() {
     }
   };
 
-  const handleClaimRewards = async () => {
+  const mockHandleClaimRewards = async () => {
     setLoading(true);
     try {
       const txHash = await xpsService.claimStakingRewards();

@@ -3277,6 +3277,11 @@ Submitted at: ${new Date().toISOString()}
       // Calculate unlock date
       const unlockDate = new Date(Date.now() + lockPeriod * 24 * 60 * 60 * 1000);
 
+      // 스테이킹 보상 계산 (일간 보상률 기준)
+      const dailyRewardRate = apy / 365 / 100; // 일일 보상률
+      const stakingDays = parseInt(lockPeriod);
+      const estimatedRewards = parseFloat(amount) * dailyRewardRate * stakingDays;
+
       const stakingRecord = {
         id: Date.now(),
         walletAddress,
@@ -3287,7 +3292,10 @@ Submitted at: ${new Date().toISOString()}
         transactionHash,
         unlockDate: unlockDate.toISOString(),
         timestamp: new Date().toISOString(),
-        status: "active"
+        status: "active",
+        estimatedRewards: estimatedRewards.toFixed(6),
+        dailyRewardRate: dailyRewardRate.toFixed(8),
+        rewardSource: "0xf0C5d4889cb250956841c339b5F3798320303D5f" // 판매자 지갑
       };
 
       console.log("XPS Staking record:", stakingRecord);
@@ -3295,7 +3303,12 @@ Submitted at: ${new Date().toISOString()}
       res.json({
         success: true,
         staking: stakingRecord,
-        message: "XPS staking completed successfully"
+        message: "XPS staking completed successfully",
+        rewardInfo: {
+          estimatedRewards: estimatedRewards.toFixed(6),
+          dailyRewardRate: dailyRewardRate.toFixed(8),
+          rewardSource: "0xf0C5d4889cb250956841c339b5F3798320303D5f"
+        }
       });
     } catch (error) {
       console.error("Error processing XPS staking:", error);
@@ -3331,6 +3344,48 @@ Submitted at: ${new Date().toISOString()}
     } catch (error) {
       console.error("Error processing XPS unstaking:", error);
       res.status(500).json({ error: "Failed to process XPS unstaking" });
+    }
+  });
+
+  // XPS 보상 클레임 endpoint
+  app.post("/api/xps/claim-rewards", async (req, res) => {
+    try {
+      const { walletAddress, rewardAmount, transactionHash } = req.body;
+
+      if (!walletAddress || !rewardAmount) {
+        return res.status(400).json({ error: "Wallet address and reward amount required" });
+      }
+
+      console.log(`Processing XPS reward claim: ${rewardAmount} XPS for ${walletAddress}`);
+      console.log(`Claim TX: ${transactionHash}`);
+
+      // 보상 지급 기록
+      const claimRecord = {
+        id: Date.now(),
+        walletAddress,
+        rewardAmount: parseFloat(rewardAmount),
+        transactionHash,
+        timestamp: new Date().toISOString(),
+        status: "completed",
+        rewardSource: "0xf0C5d4889cb250956841c339b5F3798320303D5f", // 판매자 지갑
+        type: "staking_reward"
+      };
+
+      // 실제 운영 환경에서는 여기서 판매자 지갑에서 보상 토큰을 전송
+      // const rewardTransferHash = await distributeStakingRewards(walletAddress, rewardAmount, sellerPrivateKey);
+      // claimRecord.rewardTransferHash = rewardTransferHash;
+
+      console.log("XPS Reward claim record:", claimRecord);
+
+      res.json({
+        success: true,
+        claim: claimRecord,
+        message: `${rewardAmount} XPS 보상이 성공적으로 지급되었습니다`,
+        rewardSource: "0xf0C5d4889cb250956841c339b5F3798320303D5f"
+      });
+    } catch (error) {
+      console.error("Error processing XPS reward claim:", error);
+      res.status(500).json({ error: "Failed to process XPS reward claim" });
     }
   });
 

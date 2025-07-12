@@ -467,6 +467,91 @@ export class Web3Service {
       return null;
     }
   }
+
+  // 스테이킹 보상 지급 (판매자 지갑에서 전송)
+  async distributeStakingRewards(toAddress: string, rewardAmount: string, sellerPrivateKey: string): Promise<string> {
+    try {
+      if (!this.provider) {
+        throw new Error('Web3 provider not available');
+      }
+
+      console.log(`Distributing ${rewardAmount} XPS rewards to ${toAddress}`);
+      
+      // 판매자 지갑으로 서명자 생성
+      const sellerWallet = new ethers.Wallet(sellerPrivateKey, this.provider);
+      
+      // XPS 토큰 컨트랙트
+      const xpsAddress = CONTRACT_ADDRESSES.XPSToken;
+      const erc20ABI = [
+        "function transfer(address to, uint256 amount) returns (bool)",
+        "function balanceOf(address account) view returns (uint256)",
+        "function decimals() view returns (uint8)"
+      ];
+      
+      const xpsContract = new ethers.Contract(xpsAddress, erc20ABI, sellerWallet);
+      
+      // 토큰 양 변환 (18 decimals)
+      const tokenAmount = ethers.parseUnits(rewardAmount, 18);
+      
+      // 판매자 잔액 확인
+      const sellerBalance = await xpsContract.balanceOf(sellerWallet.address);
+      if (sellerBalance < tokenAmount) {
+        throw new Error('판매자 지갑의 XPS 토큰이 부족합니다');
+      }
+      
+      // XPS 보상 토큰 전송
+      const tx = await xpsContract.transfer(toAddress, tokenAmount);
+      const receipt = await tx.wait();
+      
+      console.log(`Staking rewards distributed: ${rewardAmount} XPS to ${toAddress}`);
+      console.log('Reward transfer transaction:', receipt.transactionHash);
+      
+      return receipt.transactionHash;
+    } catch (error) {
+      console.error('Staking reward distribution failed:', error);
+      throw error;
+    }
+  }
+
+  // 스테이킹 보상 클레임
+  async claimStakingRewards(): Promise<{success: boolean; transactionHash?: string; error?: string}> {
+    try {
+      if (!this.provider) {
+        throw new Error('Web3 provider not available');
+      }
+
+      const signer = await this.provider.getSigner();
+      const userAddress = await signer.getAddress();
+      
+      console.log(`Claiming staking rewards for ${userAddress}`);
+      
+      const stakingABI = [
+        "function claimRewards() returns (bool)",
+        "function getStakeInfo(address staker) view returns (uint256 stakedAmount, uint256 lockPeriod, uint256 unlockTime, uint256 rewards)"
+      ];
+      
+      const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
+      const stakingContract = new ethers.Contract(stakingAddress, stakingABI, signer);
+      
+      // 보상 클레임 실행
+      const claimTx = await stakingContract.claimRewards();
+      const receipt = await claimTx.wait();
+      
+      console.log('Staking rewards claimed successfully:', receipt.transactionHash);
+      
+      return {
+        success: true,
+        transactionHash: receipt.transactionHash
+      };
+      
+    } catch (error: any) {
+      console.error('Staking rewards claim failed:', error);
+      return {
+        success: false,
+        error: error.message || "보상 클레임 중 오류가 발생했습니다"
+      };
+    }
+  }
 }
 
 export const web3Service = new Web3Service();
