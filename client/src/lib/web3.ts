@@ -285,9 +285,18 @@ export class Web3Service {
         throw new Error('Web3 not initialized');
       }
 
+      // ENS 비활성화된 provider 사용
+      const provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS
+      });
+      
+      const signer = await provider.getSigner();
+      
       // 판매자 주소 (XPS를 판매하는 주소)
       const sellerAddress = '0xf0C5d4889cb250956841c339b5F3798320303D5f';
-      const buyerAddress = await this.signer.getAddress();
+      const buyerAddress = await signer.getAddress();
       const xpWei = ethers.parseEther(xpAmount);
 
       console.log(`Purchasing ${xpsAmount} XPS for ${xpAmount} XP`);
@@ -295,7 +304,7 @@ export class Web3Service {
       console.log(`Seller: ${sellerAddress}`);
 
       // Step 1: XP를 판매자에게 전송
-      const paymentTx = await this.signer.sendTransaction({
+      const paymentTx = await signer.sendTransaction({
         to: sellerAddress,
         value: xpWei,
         gasLimit: 100000
@@ -330,8 +339,13 @@ export class Web3Service {
         throw new Error('Provider not initialized');
       }
 
-      // 판매자 지갑 생성
-      const sellerWallet = new ethers.Wallet(sellerPrivateKey, this._provider);
+      // ENS 비활성화된 provider로 판매자 지갑 생성
+      const provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS
+      });
+      const sellerWallet = new ethers.Wallet(sellerPrivateKey, provider);
       
       // XPS 토큰 컨트랙트
       const xpsAddress = CONTRACT_ADDRESSES.XPSToken;
@@ -377,11 +391,18 @@ export class Web3Service {
   // XPS 스테이킹 함수
   async stakeXPS(amount: string, lockPeriod: number): Promise<{success: boolean; transactionHash?: string; error?: string}> {
     try {
-      if (!this.provider) {
+      if (!this._provider) {
         throw new Error('Web3 provider not available');
       }
 
-      const signer = await this.provider.getSigner();
+      // ENS 비활성화된 provider 사용
+      const provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS
+      });
+      
+      const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       
       console.log(`Staking ${amount} XPS for ${lockPeriod} days`);
@@ -452,16 +473,23 @@ export class Web3Service {
   // 스테이킹 정보 조회
   async getStakingInfo(address: string): Promise<{stakedAmount: string; lockPeriod: number; unlockTime: number; rewards: string} | null> {
     try {
-      if (!this.provider) {
+      if (!this._provider) {
         return null;
       }
+
+      // ENS 비활성화된 provider 사용
+      const provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS
+      });
 
       const stakingABI = [
         "function getStakeInfo(address staker) view returns (uint256 stakedAmount, uint256 lockPeriod, uint256 unlockTime, uint256 rewards)"
       ];
       
       const stakingAddress = CONTRACT_ADDRESSES.XpSwapStaking;
-      const stakingContract = new ethers.Contract(stakingAddress, stakingABI, this.provider);
+      const stakingContract = new ethers.Contract(stakingAddress, stakingABI, provider);
       
       const stakeInfo = await stakingContract.getStakeInfo(address);
       
@@ -531,11 +559,18 @@ export class Web3Service {
   // 스테이킹 보상 클레임
   async claimStakingRewards(): Promise<{success: boolean; transactionHash?: string; error?: string}> {
     try {
-      if (!this.provider) {
+      if (!this._provider) {
         throw new Error('Web3 provider not available');
       }
 
-      const signer = await this.provider.getSigner();
+      // ENS 비활성화된 provider 사용
+      const provider = new ethers.BrowserProvider(window.ethereum, {
+        name: "xphere",
+        chainId: 20250217,
+        ensAddress: null // Disable ENS
+      });
+      
+      const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       
       console.log(`Claiming staking rewards for ${userAddress}`);
