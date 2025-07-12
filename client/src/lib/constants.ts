@@ -12,6 +12,19 @@ export const XPHERE_NETWORK: NetworkConfig = {
   blockExplorerUrls: ["https://xp.tamsa.io/main"],
 };
 
+// XpSwap Smart Contract Addresses (Deployed on Xphere Network)
+export const CONTRACT_ADDRESSES = {
+  XpSwapToken: "0x748031ccc6e1d",
+  XpSwapDEX: "0x5b0bcfa1490d", 
+  XpSwapLiquidityPool: "0xe909098d05c06",
+  XpSwapAdvancedAMM: "0x123c1d407d04a",
+  XpSwapStaking: "0xdcbe5c4f166a3",
+  XpSwapFarmingRewards: "0xb99484ee2d452",
+  XpSwapGovernanceToken: "0xa62a2b8601833",
+  XpSwapRevenueManager: "0xb3cde158e6838",
+  XpSwapCrosschainBridge: "0x1301bc0dccf81"
+};
+
 export const DEFAULT_TOKENS = [
   // Native XP Token
   {

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { XPHERE_NETWORK } from "./constants";
+import { XPHERE_NETWORK, CONTRACT_ADDRESSES } from "./constants";
 
 declare global {
   interface Window {
@@ -13,6 +13,10 @@ export class Web3Service {
 
   get provider() {
     return this._provider;
+  }
+
+  get contractAddresses() {
+    return CONTRACT_ADDRESSES;
   }
 
   async isMetaMaskInstalled(): Promise<boolean> {

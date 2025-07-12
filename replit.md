@@ -6,8 +6,13 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 ## Current Status
 **Development Phase**: Production Ready with Advanced DeFi Features (100% complete)
 **Deployment**: Ready for enterprise-level production deployment
+**Smart Contracts**: DEPLOYED on Xphere Network with 20 XP tokens funding
 
 ## Recent Changes
+- **2025-01-12**: Successfully deployed all 9 XpSwap smart contracts to Xphere Network
+- **2025-01-12**: Integrated deployed contract addresses into application constants
+- **2025-01-12**: Enhanced Web3 service with contract address management
+- **2025-01-12**: Production-ready blockchain integration with real contract deployment
 - **2025-01-04**: Implemented comprehensive Multi-Chain Portfolio Management system
 - **2025-01-04**: Added multi-chain token balance API endpoints for Ethereum, BSC, and Xphere networks
 - **2025-01-04**: Created MultiChainPortfolio component with network filtering and real-time balance tracking
@@ -260,6 +265,17 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - Mobile-first responsive design
 
 ## Smart Contract Architecture
+
+### Deployed Contract Addresses (Xphere Network)
+- **XpSwapToken**: `0x748031ccc6e1d` (XPS native token)
+- **XpSwapDEX**: `0x5b0bcfa1490d` (Main DEX router)
+- **XpSwapLiquidityPool**: `0xe909098d05c06` (AMM with time-locked liquidity)
+- **XpSwapAdvancedAMM**: `0x123c1d407d04a` (MEV protection system)
+- **XpSwapStaking**: `0xdcbe5c4f166a3` (Staking rewards)
+- **XpSwapFarmingRewards**: `0xb99484ee2d452` (Yield farming)
+- **XpSwapGovernanceToken**: `0xa62a2b8601833` (Governance system)
+- **XpSwapRevenueManager**: `0xb3cde158e6838` (Revenue distribution)
+- **XpSwapCrosschainBridge**: `0x1301bc0dccf81` (Multi-network bridge)
 
 ### Advanced Contract Suite
 - **XpSwapLiquidityPool.sol**: AMM with time-locked liquidity and auto-compounding
