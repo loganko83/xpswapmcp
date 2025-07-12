@@ -477,17 +477,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { fromToken, toToken, amount } = req.body;
       
-      // Get current prices
-      const pricesResponse = await fetch(`${req.protocol}://${req.get('host')}/api/token-prices?symbols=${fromToken},${toToken}`);
-      const prices = await pricesResponse.json();
+      // Define token prices
+      const tokenPrices: { [key: string]: number } = {
+        'XP': 0.016571759599689175, // Current XP price
+        'XPS': 1.0, // XPS fixed at 1 USD
+        'ETH': 3200, // Example ETH price
+        'BTC': 42000, // Example BTC price
+        'USDT': 1.0, // Stablecoin
+        'USDC': 1.0, // Stablecoin
+        'BNB': 300 // Example BNB price
+      };
       
-      if (!prices[fromToken] || !prices[toToken]) {
-        throw new Error("Token prices not available");
-      }
-      
-      const fromPrice = prices[fromToken].price;
-      const toPrice = prices[toToken].price;
+      // Get prices or use default values
+      const fromPrice = tokenPrices[fromToken.toUpperCase()] || 1.0;
+      const toPrice = tokenPrices[toToken.toUpperCase()] || 1.0;
       const inputAmount = parseFloat(amount);
+      
+      if (inputAmount <= 0) {
+        throw new Error("Invalid amount");
+      }
       
       // Calculate output amount with 0.3% fee
       const outputAmount = (inputAmount * fromPrice / toPrice) * 0.997;
