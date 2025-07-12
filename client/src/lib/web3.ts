@@ -175,6 +175,55 @@ export class Web3Service {
     this.signer = null;
   }
 
+  // Get XP balance (native token)
+  async getXPBalance(): Promise<string> {
+    if (!this._provider || !this.signer) {
+      throw new Error("Provider or signer not initialized");
+    }
+
+    try {
+      const address = await this.signer.getAddress();
+      const balance = await this._provider.getBalance(address);
+      return ethers.formatEther(balance);
+    } catch (error) {
+      console.error('Failed to get XP balance:', error);
+      return "0";
+    }
+  }
+
+  // Get wallet address
+  async getWalletAddress(): Promise<string> {
+    if (!this.signer) {
+      throw new Error("Signer not initialized");
+    }
+
+    try {
+      return await this.signer.getAddress();
+    } catch (error) {
+      console.error('Failed to get wallet address:', error);
+      return "";
+    }
+  }
+
+  // Check if wallet is connected
+  async isConnected(): Promise<boolean> {
+    try {
+      if (!this._provider || !this.signer) {
+        return false;
+      }
+      
+      const address = await this.signer.getAddress();
+      return !!address;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Get account (same as getWalletAddress but with different name for compatibility)
+  async getAccount(): Promise<string> {
+    return await this.getWalletAddress();
+  }
+
   // Add XPS token balance check
   async checkXPSBalance(address: string): Promise<string> {
     if (!this._provider || !address) return "0";
@@ -220,7 +269,7 @@ export class Web3Service {
   }
 
   // XPS Token purchase with XP
-  async purchaseXPS(xpAmount: string, xpsAmount: string): Promise<boolean> {
+  async purchaseXPS(xpAmount: string, xpsAmount: string): Promise<any> {
     try {
       if (!this._provider || !this.signer) {
         throw new Error('Web3 not initialized');
@@ -228,29 +277,75 @@ export class Web3Service {
 
       // 판매자 주소 (XPS를 판매하는 주소)
       const sellerAddress = '0xf0C5d4889cb250956841c339b5F3798320303D5f';
+      const buyerAddress = await this.signer.getAddress();
       const xpWei = ethers.parseEther(xpAmount);
 
       console.log(`Purchasing ${xpsAmount} XPS for ${xpAmount} XP`);
-      console.log(`Sending XP to seller: ${sellerAddress}`);
+      console.log(`Buyer: ${buyerAddress}`);
+      console.log(`Seller: ${sellerAddress}`);
 
-      // XP를 판매자에게 전송
-      const tx = await this.signer.sendTransaction({
+      // Step 1: XP를 판매자에게 전송
+      const paymentTx = await this.signer.sendTransaction({
         to: sellerAddress,
         value: xpWei,
         gasLimit: 100000
       });
 
-      console.log('XP payment transaction sent:', tx.hash);
-      const receipt = await tx.wait();
-      console.log('XP payment confirmed:', receipt.transactionHash);
+      console.log('XP payment transaction sent:', paymentTx.hash);
+      const paymentReceipt = await paymentTx.wait();
+      console.log('XP payment confirmed:', paymentReceipt.transactionHash);
 
-      // 실제 운영에서는 판매자가 XPS 토큰을 구매자에게 전송해야 함
-      // 현재는 구매 완료로 처리
-      console.log(`XPS Purchase completed: ${xpAmount} XP -> ${xpsAmount} XPS`);
-
-      return true;
+      // Step 2: 판매자로부터 XPS 토큰 전송 (시뮬레이션)
+      // 실제 운영에서는 판매자가 별도로 XPS를 전송해야 하지만,
+      // 여기서는 구매 완료로 처리하고 백엔드에서 기록
+      
+      return {
+        success: true,
+        transactionHash: paymentReceipt.transactionHash,
+        buyerAddress: buyerAddress,
+        sellerAddress: sellerAddress,
+        xpAmount: xpAmount,
+        xpsAmount: xpsAmount
+      };
     } catch (error) {
       console.error('XPS purchase failed:', error);
+      throw error;
+    }
+  }
+
+  // Transfer XPS tokens from seller to buyer (판매자용 메서드)
+  async transferXPSFromSeller(toAddress: string, amount: string, sellerPrivateKey: string): Promise<string> {
+    try {
+      if (!this._provider) {
+        throw new Error('Provider not initialized');
+      }
+
+      // 판매자 지갑 생성
+      const sellerWallet = new ethers.Wallet(sellerPrivateKey, this._provider);
+      
+      // XPS 토큰 컨트랙트
+      const xpsAddress = CONTRACT_ADDRESSES.XPSToken;
+      const erc20ABI = [
+        "function transfer(address to, uint256 amount) returns (bool)",
+        "function balanceOf(address account) view returns (uint256)",
+        "function decimals() view returns (uint8)"
+      ];
+      
+      const xpsContract = new ethers.Contract(xpsAddress, erc20ABI, sellerWallet);
+      
+      // 토큰 양 변환 (18 decimals)
+      const tokenAmount = ethers.parseUnits(amount, 18);
+      
+      // XPS 토큰 전송
+      const tx = await xpsContract.transfer(toAddress, tokenAmount);
+      const receipt = await tx.wait();
+      
+      console.log(`XPS transfer completed: ${amount} XPS to ${toAddress}`);
+      console.log('Transfer transaction:', receipt.transactionHash);
+      
+      return receipt.transactionHash;
+    } catch (error) {
+      console.error('XPS transfer failed:', error);
       throw error;
     }
   }

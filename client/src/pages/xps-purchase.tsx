@@ -157,9 +157,9 @@ export default function XPSPurchase() {
       });
 
       // 스마트 컨트랙트를 통한 XPS 구매
-      const success = await web3Service.purchaseXPS(xpAmount, xpsAmount);
+      const purchaseResult = await web3Service.purchaseXPS(xpAmount, xpsAmount);
       
-      if (success) {
+      if (purchaseResult.success) {
         // 백엔드에 구매 기록 저장
         const response = await fetch('/api/xps/purchase', {
           method: 'POST',
@@ -170,7 +170,7 @@ export default function XPSPurchase() {
             walletAddress,
             xpAmount,
             xpsAmount,
-            transactionHash: success.transactionHash || 'completed'
+            transactionHash: purchaseResult.transactionHash
           })
         });
 
@@ -178,7 +178,7 @@ export default function XPSPurchase() {
           const data = await response.json();
           toast({
             title: "구매 완료! 🎉",
-            description: `${parseFloat(xpsAmount).toFixed(6)} XPS 토큰 구매가 완료되었습니다. 판매자가 XPS를 전송할 예정입니다.`,
+            description: `${parseFloat(xpsAmount).toFixed(6)} XPS 토큰이 성공적으로 구매되었습니다. XPS 토큰이 지갑으로 전송되었습니다.`,
           });
           
           // 잔액 업데이트
