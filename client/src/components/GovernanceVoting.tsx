@@ -8,11 +8,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Vote, Users, Clock, CheckCircle, XCircle, AlertCircle, Plus, Eye } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Vote, 
+  Users, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle, 
+  Plus, 
+  Eye,
+  TrendingUp,
+  DollarSign,
+  Settings,
+  FileText,
+  Calendar,
+  Shield,
+  Zap,
+  Target
+} from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { QuickShareButton } from "./SocialSharing";
+import { apiRequest } from "@/lib/queryClient";
+import { GovernanceAnalytics } from "./GovernanceAnalytics";
+import { YieldOptimization } from "./YieldOptimization";
+import { RiskManagement } from "./RiskManagement";
 
 interface GovernanceProposal {
   id: number;
@@ -54,9 +77,8 @@ function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
 
   const voteMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/governance/vote", {
+      return apiRequest("/api/governance/vote", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           proposalId: proposal.id,
           vote: selectedVote,
@@ -64,14 +86,11 @@ function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
           userAddress: wallet.address
         })
       });
-      
-      if (!response.ok) throw new Error("Failed to submit vote");
-      return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Vote Submitted",
-        description: `Your ${selectedVote} vote has been recorded successfully.`,
+        description: `Your ${selectedVote} vote has been recorded.`,
       });
       onClose();
       queryClient.invalidateQueries({ queryKey: ["/api/governance/proposals"] });
@@ -79,38 +98,25 @@ function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
     onError: (error) => {
       toast({
         title: "Vote Failed",
-        description: "Failed to submit your vote. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  const getUserVotingPower = () => {
-    // In real implementation, this would calculate based on user's XP token holdings
-    return "1,250.50";
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Vote on Proposal #{proposal.id}</DialogTitle>
+          <DialogTitle>Vote on Proposal</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Proposal Summary */}
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <h3 className="font-semibold text-sm mb-2">{proposal.title}</h3>
-            <p className="text-xs text-muted-foreground">{proposal.description}</p>
+          <div>
+            <h3 className="font-semibold text-lg">{proposal.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{proposal.description}</p>
           </div>
 
-          {/* Voting Power */}
-          <div className="flex justify-between items-center p-3 border rounded-lg">
-            <span className="text-sm font-medium">Your Voting Power</span>
-            <Badge variant="secondary">{getUserVotingPower()} XP</Badge>
-          </div>
-
-          {/* Vote Selection */}
           <div className="space-y-3">
             <label className="text-sm font-medium">Your Vote</label>
             <RadioGroup value={selectedVote} onValueChange={(value: 'for' | 'against') => setSelectedVote(value)}>
@@ -131,7 +137,6 @@ function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
             </RadioGroup>
           </div>
 
-          {/* Vote Reason */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Reason (Optional)</label>
             <Textarea
@@ -146,7 +151,6 @@ function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
             </div>
           </div>
 
-          {/* Current Vote Status */}
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
               <div className="text-lg font-bold text-green-600">{proposal.votesFor}</div>
@@ -158,7 +162,6 @@ function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={onClose}>
               Cancel
@@ -194,9 +197,8 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
 
   const createProposalMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/governance/create-proposal", {
+      return apiRequest("/api/governance/create-proposal", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: proposalType,
           title,
@@ -208,9 +210,6 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
           proposer: wallet.address
         })
       });
-      
-      if (!response.ok) throw new Error("Failed to create proposal");
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -233,7 +232,7 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
     }
   });
 
-  const minXPRequired = "10000"; // Minimum XP tokens required to create proposal
+  const minXPRequired = "10000";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -243,43 +242,33 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Requirements */}
           <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
               <div className="text-sm">
                 <div className="font-medium text-orange-700 dark:text-orange-300">Requirements</div>
                 <div className="text-orange-600 dark:text-orange-400 mt-1">
-                  Minimum {minXPRequired} XP tokens required to create proposals
+                  Minimum {minXPRequired} XP tokens required to create a proposal
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Proposal Type */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Proposal Type</label>
-            <RadioGroup value={proposalType} onValueChange={(value: any) => setProposalType(value)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="parameter" id="parameter" />
-                <Label htmlFor="parameter">Parameter Change</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="upgrade" id="upgrade" />
-                <Label htmlFor="upgrade">Protocol Upgrade</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="treasury" id="treasury" />
-                <Label htmlFor="treasury">Treasury Management</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="general" id="general" />
-                <Label htmlFor="general">General Proposal</Label>
-              </div>
-            </RadioGroup>
+            <Select value={proposalType} onValueChange={(value: any) => setProposalType(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="parameter">Parameter Change</SelectItem>
+                <SelectItem value="upgrade">Protocol Upgrade</SelectItem>
+                <SelectItem value="treasury">Treasury Proposal</SelectItem>
+                <SelectItem value="general">General Proposal</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Title */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Title</label>
             <Input
@@ -290,7 +279,6 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
             />
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Description</label>
             <Textarea
@@ -305,7 +293,6 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
             </div>
           </div>
 
-          {/* Parameter Changes (if applicable) */}
           {(proposalType === 'parameter' || proposalType === 'treasury') && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -327,7 +314,6 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={onClose}>
               Cancel
@@ -348,29 +334,43 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
 
 export function GovernanceVoting() {
   const { wallet } = useWeb3();
-  const [selectedProposal, setSelectedProposal] = useState<GovernanceProposal | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [voteDialogOpen, setVoteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'active' | 'passed' | 'rejected'>('all');
+  const [selectedProposal, setSelectedProposal] = useState<GovernanceProposal | null>(null);
 
-  // Fetch governance proposals
-  const { data: proposals = [], isLoading } = useQuery({
+  // Fetch proposals data with real-time updates
+  const { data: proposalsData, isLoading } = useQuery({
     queryKey: ["/api/governance/proposals"],
-    queryFn: async () => {
-      const response = await fetch("/api/governance/proposals");
-      if (!response.ok) throw new Error("Failed to fetch proposals");
-      return response.json();
-    }
+    enabled: !!wallet.address,
+    refetchInterval: 5000, // Update every 5 seconds
   });
 
   // Fetch governance stats
   const { data: governanceStats } = useQuery({
     queryKey: ["/api/governance/stats"],
-    queryFn: async () => {
-      const response = await fetch("/api/governance/stats");
-      if (!response.ok) throw new Error("Failed to fetch governance stats");
-      return response.json();
-    }
+    enabled: !!wallet.address,
+  });
+
+  // Fetch risk analysis data
+  const { data: riskData } = useQuery({
+    queryKey: ["/api/governance/risk-analysis"],
+    enabled: !!wallet.address,
+  });
+
+  // Fetch yield optimization data
+  const { data: yieldData } = useQuery({
+    queryKey: ["/api/governance/yield-optimization"],
+    enabled: !!wallet.address,
+  });
+
+  // Real-time voting power calculation
+  const { data: votingPower } = useQuery({
+    queryKey: ["/api/governance/voting-power", wallet.address],
+    enabled: !!wallet.address,
+    refetchInterval: 10000, // Update every 10 seconds
   });
 
   const handleVote = (proposal: GovernanceProposal) => {
@@ -378,236 +378,316 @@ export function GovernanceVoting() {
     setVoteDialogOpen(true);
   };
 
+  const filteredProposals = proposalsData?.filter((proposal: GovernanceProposal) => 
+    selectedFilter === "all" || proposal.status === selectedFilter
+  ) || [];
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'passed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'rejected': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'executed': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case "active": return "bg-green-500";
+      case "passed": return "bg-blue-500";
+      case "rejected": return "bg-red-500";
+      case "pending": return "bg-yellow-500";
+      case "executed": return "bg-purple-500";
+      default: return "bg-gray-500";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "active": return <Vote className="w-4 h-4" />;
+      case "passed": return <CheckCircle className="w-4 h-4" />;
+      case "rejected": return <XCircle className="w-4 h-4" />;
+      case "pending": return <Clock className="w-4 h-4" />;
+      case "executed": return <CheckCircle className="w-4 h-4" />;
+      default: return <AlertCircle className="w-4 h-4" />;
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'parameter': return '⚙️';
-      case 'upgrade': return '🔄';
-      case 'treasury': return '💰';
-      case 'general': return '📋';
-      default: return '📄';
+      case "parameter": return <Settings className="w-4 h-4" />;
+      case "upgrade": return <TrendingUp className="w-4 h-4" />;
+      case "treasury": return <DollarSign className="w-4 h-4" />;
+      case "general": return <FileText className="w-4 h-4" />;
+      default: return <AlertCircle className="w-4 h-4" />;
     }
   };
 
-  const calculateTimeRemaining = (endTime: number) => {
+  const formatTimeLeft = (endTime: number) => {
     const now = Date.now();
-    const remaining = endTime - now;
-    if (remaining <= 0) return "Voting ended";
+    const timeLeft = endTime - now;
     
-    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    if (timeLeft <= 0) return "Ended";
     
-    if (days > 0) return `${days}d ${hours}h remaining`;
-    return `${hours}h remaining`;
+    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    
+    if (days > 0) return `${days}d ${hours}h left`;
+    return `${hours}h left`;
   };
 
-  const calculateVotePercentage = (votes: string, total: string) => {
-    const voteNum = parseFloat(votes);
-    const totalNum = parseFloat(total);
-    if (totalNum === 0) return 0;
-    return (voteNum / totalNum) * 100;
+  const calculateVotePercentage = (votesFor: string, votesAgainst: string) => {
+    const forVotes = parseFloat(votesFor);
+    const againstVotes = parseFloat(votesAgainst);
+    const total = forVotes + againstVotes;
+    
+    if (total === 0) return { forPercentage: 0, againstPercentage: 0 };
+    
+    return {
+      forPercentage: (forVotes / total) * 100,
+      againstPercentage: (againstVotes / total) * 100
+    };
   };
 
-  const filteredProposals = proposals.filter((proposal: GovernanceProposal) => 
-    filter === 'all' || proposal.status === filter
-  );
+  if (!wallet.isConnected) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card className="text-center py-12">
+          <CardContent>
+            <Vote className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">Connect Your Wallet</h2>
+            <p className="text-muted-foreground">Connect your wallet to participate in governance voting</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Governance Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">Total Proposals</span>
-              <Vote className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-bold">{governanceStats?.totalProposals || 0}</div>
-            <Badge variant="outline" className="text-blue-600 border-blue-200">
-              All Time
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">Active Votes</span>
-              <Users className="w-4 h-4 text-green-500" />
-            </div>
-            <div className="text-2xl font-bold">{governanceStats?.activeProposals || 0}</div>
-            <Badge variant="outline" className="text-green-600 border-green-200">
-              Ongoing
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">Participation</span>
-              <Vote className="w-4 h-4 text-purple-500" />
-            </div>
-            <div className="text-2xl font-bold">{governanceStats?.participationRate || 0}%</div>
-            <Badge variant="outline" className="text-purple-600 border-purple-200">
-              30 Days
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">Success Rate</span>
-              <CheckCircle className="w-4 h-4 text-orange-500" />
-            </div>
-            <div className="text-2xl font-bold">{governanceStats?.successRate || 0}%</div>
-            <Badge variant="outline" className="text-orange-600 border-orange-200">
-              Passed
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Header Actions */}
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-          {['all', 'active', 'passed', 'rejected'].map((status) => (
-            <Button
-              key={status}
-              variant={filter === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter(status as any)}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </Button>
-          ))}
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Advanced DeFi Governance</h1>
+          <p className="text-muted-foreground">Real-time governance, yield optimization, and risk management</p>
         </div>
-        
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Proposal
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => setCreateDialogOpen(true)}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Proposal</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Proposals List */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="text-center py-8">Loading proposals...</div>
-        ) : filteredProposals.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Vote className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No proposals found</h3>
-              <p className="text-muted-foreground mb-4">
-                {filter === 'all' 
-                  ? "No governance proposals have been created yet."
-                  : `No ${filter} proposals found.`}
-              </p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                Create First Proposal
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredProposals.map((proposal: GovernanceProposal) => (
-            <Card key={proposal.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="text-2xl">{getTypeIcon(proposal.type)}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold">#{proposal.id} {proposal.title}</h3>
-                        <Badge className={getStatusColor(proposal.status)}>
-                          {proposal.status}
-                        </Badge>
+      {/* Advanced Stats Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Vote className="w-5 h-5 text-blue-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Proposals</p>
+                <p className="text-2xl font-bold">{governanceStats?.totalProposals || 0}</p>
+                <p className="text-xs text-green-500">+{governanceStats?.newProposals || 0} this week</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5 text-orange-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Your Voting Power</p>
+                <p className="text-2xl font-bold">{votingPower?.totalPower || "0"}</p>
+                <p className="text-xs text-blue-500">Rank #{votingPower?.rank || "N/A"}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Shield className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Risk Score</p>
+                <p className="text-2xl font-bold">{riskData?.overallRisk || "Low"}</p>
+                <p className="text-xs text-green-500">-5% from last week</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Zap className="w-5 h-5 text-purple-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Optimized APY</p>
+                <p className="text-2xl font-bold">{yieldData?.optimizedAPY || "0%"}</p>
+                <p className="text-xs text-purple-500">+{yieldData?.improvement || "0%"} boost</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Advanced Tabs */}
+      <Tabs defaultValue="proposals" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="proposals">Proposals</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="yields">Yield Optimization</TabsTrigger>
+          <TabsTrigger value="risks">Risk Management</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="proposals" className="space-y-4">
+          {/* Proposal Filters */}
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={selectedFilter === "all" ? "default" : "outline"}
+              onClick={() => setSelectedFilter("all")}
+            >
+              All Proposals
+            </Button>
+            <Button 
+              variant={selectedFilter === "active" ? "default" : "outline"}
+              onClick={() => setSelectedFilter("active")}
+            >
+              Active ({governanceStats?.activeProposals || 0})
+            </Button>
+            <Button 
+              variant={selectedFilter === "passed" ? "default" : "outline"}
+              onClick={() => setSelectedFilter("passed")}
+            >
+              Passed
+            </Button>
+            <Button 
+              variant={selectedFilter === "rejected" ? "default" : "outline"}
+              onClick={() => setSelectedFilter("rejected")}
+            >
+              Rejected
+            </Button>
+          </div>
+
+          {/* Proposals List */}
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-8">Loading proposals...</div>
+            ) : filteredProposals.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No proposals found</p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredProposals.map((proposal: GovernanceProposal) => (
+                <Card key={proposal.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        {getTypeIcon(proposal.type)}
+                        <div>
+                          <CardTitle className="text-lg">{proposal.title}</CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            Proposed by {proposal.proposer.slice(0, 8)}...{proposal.proposer.slice(-6)}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-muted-foreground text-sm mb-3">{proposal.description}</p>
-                      
-                      {/* Vote Progress */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span>For: {proposal.votesFor} XP</span>
-                          <span>Against: {proposal.votesAgainst} XP</span>
-                        </div>
-                        <div className="relative">
-                          <Progress 
-                            value={calculateVotePercentage(proposal.votesFor, proposal.totalVotes)} 
-                            className="h-2"
-                          />
-                          <div 
-                            className="absolute top-0 right-0 h-2 bg-red-500 rounded-r-sm"
-                            style={{ 
-                              width: `${calculateVotePercentage(proposal.votesAgainst, proposal.totalVotes)}%` 
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Quorum: {proposal.quorum} XP</span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {calculateTimeRemaining(proposal.endTime)}
-                          </span>
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getStatusColor(proposal.status)}>
+                          {getStatusIcon(proposal.status)}
+                          <span className="ml-1 capitalize">{proposal.status}</span>
+                        </Badge>
+                        <Badge variant="outline">{proposal.type}</Badge>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">{proposal.description}</p>
+                    
+                    {/* Enhanced Voting Progress */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-600">For: {proposal.votesFor}</span>
+                        <span className="text-red-600">Against: {proposal.votesAgainst}</span>
+                      </div>
+                      <Progress 
+                        value={calculateVotePercentage(proposal.votesFor, proposal.votesAgainst).forPercentage} 
+                        className="h-2"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Quorum: {proposal.quorum}</span>
+                        <span>{formatTimeLeft(proposal.endTime)}</span>
+                      </div>
+                    </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  {proposal.status === 'active' && wallet.isConnected && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleVote(proposal)}
-                      disabled={!!proposal.userVote}
-                    >
-                      <Vote className="w-4 h-4 mr-1" />
-                      {proposal.userVote ? `Voted ${proposal.userVote}` : 'Vote'}
-                    </Button>
-                  )}
-                  
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Details
-                  </Button>
-                  
-                  <QuickShareButton
-                    insight={{
-                      id: `proposal-${proposal.id}`,
-                      type: 'analysis',
-                      title: `Governance Proposal #${proposal.id}: ${proposal.title}`,
-                      description: proposal.description,
-                      data: {
-                        change: calculateVotePercentage(proposal.votesFor, proposal.totalVotes).toFixed(1)
-                      },
-                      timestamp: Date.now()
-                    }}
-                    variant="outline"
-                    size="sm"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                    {/* Enhanced Details */}
+                    {proposal.details && (
+                      <div className="bg-muted/50 p-3 rounded-lg mb-4 space-y-2">
+                        {proposal.details.currentValue && (
+                          <div className="flex justify-between text-sm">
+                            <span>Current Value:</span>
+                            <span className="font-medium">{proposal.details.currentValue}</span>
+                          </div>
+                        )}
+                        {proposal.details.proposedValue && (
+                          <div className="flex justify-between text-sm">
+                            <span>Proposed Value:</span>
+                            <span className="font-medium text-blue-600">{proposal.details.proposedValue}</span>
+                          </div>
+                        )}
+                        {proposal.details.impact && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Impact: </span>
+                            <span>{proposal.details.impact}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleVote(proposal)}
+                          disabled={proposal.status !== "active" || proposal.userVote !== null}
+                        >
+                          {proposal.userVote ? `Voted ${proposal.userVote}` : "Vote Now"}
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Details
+                        </Button>
+                        <QuickShareButton 
+                          content={`Reviewing governance proposal: ${proposal.title}`}
+                          insightType="governance"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        <span>Ends {new Date(proposal.endTime).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <GovernanceAnalytics />
+        </TabsContent>
+
+        <TabsContent value="yields" className="space-y-4">
+          <YieldOptimization />
+        </TabsContent>
+
+        <TabsContent value="risks" className="space-y-4">
+          <RiskManagement />
+        </TabsContent>
+      </Tabs>
 
       {/* Vote Dialog */}
       {selectedProposal && (
-        <VoteDialog
-          proposal={selectedProposal}
+        <VoteDialog 
+          proposal={selectedProposal} 
           isOpen={voteDialogOpen}
           onClose={() => {
             setVoteDialogOpen(false);
@@ -617,9 +697,9 @@ export function GovernanceVoting() {
       )}
 
       {/* Create Proposal Dialog */}
-      <CreateProposalDialog
-        isOpen={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
+      <CreateProposalDialog 
+        isOpen={createDialogOpen} 
+        onClose={() => setCreateDialogOpen(false)} 
       />
     </div>
   );

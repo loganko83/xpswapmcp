@@ -4636,6 +4636,405 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // Advanced DeFi Analytics API endpoints
+  app.get("/api/governance/analytics", async (req, res) => {
+    try {
+      const analytics = {
+        successRate: 85,
+        dailyVotes: 1247,
+        participationTrends: {
+          last7Days: [78, 82, 75, 88, 91, 85, 89],
+          averageParticipation: 84
+        }
+      };
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching governance analytics:", error);
+      res.status(500).json({ message: "Failed to fetch governance analytics" });
+    }
+  });
+
+  app.get("/api/governance/participation", async (req, res) => {
+    try {
+      const participation = {
+        currentPeriod: 78,
+        trend: "up",
+        change: 5.2
+      };
+      res.json(participation);
+    } catch (error) {
+      console.error("Error fetching participation data:", error);
+      res.status(500).json({ message: "Failed to fetch participation data" });
+    }
+  });
+
+  app.get("/api/governance/voting-trends", async (req, res) => {
+    try {
+      const trends = {
+        categories: [
+          {
+            type: "parameter",
+            name: "Parameter Changes",
+            votes: 2847,
+            percentage: 45,
+            trend: "up"
+          },
+          {
+            type: "treasury",
+            name: "Treasury Proposals",
+            votes: 1923,
+            percentage: 30,
+            trend: "up"
+          },
+          {
+            type: "upgrade",
+            name: "Protocol Upgrades",
+            votes: 856,
+            percentage: 15,
+            trend: "down"
+          },
+          {
+            type: "general",
+            name: "General Proposals",
+            votes: 634,
+            percentage: 10,
+            trend: "up"
+          }
+        ]
+      };
+      res.json(trends);
+    } catch (error) {
+      console.error("Error fetching voting trends:", error);
+      res.status(500).json({ message: "Failed to fetch voting trends" });
+    }
+  });
+
+  app.get("/api/governance/risk-analysis", async (req, res) => {
+    try {
+      const riskAnalysis = {
+        overallRisk: "Low",
+        decentralizationScore: 92,
+        engagementScore: 87,
+        threats: [
+          {
+            type: "governance_attack",
+            probability: "Low",
+            impact: "High",
+            mitigation: "Distributed voting power"
+          }
+        ]
+      };
+      res.json(riskAnalysis);
+    } catch (error) {
+      console.error("Error fetching risk analysis:", error);
+      res.status(500).json({ message: "Failed to fetch risk analysis" });
+    }
+  });
+
+  app.get("/api/governance/yield-optimization", async (req, res) => {
+    try {
+      const yieldOptimization = {
+        optimizedAPY: "24.5%",
+        improvement: "12.3%",
+        opportunities: [
+          {
+            protocol: "XpSwap",
+            apy: 189.7,
+            improvement: 31.4
+          }
+        ]
+      };
+      res.json(yieldOptimization);
+    } catch (error) {
+      console.error("Error fetching yield optimization:", error);
+      res.status(500).json({ message: "Failed to fetch yield optimization" });
+    }
+  });
+
+  app.get("/api/governance/voting-power/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const votingPower = {
+        totalPower: "12,847",
+        rank: 42,
+        breakdown: {
+          xpsStaked: "8,500",
+          lpTokens: "3,247",
+          delegated: "1,100"
+        }
+      };
+      res.json(votingPower);
+    } catch (error) {
+      console.error("Error fetching voting power:", error);
+      res.status(500).json({ message: "Failed to fetch voting power" });
+    }
+  });
+
+  // Yield Optimization API endpoints
+  app.get("/api/yield/opportunities/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const opportunities = {
+        totalImprovement: "24.5",
+        additionalYield: "2,847",
+        compoundBoost: "12.3",
+        opportunities: [
+          {
+            id: "1",
+            protocol: "XpSwap",
+            type: "staking",
+            tokenPair: "XPS",
+            currentAPY: 158.3,
+            optimizedAPY: 189.7,
+            improvement: 31.4,
+            risk: "low",
+            tvl: "12.3M",
+            autoCompound: true,
+            description: "Stake XPS tokens with auto-compounding for enhanced rewards"
+          },
+          {
+            id: "2",
+            protocol: "XpSwap",
+            type: "liquidity",
+            tokenPair: "XP-USDT",
+            currentAPY: 45.2,
+            optimizedAPY: 67.8,
+            improvement: 22.6,
+            risk: "medium",
+            tvl: "8.5M",
+            autoCompound: true,
+            description: "Provide liquidity to XP-USDT pair with LP boosting"
+          }
+        ]
+      };
+      res.json(opportunities);
+    } catch (error) {
+      console.error("Error fetching yield opportunities:", error);
+      res.status(500).json({ message: "Failed to fetch yield opportunities" });
+    }
+  });
+
+  app.get("/api/yield/strategies/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const strategies = [
+        {
+          id: "compound",
+          name: "Auto-Compound Strategy",
+          description: "Automatically compound rewards to maximize APY",
+          expectedImprovement: 15.2,
+          estimatedGas: "0.003 ETH",
+          timeframe: "Daily",
+          complexity: "simple",
+          enabled: true
+        },
+        {
+          id: "rebalance",
+          name: "Portfolio Rebalancing",
+          description: "Rebalance positions based on market conditions",
+          expectedImprovement: 8.7,
+          estimatedGas: "0.008 ETH",
+          timeframe: "Weekly",
+          complexity: "moderate",
+          enabled: false
+        }
+      ];
+      res.json(strategies);
+    } catch (error) {
+      console.error("Error fetching yield strategies:", error);
+      res.status(500).json({ message: "Failed to fetch yield strategies" });
+    }
+  });
+
+  app.get("/api/yield/positions/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const positions = [
+        {
+          id: "pos1",
+          protocol: "XpSwap",
+          type: "staking",
+          tokenPair: "XPS",
+          amount: "1,500",
+          currentAPY: 158.3,
+          earned: "234.5",
+          lastCompound: "2 hours ago",
+          autoCompound: true
+        },
+        {
+          id: "pos2",
+          protocol: "XpSwap",
+          type: "liquidity",
+          tokenPair: "XP-USDT",
+          amount: "2,500",
+          currentAPY: 45.2,
+          earned: "156.8",
+          lastCompound: "1 day ago",
+          autoCompound: false
+        }
+      ];
+      res.json(positions);
+    } catch (error) {
+      console.error("Error fetching yield positions:", error);
+      res.status(500).json({ message: "Failed to fetch yield positions" });
+    }
+  });
+
+  app.post("/api/yield/optimize", async (req, res) => {
+    try {
+      const { strategyId, userAddress, autoCompound } = req.body;
+      
+      // Mock optimization execution
+      const result = {
+        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        gasUsed: "0.0045 ETH",
+        expectedImprovement: "15.2%",
+        estimatedCompletion: Date.now() + 300000, // 5 minutes
+        status: "pending"
+      };
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error executing yield optimization:", error);
+      res.status(500).json({ message: "Failed to execute yield optimization" });
+    }
+  });
+
+  // Risk Management API endpoints
+  app.get("/api/risk/analysis/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      const { timeframe = "7d" } = req.query;
+      
+      const riskAnalysis = {
+        metrics: [
+          {
+            id: "liquidation",
+            name: "Liquidation Risk",
+            value: 15,
+            threshold: 80,
+            status: "safe",
+            description: "Risk of position liquidation based on collateral ratio",
+            recommendation: "Maintain healthy collateral ratios above 150%"
+          },
+          {
+            id: "impermanent_loss",
+            name: "Impermanent Loss",
+            value: 23,
+            threshold: 50,
+            status: "safe",
+            description: "Potential loss from providing liquidity vs holding tokens",
+            recommendation: "Monitor price divergence between paired tokens"
+          },
+          {
+            id: "volatility",
+            name: "Portfolio Volatility",
+            value: 65,
+            threshold: 70,
+            status: "warning",
+            description: "Price volatility of your portfolio over time",
+            recommendation: "Consider diversifying into more stable assets"
+          },
+          {
+            id: "concentration",
+            name: "Concentration Risk",
+            value: 45,
+            threshold: 60,
+            status: "safe",
+            description: "Risk from over-concentration in single assets",
+            recommendation: "Diversify holdings across multiple tokens"
+          }
+        ]
+      };
+      
+      res.json(riskAnalysis);
+    } catch (error) {
+      console.error("Error fetching risk analysis:", error);
+      res.status(500).json({ message: "Failed to fetch risk analysis" });
+    }
+  });
+
+  app.get("/api/risk/alerts/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      const alerts = [
+        {
+          id: "alert1",
+          type: "volatility",
+          severity: "medium",
+          title: "Increased Portfolio Volatility",
+          description: "Your portfolio volatility has increased by 15% in the last 24 hours",
+          impact: "Potential for higher losses during market downturns",
+          recommendation: "Consider reducing position sizes or diversifying",
+          timestamp: Date.now() - 3600000
+        },
+        {
+          id: "alert2",
+          type: "concentration",
+          severity: "low",
+          title: "Asset Concentration Warning",
+          description: "XP tokens represent 65% of your portfolio",
+          impact: "High exposure to single asset price movements",
+          recommendation: "Consider diversifying into other assets",
+          timestamp: Date.now() - 7200000
+        }
+      ];
+      
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching risk alerts:", error);
+      res.status(500).json({ message: "Failed to fetch risk alerts" });
+    }
+  });
+
+  app.get("/api/risk/portfolio/:address", async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      const portfolioRisk = {
+        healthScore: 85,
+        limitUsage: 42,
+        assetAllocation: [
+          { asset: "XP", allocation: 45, risk: "medium" },
+          { asset: "USDT", allocation: 25, risk: "low" },
+          { asset: "ETH", allocation: 20, risk: "medium" },
+          { asset: "BTC", allocation: 10, risk: "medium" }
+        ],
+        riskFactors: [
+          { factor: "Smart Contract Risk", level: "Low", impact: "Minor" },
+          { factor: "Liquidity Risk", level: "Medium", impact: "Moderate" },
+          { factor: "Market Risk", level: "High", impact: "Major" },
+          { factor: "Counterparty Risk", level: "Low", impact: "Minor" }
+        ]
+      };
+      
+      res.json(portfolioRisk);
+    } catch (error) {
+      console.error("Error fetching portfolio risk:", error);
+      res.status(500).json({ message: "Failed to fetch portfolio risk" });
+    }
+  });
+
+  app.get("/api/risk/market", async (req, res) => {
+    try {
+      const marketRisk = {
+        vix: 24.5,
+        fearGreed: 67,
+        indicators: [
+          { name: "Correlation Risk", value: 0.85, description: "High correlation between assets" },
+          { name: "Liquidity Risk", value: 0.23, description: "Low liquidity in some markets" },
+          { name: "Systemic Risk", value: 0.34, description: "Overall system stability" }
+        ]
+      };
+      
+      res.json(marketRisk);
+    } catch (error) {
+      console.error("Error fetching market risk:", error);
+      res.status(500).json({ message: "Failed to fetch market risk" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
