@@ -12,6 +12,7 @@ import { AlertCircle, TrendingUp, Calendar, Award, Zap, Shield, Loader2, Gift } 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { xpsService, XPSStakingInfo, XPSTokenInfo, XPSService } from '@/lib/xpsService';
 import { web3Service } from '@/lib/web3';
+import { directWeb3Service } from '@/lib/web3-direct';
 import { useToast } from '@/hooks/use-toast';
 
 export function XPSStakingInterface() {
@@ -63,8 +64,8 @@ export function XPSStakingInterface() {
       const balance = await web3Service.checkXPSBalance(address);
       setXpsBalance(balance);
       
-      // Load real staking info from smart contract
-      const stakingData = await web3Service.getStakingInfo(address);
+      // Load real staking info from smart contract using direct Web3 service
+      const stakingData = await directWeb3Service.getStakingInfoDirect(address);
       
       if (stakingData) {
         const unlockDate = stakingData.unlockTime * 1000; // Convert to milliseconds
@@ -148,8 +149,8 @@ export function XPSStakingInterface() {
         description: "XPS 토큰 스테이킹이 진행 중입니다. 메타마스크에서 거래를 확인해주세요.",
       });
       
-      // 실제 스테이킹 실행
-      const result = await web3Service.stakeXPS(stakeAmount, parseInt(lockPeriod));
+      // ENS 문제 해결을 위해 직접 Web3 서비스 사용
+      const result = await directWeb3Service.stakeXPSDirect(stakeAmount, parseInt(lockPeriod));
       
       if (result.success) {
         // 백엔드에 스테이킹 기록 저장
@@ -288,8 +289,8 @@ export function XPSStakingInterface() {
         description: "XPS 스테이킹 보상을 클레임하고 있습니다. 메타마스크에서 거래를 확인해주세요.",
       });
       
-      // 실제 보상 클레임 실행
-      const result = await web3Service.claimStakingRewards();
+      // ENS 문제 해결을 위해 직접 Web3 서비스 사용
+      const result = await directWeb3Service.claimRewardsDirect();
       
       if (result.success) {
         // 백엔드에 보상 클레임 기록 저장

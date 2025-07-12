@@ -21,13 +21,22 @@ export class Web3Service {
 
   // Helper function to create ENS-disabled provider
   private createENSDisabledProvider(): ethers.BrowserProvider {
-    const networkConfig = {
+    // Force network configuration without ENS support
+    const network = {
       name: "xphere",
       chainId: 20250217,
-      ensAddress: null, // Explicitly disable ENS
-      _defaultProvider: null // Prevent default provider lookup
+      ensAddress: null,
+      _defaultProvider: null
     };
-    return new ethers.BrowserProvider(window.ethereum, networkConfig);
+    
+    // Create provider with specific network to prevent ENS queries
+    const provider = new ethers.BrowserProvider(window.ethereum, network);
+    
+    // Override the resolveName method to prevent ENS lookups
+    (provider as any).resolveName = () => Promise.resolve(null);
+    (provider as any).lookupAddress = () => Promise.resolve(null);
+    
+    return provider;
   }
 
   async isMetaMaskInstalled(): Promise<boolean> {
@@ -385,14 +394,22 @@ export class Web3Service {
   // XPS 스테이킹 함수
   async stakeXPS(amount: string, lockPeriod: number): Promise<{success: boolean; transactionHash?: string; error?: string}> {
     try {
-      if (!this._provider) {
-        throw new Error('Web3 provider not available');
+      if (!window.ethereum) {
+        throw new Error('MetaMask not available');
       }
 
-      // ENS 비활성화된 provider 사용
+      // 직접 Web3 호출로 ENS 우회
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length === 0) {
+        throw new Error('지갑이 연결되지 않았습니다');
+      }
+
+      const userAddress = accounts[0];
+      console.log(`Staking ${amount} XPS for ${lockPeriod} days`);
+
+      // 간단한 JSON RPC 호출로 ENS 우회
       const provider = this.createENSDisabledProvider();
       const signer = await provider.getSigner();
-      const userAddress = await signer.getAddress();
       
       console.log(`Staking ${amount} XPS for ${lockPeriod} days`);
       
