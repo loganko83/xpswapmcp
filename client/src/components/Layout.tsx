@@ -329,9 +329,9 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 bg-muted/30 border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <footer className="mt-12 bg-muted/30 border-t">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
@@ -348,8 +348,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-3">Products</h4>
-              <ul className="space-y-1 text-sm">
+              <h4 className="font-semibold mb-2">Products</h4>
+              <ul className="space-y-0.5 text-sm">
                 <li>
                   <Link href="/swap">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -410,8 +410,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-3">Developers</h4>
-              <ul className="space-y-1 text-sm">
+              <h4 className="font-semibold mb-2">Developers</h4>
+              <ul className="space-y-0.5 text-sm">
                 <li>
                   <Link href="/documentation">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -440,8 +440,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-3">Support</h4>
-              <ul className="space-y-1 text-sm">
+              <h4 className="font-semibold mb-2">Support</h4>
+              <ul className="space-y-0.5 text-sm">
                 <li>
                   <a
                     href="https://trendy.storydot.kr"
@@ -469,8 +469,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-3">Social</h4>
-              <ul className="space-y-1 text-sm">
+              <h4 className="font-semibold mb-2">Social</h4>
+              <ul className="space-y-0.5 text-sm">
                 <li>
                   <a
                     href="https://medium.com/@teamxpsproject"
@@ -527,7 +527,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
 
-          <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row items-center justify-between">
+          <div className="border-t border-border mt-6 pt-6 flex flex-col md:flex-row items-center justify-between">
             <p className="text-sm text-muted-foreground">
               © 2025 XpSwap. All rights reserved.
             </p>
