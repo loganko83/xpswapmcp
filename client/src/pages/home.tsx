@@ -351,7 +351,11 @@ export default function HomePage() {
                 <div>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                      <Star className="w-6 h-6 text-primary" />
+                      <img 
+                        src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2"
+                        alt="XPS"
+                        className="w-8 h-8 object-contain"
+                      />
                     </div>
                     <h2 className="text-3xl font-bold text-foreground">XPS Native Token</h2>
                   </div>
