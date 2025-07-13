@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Layout } from "@/components/Layout";
+import HomePage from "@/pages/home";
 import SwapPage from "@/pages/swap";
 import TradingPage from "@/pages/trading";
 import PoolPage from "@/pages/pool";
@@ -26,7 +27,8 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={SwapPage} />
+        <Route path="/" component={HomePage} />
+        <Route path="/swap" component={SwapPage} />
         <Route path="/trading" component={TradingPage} />
         <Route path="/pool" component={PoolPage} />
         <Route path="/farm" component={FarmPage} />

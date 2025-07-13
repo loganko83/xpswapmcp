@@ -1,0 +1,343 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  ArrowRightLeft, 
+  Droplets, 
+  TrendingUp, 
+  BarChart3,
+  Coins,
+  Zap,
+  Shield,
+  Target,
+  Star,
+  Wallet,
+  Globe,
+  ChevronRight,
+  DollarSign,
+  Percent,
+  Award,
+  Flame,
+  Network
+} from "lucide-react";
+import { Link } from "wouter";
+
+export default function HomePage() {
+  const features = [
+    {
+      title: "Advanced Swap Trading",
+      description: "Trade cryptocurrencies with real-time pricing from CoinMarketCap. Features include slippage protection, MEV resistance, and optimal routing for best prices.",
+      icon: ArrowRightLeft,
+      color: "from-blue-500 to-blue-600",
+      link: "/swap",
+      highlights: ["Real-time pricing", "MEV protection", "Slippage control"]
+    },
+    {
+      title: "Chart-based Trading",
+      description: "Professional trading interface with TradingView-style charts, real-time orderbook, trade history, and advanced order types for experienced traders.",
+      icon: BarChart3,
+      color: "from-green-500 to-green-600",
+      link: "/trading",
+      highlights: ["OHLC charts", "Live orderbook", "Market & limit orders"]
+    },
+    {
+      title: "Liquidity Pools",
+      description: "Provide liquidity and earn rewards through our automated market maker (AMM). Features time-locked positions with boosted APY and auto-compounding.",
+      icon: Droplets,
+      color: "from-purple-500 to-purple-600",
+      link: "/pool",
+      highlights: ["AMM protocol", "Time-locked rewards", "Auto-compounding"]
+    },
+    {
+      title: "Yield Farming",
+      description: "Maximize your returns with our advanced farming system. Stake LP tokens to earn governance tokens with multipliers up to 2.5x based on lock duration.",
+      icon: TrendingUp,
+      color: "from-orange-500 to-orange-600",
+      link: "/farm",
+      highlights: ["2.5x multipliers", "Governance rewards", "Flexible periods"]
+    },
+    {
+      title: "Cross-chain Bridge",
+      description: "Transfer assets seamlessly across 40+ blockchains using LI.FI integration. Support for Ethereum, BSC, Polygon, Arbitrum, and more networks.",
+      icon: Network,
+      color: "from-cyan-500 to-cyan-600",
+      link: "/bridge",
+      highlights: ["40+ networks", "LI.FI integration", "Secure transfers"]
+    },
+    {
+      title: "Token Minting",
+      description: "Create custom XIP-20 tokens on Xphere Network with automated deployment, metadata management, and DEX integration for instant trading.",
+      icon: Coins,
+      color: "from-yellow-500 to-yellow-600",
+      link: "/minting",
+      highlights: ["XIP-20 standard", "Auto deployment", "Instant trading"]
+    },
+    {
+      title: "Multi-chain Portfolio",
+      description: "Track your assets across multiple blockchains in one unified dashboard. Real-time balances, transaction history, and portfolio analytics.",
+      icon: Wallet,
+      color: "from-pink-500 to-pink-600",
+      link: "/multichain-portfolio",
+      highlights: ["Multi-chain tracking", "Real-time data", "Portfolio analytics"]
+    },
+    {
+      title: "Real-time Analytics",
+      description: "Access comprehensive market data with live metrics, trading volume analysis, liquidity flows, and customizable alerts for better decision making.",
+      icon: BarChart3,
+      color: "from-indigo-500 to-indigo-600",
+      link: "/analytics",
+      highlights: ["Live metrics", "Volume analysis", "Custom alerts"]
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="mb-8">
+            <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Zap className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+              Welcome to <span className="text-primary">XpSwap</span>
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              The most advanced decentralized exchange on Xphere blockchain. Trade, farm, bridge, and mint tokens with institutional-grade features and maximum security.
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            <Link href="/swap">
+              <Button size="lg" className="bg-primary hover:bg-primary/90">
+                Start Trading <ArrowRightLeft className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/xps-staking">
+              <Button size="lg" variant="outline">
+                Discover XPS Token <Star className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-primary mb-2">$2.5M+</div>
+              <div className="text-sm text-muted-foreground">Total Volume</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-primary mb-2">40+</div>
+              <div className="text-sm text-muted-foreground">Supported Networks</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-primary mb-2">15,000+</div>
+              <div className="text-sm text-muted-foreground">Active Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-primary mb-2">99.9%</div>
+              <div className="text-sm text-muted-foreground">Uptime</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* XPS Token Highlight */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-primary/20">
+            <CardContent className="p-8">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Star className="w-6 h-6 text-primary" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-foreground">XPS Native Token</h2>
+                  </div>
+                  <p className="text-muted-foreground text-lg mb-6">
+                    The utility token that powers the entire XpSwap ecosystem. Get trading fee discounts, 
+                    enhanced staking rewards, and governance voting rights.
+                  </p>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-3">
+                      <Percent className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Up to 75% trading fee discounts</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">400% APY staking rewards</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Shield className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Governance voting power</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Flame className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Deflationary burn mechanism</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Link href="/buy-xps">
+                      <Button className="bg-primary hover:bg-primary/90">
+                        Buy XPS (1 XPS = $1) <DollarSign className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                    <Link href="/xps-staking">
+                      <Button variant="outline">
+                        Stake XPS <Award className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="bg-background/50 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-primary mb-2">1 XPS</div>
+                      <div className="text-sm text-muted-foreground">= $1 USD</div>
+                      <div className="text-xs text-muted-foreground mt-1">Fixed Price</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-background/50 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-primary mb-2">400%</div>
+                      <div className="text-sm text-muted-foreground">Max APY</div>
+                      <div className="text-xs text-muted-foreground mt-1">1 Year Lock</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-background/50 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-primary mb-2">75%</div>
+                      <div className="text-sm text-muted-foreground">Fee Discount</div>
+                      <div className="text-xs text-muted-foreground mt-1">Maximum</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-background/50 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-primary mb-2">40%</div>
+                      <div className="text-sm text-muted-foreground">Revenue Burn</div>
+                      <div className="text-xs text-muted-foreground mt-1">Deflationary</div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Comprehensive DeFi Suite</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Everything you need for decentralized finance in one powerful platform
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <Link key={index} href={feature.link}>
+                <Card className="h-full bg-card hover:bg-card/80 transition-all duration-300 hover:scale-105 cursor-pointer group border-border">
+                  <CardHeader>
+                    <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      <feature.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <CardTitle className="text-foreground group-hover:text-primary transition-colors">
+                      {feature.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <p className="text-muted-foreground mb-4 leading-relaxed">
+                      {feature.description}
+                    </p>
+                    <div className="space-y-2 mb-4">
+                      {feature.highlights.map((highlight, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          <span className="text-sm text-muted-foreground">{highlight}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center text-primary group-hover:translate-x-1 transition-transform">
+                      <span className="text-sm font-medium">Explore</span>
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security & Trust Section */}
+      <section className="py-16 px-4 bg-muted/20">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Built for Security & Performance</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Enterprise-grade security with cutting-edge DeFi innovations
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">MEV Protection</h3>
+              <p className="text-muted-foreground">
+                Advanced algorithms protect against sandwich attacks and front-running, ensuring fair prices for all trades.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Optimal Routing</h3>
+              <p className="text-muted-foreground">
+                Smart routing algorithms find the best prices across multiple liquidity sources for maximum efficiency.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Multi-chain Ready</h3>
+              <p className="text-muted-foreground">
+                Seamlessly operate across 40+ blockchains with unified interface and cross-chain asset management.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-foreground mb-6">
+            Ready to Experience the Future of DeFi?
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join thousands of users already trading, farming, and earning on XpSwap. 
+            Start with as little as $10 and unlock the full potential of decentralized finance.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/swap">
+              <Button size="lg" className="bg-primary hover:bg-primary/90">
+                Start Trading Now <ArrowRightLeft className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/documentation">
+              <Button size="lg" variant="outline">
+                Read Documentation <ChevronRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

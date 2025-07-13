@@ -353,16 +353,16 @@ export default function MintingPage() {
                   <p className="text-lg font-semibold text-foreground">{mintingFees.baseGas} XP</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Creation Fee</p>
-                  <p className="text-lg font-semibold text-foreground">{mintingFees.tokenCreationFee} XP</p>
+                  <p className="text-sm text-muted-foreground">Minting Fee</p>
+                  <p className="text-lg font-semibold text-foreground">${mintingFees.mintingFeeUSD}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Liquidity Fee</p>
-                  <p className="text-lg font-semibold text-foreground">{mintingFees.liquidityFee} XP</p>
+                  <p className="text-sm text-muted-foreground">Pay with XP</p>
+                  <p className="text-lg font-semibold text-foreground">{mintingFees.feeInXP} XP</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Total Cost</p>
-                  <p className="text-lg font-semibold text-primary">{mintingFees.totalFee} XP (${mintingFees.feeInUSD})</p>
+                  <p className="text-sm text-muted-foreground">Pay with XPS (50% off)</p>
+                  <p className="text-lg font-semibold text-primary">{mintingFees.feeInXPS} XPS</p>
                 </div>
               </div>
             </CardContent>

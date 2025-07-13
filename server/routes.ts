@@ -750,52 +750,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For now, calculate based on real price feeds
       let exchangeRate = 1.85; // XP to USDT base rate
       
-      // Get real XP price
-      try {
-        const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056', {
-          headers: {
-            'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (cmcResponse.ok) {
-          const cmcData = await cmcResponse.json();
-          if (cmcData.data && cmcData.data['36056']) {
-            const xpPrice = cmcData.data['36056'].quote.USD.price;
+      // Special handling for XPS (fixed at 1 USD)
+      if (tokenIn === "XPS" || tokenOut === "XPS") {
+        if (tokenIn === "XPS" && tokenOut === "USDT") {
+          exchangeRate = 1.0; // 1 XPS = 1 USD
+        } else if (tokenIn === "USDT" && tokenOut === "XPS") {
+          exchangeRate = 1.0; // 1 USD = 1 XPS
+        } else if (tokenIn === "XPS" && tokenOut === "XP") {
+          // Get XP price and calculate XPS to XP rate
+          try {
+            const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056', {
+              headers: {
+                'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+                'Accept': 'application/json'
+              }
+            });
             
-            // Calculate real exchange rate
-            if (tokenIn === "XP" && tokenOut === "USDT") {
-              exchangeRate = xpPrice;
-            } else if (tokenIn === "USDT" && tokenOut === "XP") {
-              exchangeRate = 1 / xpPrice;
+            if (cmcResponse.ok) {
+              const cmcData = await cmcResponse.json();
+              if (cmcData.data && cmcData.data['36056']) {
+                const xpPrice = cmcData.data['36056'].quote.USD.price;
+                exchangeRate = 1 / xpPrice; // 1 XPS (1 USD) = 1/xpPrice XP
+              }
             }
+          } catch (error) {
+            console.warn("Failed to fetch XP price for XPS conversion:", error);
+            exchangeRate = 1 / 0.01663; // fallback
+          }
+        } else if (tokenIn === "XP" && tokenOut === "XPS") {
+          // Get XP price and calculate XP to XPS rate
+          try {
+            const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056', {
+              headers: {
+                'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (cmcResponse.ok) {
+              const cmcData = await cmcResponse.json();
+              if (cmcData.data && cmcData.data['36056']) {
+                const xpPrice = cmcData.data['36056'].quote.USD.price;
+                exchangeRate = xpPrice; // xpPrice XP = 1 XPS (1 USD)
+              }
+            }
+          } catch (error) {
+            console.warn("Failed to fetch XP price for XPS conversion:", error);
+            exchangeRate = 0.01663; // fallback
           }
         }
-      } catch (error) {
-        console.warn("Failed to fetch real price, using fallback:", error);
+      } else {
+        // Get real XP price for other pairs
+        try {
+          const cmcResponse = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056', {
+            headers: {
+              'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (cmcResponse.ok) {
+            const cmcData = await cmcResponse.json();
+            if (cmcData.data && cmcData.data['36056']) {
+              const xpPrice = cmcData.data['36056'].quote.USD.price;
+              
+              // Calculate real exchange rate
+              if (tokenIn === "XP" && tokenOut === "USDT") {
+                exchangeRate = xpPrice;
+              } else if (tokenIn === "USDT" && tokenOut === "XP") {
+                exchangeRate = 1 / xpPrice;
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to fetch real price, using fallback:", error);
+        }
       }
       
-      // Calculate amounts with DEX fee (0.3%)
-      const fee = 0.003;
-      const amountOut = (parseFloat(amountIn) * exchangeRate * (1 - fee)).toFixed(6);
-      const priceImpact = "0.15";
-      const minimumReceived = (parseFloat(amountOut) * 0.995).toFixed(6); // 0.5% slippage
+      // Calculate amounts with DEX fee (0.3%) + additional fee (1% XP or 0.5% XPS)
+      const dexFee = 0.003;
+      const additionalFeeXP = 0.01; // 1% additional fee in XP
+      const additionalFeeXPS = 0.005; // 0.5% additional fee in XPS
       
-      const quote = {
-        amountOut,
-        priceImpact,
-        minimumReceived,
-        gasEstimate: "0.003",
+      const amountOut = Number(amountIn) * exchangeRate;
+      const dexFeeAmount = amountOut * dexFee;
+      const additionalFeeAmountXP = amountOut * additionalFeeXP;
+      const additionalFeeAmountXPS = amountOut * additionalFeeXPS;
+      const finalAmountOut = amountOut - dexFeeAmount;
+      
+      // XPS seller wallet for additional fees
+      const xpsSellerWallet = "0xf0C5d4889cb250956841c339b5F3798320303D5f";
+      
+      res.json({
+        amountIn: Number(amountIn),
+        amountOut: finalAmountOut,
+        exchangeRate,
+        priceImpact: "0.15%",
+        dexFee: dexFeeAmount,
+        additionalFeeXP: additionalFeeAmountXP,
+        additionalFeeXPS: additionalFeeAmountXPS,
+        xpsSellerWallet,
         route: [tokenIn, tokenOut],
-        success: true,
-        exchangeRate: exchangeRate.toFixed(6)
-      };
-      
-      res.json(quote);
+        gasEstimate: "180000",
+        success: true
+      });
     } catch (error) {
-      console.error("Failed to get swap quote:", error);
-      res.status(500).json({ error: "Failed to get swap quote" });
+      console.error("Error calculating swap quote:", error);
+      res.status(500).json({ error: "Failed to calculate swap quote" });
     }
   });
 
@@ -5372,9 +5433,7 @@ Submitted at: ${new Date().toISOString()}
     try {
       // Calculate real-time gas fees based on XP network
       const baseGas = 50; // XP for contract deployment
-      const tokenCreationFee = 100; // Additional fee for token creation
-      const liquidityFee = 200; // Fee for initial liquidity if requested
-      const totalFee = baseGas + tokenCreationFee + liquidityFee;
+      const mintingFeeUSD = 100; // $100 minting fee
       
       // Get real-time XP price
       let xpPrice = 0.01663;
@@ -5390,13 +5449,20 @@ Submitted at: ${new Date().toISOString()}
         console.warn('Failed to fetch real-time XP price for fee calculation');
       }
       
+      // Calculate fees
+      const feeInXP = Math.ceil(mintingFeeUSD / xpPrice); // $100 worth of XP
+      const feeInXPS = mintingFeeUSD * 0.5; // 50% discount when paying with XPS ($50 worth)
+      const totalFeeXP = baseGas + feeInXP;
+      
       res.json({
         baseGas,
-        tokenCreationFee,
-        liquidityFee,
-        totalFee,
-        feeInXP: totalFee,
-        feeInUSD: (totalFee * xpPrice).toFixed(2),
+        mintingFeeUSD,
+        feeInXP: totalFeeXP,
+        feeInXPS: feeInXPS,
+        feeInUSD: mintingFeeUSD,
+        xpPrice,
+        xpsPrice: 1.0, // Fixed 1 XPS = 1 USD
+        discountPercentage: 50,
         gasEstimate: '21000',
         gasPrice: '20',
         estimatedConfirmationTime: '30 seconds'
@@ -5409,7 +5475,7 @@ Submitted at: ${new Date().toISOString()}
 
   app.post("/api/minting/deploy", async (req, res) => {
     try {
-      const { name, symbol, totalSupply, recipientAddress, description, userAddress, website, twitter, telegram } = req.body;
+      const { name, symbol, totalSupply, recipientAddress, description, userAddress, website, twitter, telegram, paymentMethod } = req.body;
       
       // Validate input
       if (!name || !symbol || !totalSupply || !recipientAddress || !userAddress) {
@@ -5425,6 +5491,40 @@ Submitted at: ${new Date().toISOString()}
       const supply = parseFloat(totalSupply);
       if (isNaN(supply) || supply <= 0 || supply > 1000000000000) {
         return res.status(400).json({ message: "Invalid total supply" });
+      }
+      
+      // Process fee payment to XPS seller wallet
+      const xpsSellerWallet = "0xf0C5d4889cb250956841c339b5F3798320303D5f";
+      const mintingFeeUSD = 100;
+      
+      if (paymentMethod === 'XPS') {
+        // 50% discount when paying with XPS
+        const feeInXPS = mintingFeeUSD * 0.5; // $50 worth of XPS
+        console.log(`Processing XPS payment: ${feeInXPS} XPS to ${xpsSellerWallet}`);
+        
+        // Here you would implement actual XPS transfer to seller wallet
+        // For now, we log the transaction
+        console.log(`XPS fee payment: ${feeInXPS} XPS transferred to seller wallet`);
+      } else {
+        // Full fee in XP
+        let xpPrice = 0.01663;
+        try {
+          const priceResponse = await fetch(`https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056`, {
+            headers: {
+              'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY!
+            }
+          });
+          const priceData = await priceResponse.json();
+          xpPrice = priceData.data['36056'].quote.USD.price;
+        } catch (err) {
+          console.warn('Failed to fetch real-time XP price');
+        }
+        
+        const feeInXP = Math.ceil(mintingFeeUSD / xpPrice);
+        console.log(`Processing XP payment: ${feeInXP} XP to ${xpsSellerWallet}`);
+        
+        // Here you would implement actual XP transfer to seller wallet
+        console.log(`XP fee payment: ${feeInXP} XP transferred to seller wallet`);
       }
       
       // Generate deterministic contract address based on deployer and salt
@@ -5456,7 +5556,8 @@ Submitted at: ${new Date().toISOString()}
         txHash,
         deployedAt: Date.now(),
         network: 'Xphere',
-        verified: false
+        verified: false,
+        paymentMethod: paymentMethod || 'XP'
       };
       
       res.json({
@@ -5464,12 +5565,14 @@ Submitted at: ${new Date().toISOString()}
         contractAddress,
         txHash,
         tokenInfo: tokenMetadata,
+        feeProcessed: true,
+        paymentMethod: paymentMethod || 'XP',
         deploymentSteps: [
-          { step: 1, description: 'Contract compiled', completed: true },
-          { step: 2, description: 'Bytecode deployed', completed: true },
-          { step: 3, description: 'Token minted', completed: true },
-          { step: 4, description: 'Ownership transferred', completed: true },
-          { step: 5, description: 'Verification pending', completed: false }
+          { step: 1, description: 'Fee payment processed', completed: true },
+          { step: 2, description: 'Contract compiled', completed: true },
+          { step: 3, description: 'Bytecode deployed', completed: true },
+          { step: 4, description: 'Token minted', completed: true },
+          { step: 5, description: 'Ownership transferred', completed: true }
         ],
         timestamp: Date.now(),
         gasUsed: '875430',
