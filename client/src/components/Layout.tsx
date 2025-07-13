@@ -472,12 +472,12 @@ export function Layout({ children }: LayoutProps) {
               <ul className="space-y-2 text-sm">
                 <li>
                   <a
-                    href="https://medium.com/@teamxpsproject"
+                    href="https://xpsproject.blogspot.com/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Medium
+                    Blog
                   </a>
                 </li>
                 <li>
