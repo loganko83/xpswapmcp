@@ -11,6 +11,8 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Revenue Model**: $100 minting fees, 1% trading fees, all directed to XPS seller wallet
 
 ## Recent Changes
+- **2025-01-13**: Updated footer external links - Products section now links to https://xpswapmvp.replit.app/[page] for all features
+- **2025-01-13**: Updated Social media links - Medium (https://medium.com/@teamxpsproject), Telegram (https://t.me/xpscommunity), X (https://x.com/xpsproject), News (https://eng.storydot.kr/)
 - **2025-01-13**: Fixed "Start Trading" buttons on homepage to navigate to Trading page (/trading) instead of Swap page
 - **2025-01-13**: Corrected "Buy XPS" link routing to navigate to xps-purchase page (/xps-purchase)
 - **2025-01-13**: Updated footer production information to reflect latest platform capabilities with XPS ecosystem and DeFi features

@@ -351,32 +351,84 @@ export function Layout({ children }: LayoutProps) {
               <h4 className="font-semibold mb-4">Products</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Swap
-                    </a>
-                  </Link>
+                  <a
+                    href="https://xpswapmvp.replit.app/swap"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Swap
+                  </a>
                 </li>
                 <li>
-                  <Link href="/pool">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Liquidity
-                    </a>
-                  </Link>
+                  <a
+                    href="https://xpswapmvp.replit.app/trading"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Trading
+                  </a>
                 </li>
                 <li>
-                  <Link href="/farm">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Farming
-                    </a>
-                  </Link>
+                  <a
+                    href="https://xpswapmvp.replit.app/pool"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Pool
+                  </a>
                 </li>
                 <li>
-                  <Link href="/analytics">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Analytics
-                    </a>
-                  </Link>
+                  <a
+                    href="https://xpswapmvp.replit.app/farm"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Farm
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://xpswapmvp.replit.app/bridge"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Bridge
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://xpswapmvp.replit.app/minting"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Minting
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://xpswapmvp.replit.app/xps-staking"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Staking
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://xpswapmvp.replit.app/xps-purchase"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    XPS
+                  </a>
                 </li>
               </ul>
             </div>
@@ -426,16 +478,6 @@ export function Layout({ children }: LayoutProps) {
                 </li>
                 <li>
                   <a
-                    href="https://eng.storydot.kr"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Medium
-                  </a>
-                </li>
-                <li>
-                  <a
                     href="mailto:myid998877@gmail.com"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
@@ -455,7 +497,20 @@ export function Layout({ children }: LayoutProps) {
               <ul className="space-y-2 text-sm">
                 <li>
                   <a
-                    href="#"
+                    href="https://medium.com/@teamxpsproject"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors flex items-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
+                    </svg>
+                    <span>Medium</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://t.me/xpscommunity"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors flex items-center space-x-2"
@@ -468,7 +523,7 @@ export function Layout({ children }: LayoutProps) {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="https://x.com/xpsproject"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors flex items-center space-x-2"
@@ -477,6 +532,19 @@ export function Layout({ children }: LayoutProps) {
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                     </svg>
                     <span>X (Twitter)</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://eng.storydot.kr/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors flex items-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.374 0 0 5.373 0 12s5.374 12 12 12 12-5.373 12-12S18.626 0 12 0zm5.568 13.363H7.432v-2.726h10.136v2.726zM7.432 9.09h10.136V6.364H7.432V9.09zm0 8.181V14.55h10.136v2.721H7.432z"/>
+                    </svg>
+                    <span>News</span>
                   </a>
                 </li>
               </ul>
