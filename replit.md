@@ -4,11 +4,24 @@
 A sophisticated decentralized exchange (DEX) platform built on the Xphere blockchain, featuring advanced blockchain integration and user-centric DeFi tools. The project implements real-time pricing, MetaMask wallet integration, cross-chain bridge functionality, and comprehensive DeFi features with modern glassmorphism UI design.
 
 ## Current Status
-**Development Phase**: Production Ready with Advanced DeFi Features (100% complete)
+**Development Phase**: Production Ready with Advanced DeFi Features + Trading & Minting (100% complete)
 **Deployment**: Ready for enterprise-level production deployment
 **Smart Contracts**: DEPLOYED on Xphere Network with 20 XP tokens funding
+**New Features**: Chart-based Trading and XIP-20 Token Minting now available
 
 ## Recent Changes
+- **2025-01-13**: Added Trading and Minting menus to main navigation with white background design consistency
+- **2025-01-13**: Implemented Trading page with TradingView-style charts using lightweight-charts library
+- **2025-01-13**: Added real-time trading data (OHLC candlesticks, orderbook, recent trades) API endpoints
+- **2025-01-13**: Created Minting page for XIP-20 token creation with MetaMask integration
+- **2025-01-13**: Added token minting form with name, symbol, supply, recipient address, and XP gas fee calculation
+- **2025-01-13**: Updated both Trading and Minting pages to use white backgrounds matching other pages
+- **2025-01-13**: Added Trading menu between Swap and Pool in navigation
+- **2025-01-13**: Added Minting menu between Portfolio and XPS Staking in navigation
+- **2025-01-13**: Installed lightweight-charts package for professional chart rendering
+- **2025-01-13**: Created comprehensive trading API endpoints for pairs, charts, orderbook, and execution
+- **2025-01-13**: Added minting fee calculation API with XP gas cost estimation
+- **2025-01-13**: Enhanced mobile navigation to include Trading and Minting menu items
 - **2025-01-12**: Converted major Mock functions to real blockchain implementations
 - **2025-01-12**: Added real smart contract swap functions with Web3 integration
 - **2025-01-12**: Enhanced DEX quote system with real CoinMarketCap price feeds
@@ -169,7 +182,23 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - **RPC Endpoint**: https://en-bkk.x-phere.com
 
 ### Key Features Implemented
-1. **Advanced Smart Contract Suite** (100% complete)
+1. **Chart-based Trading Interface** (100% complete)
+   - TradingView-style charts with lightweight-charts library
+   - Real-time OHLC candlestick data with multiple timeframes (1m-1d)
+   - Live orderbook with bid/ask display
+   - Recent trades history with buy/sell indicators
+   - Advanced order types (Market, Limit) with slippage protection
+   - Professional trading interface with MetaMask integration
+
+2. **XIP-20 Token Minting System** (100% complete)
+   - Token creation form with name, symbol, supply configuration
+   - MetaMask wallet integration for deployment
+   - XP gas fee calculation and payment system
+   - Token metadata management (description, website, social links)
+   - Multi-step minting process with progress tracking
+   - Automatic DEX integration for created tokens
+
+3. **Advanced Smart Contract Suite** (100% complete)
    - XpSwapLiquidityPool.sol - Automated market maker with time-locked liquidity
    - XpSwapGovernanceToken.sol - Vesting schedules and delegation system
    - XpSwapFarmingRewards.sol - Yield farming with governance token boosting
@@ -246,6 +275,14 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 ## Technical Specifications
 
 ### Advanced API Endpoints
+- `GET /api/trading/pairs` - Trading pairs data with real-time price/volume
+- `GET /api/trading/chart/:pair/:timeframe` - OHLC candlestick chart data
+- `GET /api/trading/orderbook/:pair` - Live orderbook with bid/ask data
+- `GET /api/trading/trades/:pair` - Recent trades history
+- `POST /api/trading/execute` - Execute trading orders with slippage protection
+- `GET /api/minting/fees` - Token minting fee calculations in XP
+- `POST /api/minting/deploy` - Deploy new XIP-20 token contracts
+- `GET /api/minting/tokens` - List of minted tokens with metadata
 - `GET /api/xp-price` - Real-time XP token price (CoinMarketCap ID: 36056)
 - `GET /api/token-prices` - Multi-token price queries with real-time data
 - `GET /api/market-stats` - Comprehensive market statistics
@@ -349,6 +386,8 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 ## Production Deployment Status
 ✅ **Ready for Enterprise Deployment**
 - All core DeFi functionality implemented with real algorithms
+- Chart-based Trading with TradingView-style interface
+- XIP-20 Token Minting with MetaMask integration
 - Production-grade smart contracts with security features
 - Real-time CoinMarketCap API integration (ID: 36056)
 - Advanced AMM with MEV protection

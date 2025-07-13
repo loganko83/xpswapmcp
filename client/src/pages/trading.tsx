@@ -250,18 +250,18 @@ export default function TradingPage() {
 
   if (!wallet.isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-2xl mx-auto pt-20">
-          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+          <Card className="bg-card backdrop-blur-lg border-border">
             <CardContent className="p-8 text-center">
               <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Activity className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Activity className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">지갑 연결 필요</h2>
-                <p className="text-gray-300">고급 거래 기능을 사용하려면 지갑을 연결해주세요</p>
+                <h2 className="text-2xl font-bold text-foreground mb-2">지갑 연결 필요</h2>
+                <p className="text-muted-foreground">고급 거래 기능을 사용하려면 지갑을 연결해주세요</p>
               </div>
-              <Button onClick={connectWallet} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+              <Button onClick={connectWallet} className="bg-primary hover:bg-primary/90">
                 지갑 연결
               </Button>
             </CardContent>
@@ -272,17 +272,17 @@ export default function TradingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Advanced Trading</h1>
-            <p className="text-gray-300">Professional-grade trading with advanced charts and order types</p>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Advanced Trading</h1>
+            <p className="text-muted-foreground">Professional-grade trading with advanced charts and order types</p>
           </div>
           <div className="flex items-center gap-4">
             <Select value={selectedPair} onValueChange={setSelectedPair}>
-              <SelectTrigger className="w-48 bg-black/20 border-white/10 text-white">
+              <SelectTrigger className="w-48 bg-background border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -303,17 +303,17 @@ export default function TradingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Chart Section */}
           <div className="lg:col-span-3">
-            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <Card className="bg-card backdrop-blur-lg border-border">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <img src={getTokenIcon(selectedPair.split('-')[0])} alt="" className="w-6 h-6" />
-                      <h3 className="text-lg font-semibold text-white">{selectedPair}</h3>
+                      <h3 className="text-lg font-semibold text-foreground">{selectedPair}</h3>
                     </div>
                     {selectedPairData && (
                       <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold text-white">
+                        <span className="text-2xl font-bold text-foreground">
                           ${selectedPairData.price.toFixed(6)}
                         </span>
                         <Badge variant={selectedPairData.change24h >= 0 ? "default" : "destructive"}>
@@ -324,7 +324,7 @@ export default function TradingPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Select value={timeFrame} onValueChange={setTimeFrame}>
-                      <SelectTrigger className="w-20 bg-black/20 border-white/10 text-white">
+                      <SelectTrigger className="w-20 bg-background border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -346,24 +346,24 @@ export default function TradingPage() {
 
             {/* Market Stats */}
             {selectedPairData && (
-              <Card className="bg-black/20 backdrop-blur-lg border-white/10 mt-4">
+              <Card className="bg-card backdrop-blur-lg border-border mt-4">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">24h High</p>
-                      <p className="text-lg font-semibold text-green-400">${selectedPairData.high24h.toFixed(6)}</p>
+                      <p className="text-sm text-muted-foreground">24h High</p>
+                      <p className="text-lg font-semibold text-green-600">${selectedPairData.high24h.toFixed(6)}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">24h Low</p>
-                      <p className="text-lg font-semibold text-red-400">${selectedPairData.low24h.toFixed(6)}</p>
+                      <p className="text-sm text-muted-foreground">24h Low</p>
+                      <p className="text-lg font-semibold text-red-600">${selectedPairData.low24h.toFixed(6)}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">24h Volume</p>
-                      <p className="text-lg font-semibold text-white">${selectedPairData.volume24h.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">24h Volume</p>
+                      <p className="text-lg font-semibold text-foreground">${selectedPairData.volume24h.toLocaleString()}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">Liquidity</p>
-                      <p className="text-lg font-semibold text-blue-400">${selectedPairData.liquidity.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">Liquidity</p>
+                      <p className="text-lg font-semibold text-blue-600">${selectedPairData.liquidity.toLocaleString()}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -374,9 +374,9 @@ export default function TradingPage() {
           {/* Trading Panel */}
           <div className="space-y-4">
             {/* Order Form */}
-            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <Card className="bg-card backdrop-blur-lg border-border">
               <CardHeader>
-                <CardTitle className="text-white">Place Order</CardTitle>
+                <CardTitle className="text-foreground">Place Order</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Tabs value={side} onValueChange={setSide}>
@@ -387,9 +387,9 @@ export default function TradingPage() {
                 </Tabs>
 
                 <div className="space-y-2">
-                  <Label className="text-white">Order Type</Label>
+                  <Label className="text-foreground">Order Type</Label>
                   <Select value={orderType} onValueChange={setOrderType}>
-                    <SelectTrigger className="bg-black/20 border-white/10 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -401,32 +401,32 @@ export default function TradingPage() {
 
                 {orderType === "limit" && (
                   <div className="space-y-2">
-                    <Label className="text-white">Price</Label>
+                    <Label className="text-foreground">Price</Label>
                     <Input
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="0.00"
-                      className="bg-black/20 border-white/10 text-white"
+                      className="bg-background border-border text-foreground"
                     />
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <Label className="text-white">Amount</Label>
+                  <Label className="text-foreground">Amount</Label>
                   <Input
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
-                    className="bg-black/20 border-white/10 text-white"
+                    className="bg-background border-border text-foreground"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white">Slippage (%)</Label>
+                  <Label className="text-foreground">Slippage (%)</Label>
                   <Select value={slippage} onValueChange={setSlippage}>
-                    <SelectTrigger className="bg-black/20 border-white/10 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -452,35 +452,35 @@ export default function TradingPage() {
             </Card>
 
             {/* Order Book */}
-            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <Card className="bg-card backdrop-blur-lg border-border">
               <CardHeader>
-                <CardTitle className="text-white">Order Book</CardTitle>
+                <CardTitle className="text-foreground">Order Book</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {/* Asks */}
                   <div className="space-y-1">
-                    <p className="text-xs text-red-400 mb-2">Asks</p>
+                    <p className="text-xs text-red-600 mb-2">Asks</p>
                     {orderBook?.asks?.slice(0, 5).map((ask: OrderBookEntry, index: number) => (
                       <div key={index} className="flex justify-between text-xs">
-                        <span className="text-red-400">{ask.price.toFixed(6)}</span>
-                        <span className="text-gray-400">{ask.amount.toFixed(2)}</span>
+                        <span className="text-red-600">{ask.price.toFixed(6)}</span>
+                        <span className="text-muted-foreground">{ask.amount.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
                   
                   {/* Spread */}
-                  <div className="py-2 text-center border-t border-b border-gray-700">
-                    <span className="text-xs text-gray-400">Spread</span>
+                  <div className="py-2 text-center border-t border-b border-border">
+                    <span className="text-xs text-muted-foreground">Spread</span>
                   </div>
                   
                   {/* Bids */}
                   <div className="space-y-1">
-                    <p className="text-xs text-green-400 mb-2">Bids</p>
+                    <p className="text-xs text-green-600 mb-2">Bids</p>
                     {orderBook?.bids?.slice(0, 5).map((bid: OrderBookEntry, index: number) => (
                       <div key={index} className="flex justify-between text-xs">
-                        <span className="text-green-400">{bid.price.toFixed(6)}</span>
-                        <span className="text-gray-400">{bid.amount.toFixed(2)}</span>
+                        <span className="text-green-600">{bid.price.toFixed(6)}</span>
+                        <span className="text-muted-foreground">{bid.amount.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -489,19 +489,19 @@ export default function TradingPage() {
             </Card>
 
             {/* Recent Trades */}
-            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <Card className="bg-card backdrop-blur-lg border-border">
               <CardHeader>
-                <CardTitle className="text-white">Recent Trades</CardTitle>
+                <CardTitle className="text-foreground">Recent Trades</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">
                   {recentTrades?.slice(0, 10).map((trade: any, index: number) => (
                     <div key={index} className="flex justify-between text-xs">
-                      <span className={trade.side === "buy" ? "text-green-400" : "text-red-400"}>
+                      <span className={trade.side === "buy" ? "text-green-600" : "text-red-600"}>
                         {trade.price.toFixed(6)}
                       </span>
-                      <span className="text-gray-400">{trade.amount.toFixed(2)}</span>
-                      <span className="text-gray-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
+                      <span className="text-muted-foreground">{trade.amount.toFixed(2)}</span>
+                      <span className="text-muted-foreground">{new Date(trade.timestamp).toLocaleTimeString()}</span>
                     </div>
                   ))}
                 </div>
