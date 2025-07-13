@@ -331,10 +331,9 @@ export function Layout({ children }: LayoutProps) {
       {/* Footer */}
       <footer className="mt-6 bg-muted/30 border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div className="space-y-2">
-            {/* First Row - Brand and Products */}
-            <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-x-6 gap-y-1">
-              <div className="flex items-center space-x-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div>
+              <div className="flex items-center space-x-3 mb-1">
                 <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
                   <Activity className="w-3 h-3 text-white" />
                 </div>
@@ -342,50 +341,195 @@ export function Layout({ children }: LayoutProps) {
                   XpSwap
                 </span>
               </div>
-
-              <div className="flex items-center space-x-3">
-                <span className="font-semibold text-xs">Products:</span>
-                <Link href="/swap"><a className="hover:text-primary transition-colors">Swap</a></Link>
-                <Link href="/trading"><a className="hover:text-primary transition-colors">Trading</a></Link>
-                <Link href="/pool"><a className="hover:text-primary transition-colors">Pool</a></Link>
-                <Link href="/farm"><a className="hover:text-primary transition-colors">Farm</a></Link>
-                <Link href="/bridge"><a className="hover:text-primary transition-colors">Bridge</a></Link>
-                <Link href="/minting"><a className="hover:text-primary transition-colors">Minting</a></Link>
-                <Link href="/xps-staking"><a className="hover:text-primary transition-colors">Staking</a></Link>
-                <Link href="/xps-purchase"><a className="hover:text-primary transition-colors">XPS</a></Link>
-              </div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Production-ready DEX with XPS token ecosystem, advanced AMM, 
+                cross-chain bridge, and comprehensive DeFi features.
+              </p>
             </div>
 
-            {/* Second Row - Services and Links */}
-            <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-x-6 gap-y-1">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold text-xs">Developers:</span>
-                  <Link href="/documentation"><a className="hover:text-primary transition-colors">Documentation</a></Link>
-                  <Link href="/documentation"><a className="hover:text-primary transition-colors">API</a></Link>
-                </div>
+            <div>
+              <h4 className="font-semibold mb-1 text-xs">Products</h4>
+              <ul className="space-y-0 text-xs">
+                <li>
+                  <Link href="/swap">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Swap
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/trading">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Trading
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pool">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Pool
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/farm">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Farm
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/bridge">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Bridge
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/minting">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Minting
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/xps-staking">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Staking
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/xps-purchase">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      XPS
+                    </a>
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold text-xs">Support:</span>
-                  <a href="https://trendy.storydot.kr" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Help Center</a>
-                  <a href="mailto:myid998877@gmail.com" className="hover:text-primary transition-colors">Contact</a>
-                  <Link href="/bug-bounty"><a className="hover:text-primary transition-colors">Bug Bounty</a></Link>
-                </div>
+            <div>
+              <h4 className="font-semibold mb-1 text-xs">Developers</h4>
+              <ul className="space-y-0 text-xs">
+                <li>
+                  <Link href="/documentation">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Documentation
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/documentation">
+                    <a 
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => {
+                        setTimeout(() => {
+                          if (window.location.pathname === '/documentation') {
+                            const event = new CustomEvent('navigate-to-api');
+                            window.dispatchEvent(event);
+                          }
+                        }, 100);
+                      }}
+                    >
+                      API
+                    </a>
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold text-xs">Social:</span>
-                  <a href="https://medium.com/@teamxpsproject" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Medium</a>
-                  <a href="https://t.me/xpscommunity" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Telegram</a>
-                  <a href="https://x.com/xpsproject" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">X</a>
-                  <a href="https://eng.storydot.kr/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">News</a>
-                </div>
-              </div>
+            <div>
+              <h4 className="font-semibold mb-1 text-xs">Support</h4>
+              <ul className="space-y-0 text-xs">
+                <li>
+                  <a
+                    href="https://trendy.storydot.kr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:myid998877@gmail.com"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <Link href="/bug-bounty" className="text-muted-foreground hover:text-primary transition-colors">
+                    Bug Bounty
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-              <div className="flex items-center space-x-3">
-                <span className="text-xs">© 2025 XpSwap</span>
-                <Link href="/privacy-policy"><a className="hover:text-primary transition-colors">Privacy</a></Link>
-                <Link href="/terms-of-service"><a className="hover:text-primary transition-colors">Terms</a></Link>
-              </div>
+            <div>
+              <h4 className="font-semibold mb-1 text-xs">Social</h4>
+              <ul className="space-y-0 text-xs">
+                <li>
+                  <a
+                    href="https://medium.com/@teamxpsproject"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Medium
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://t.me/xpscommunity"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Telegram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://x.com/xpsproject"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    X (Twitter)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://eng.storydot.kr/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    News
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-border mt-3 pt-2 flex flex-col md:flex-row items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              © 2025 XpSwap. All rights reserved.
+            </p>
+            <div className="flex items-center space-x-4 mt-2 md:mt-0">
+              <Link href="/privacy-policy">
+                <a className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                  Privacy Policy
+                </a>
+              </Link>
+              <Link href="/terms-of-service">
+                <a className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                  Terms of Service
+                </a>
+              </Link>
             </div>
           </div>
         </div>
