@@ -206,7 +206,11 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
             <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Zap className="w-10 h-10 text-primary" />
+              <img 
+                src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2"
+                alt="XPS"
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Welcome to <span className="text-primary">XpSwap</span>
