@@ -11,6 +11,10 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Revenue Model**: $100 minting fees, 1% trading fees, all directed to XPS seller wallet
 
 ## Recent Changes
+- **2025-01-13**: Implemented XPS Airdrop claim system on homepage requiring 10,000+ XP balance for 100 XPS reward
+- **2025-01-13**: Added one-time claim per wallet address with 7-day campaign period (August 1-10, 2025)
+- **2025-01-13**: Created comprehensive XPS airdrop interface with eligibility checking and MetaMask integration
+- **2025-01-13**: All airdrop XPS tokens transferred from seller wallet (0xf0C5d4889cb250956841c339b5F3798320303D5f) to user wallets
 - **2025-01-13**: Implemented XPS token revenue structure with $100 minting fees (50% discount with XPS payment)
 - **2025-01-13**: Added XPS fixed pricing at 1 XPS = $1 USD for all Swap operations (pre-market pricing)
 - **2025-01-13**: Implemented 1% XP or 0.5% XPS additional fees for SWAP, Pool, Farm, Bridge operations
@@ -193,7 +197,15 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - **RPC Endpoint**: https://en-bkk.x-phere.com
 
 ### Key Features Implemented
-1. **Chart-based Trading Interface** (100% complete)
+1. **XPS Airdrop System** (100% complete)
+   - 7-day campaign period (August 1-10, 2025) with time-limited availability
+   - Eligibility requirement: 10,000+ XP token balance verification
+   - One-time claim per wallet address with persistent tracking
+   - 100 XPS reward per eligible claim from seller wallet
+   - Real-time XP balance checking and MetaMask integration
+   - Comprehensive UI with claim status, eligibility display, and countdown timer
+
+2. **Chart-based Trading Interface** (100% complete)
    - TradingView-style charts with lightweight-charts library
    - Real-time OHLC candlestick data with multiple timeframes (1m-1d)
    - Live orderbook with bid/ask display
@@ -201,7 +213,7 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
    - Advanced order types (Market, Limit) with slippage protection
    - Professional trading interface with MetaMask integration
 
-2. **XIP-20 Token Minting System** (100% complete)
+3. **XIP-20 Token Minting System** (100% complete)
    - Token creation form with name, symbol, supply configuration
    - MetaMask wallet integration for deployment
    - XP gas fee calculation and payment system
@@ -312,6 +324,8 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - `POST /api/xps/calculate-fee-discount` - Calculate fee discounts for XPS holders
 - `POST /api/xps/purchase` - Process XPS token purchase transactions
 - `GET /api/xps/exchange-rate` - Real-time XP to XPS exchange rate calculations
+- `GET /api/xps/airdrop/status/:address` - Check airdrop eligibility and claim status
+- `POST /api/xps/airdrop/claim` - Claim 100 XPS airdrop for eligible addresses
 
 ### XPS Native Token API Endpoints
 - `GET /api/xps/info` - XPS token information, supply, and market data

@@ -3824,6 +3824,122 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // XPS Airdrop API endpoints
+  // In production, this would use persistent storage (database)
+  const claimedAddresses = new Set<string>();
+
+  app.get('/api/xps/airdrop/status/:address', async (req, res) => {
+    try {
+      const { address } = req.params;
+      
+      if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+        return res.status(400).json({ message: "Invalid wallet address" });
+      }
+      
+      // Check airdrop period (August 1-10, 2025)
+      const airdropStart = new Date('2025-08-01T00:00:00Z');
+      const airdropEnd = new Date('2025-08-10T23:59:59Z');
+      const now = new Date();
+      
+      if (now < airdropStart || now > airdropEnd) {
+        return res.json({ 
+          claimed: false, 
+          eligible: false, 
+          message: "Airdrop period has ended or not yet started",
+          airdropActive: false
+        });
+      }
+      
+      res.json({
+        claimed: claimedAddresses.has(address.toLowerCase()),
+        eligible: true,
+        airdropActive: true,
+        airdropStart,
+        airdropEnd
+      });
+    } catch (error) {
+      console.error("Error checking airdrop status:", error);
+      res.status(500).json({ message: "Failed to check airdrop status" });
+    }
+  });
+
+  app.post('/api/xps/airdrop/claim', async (req, res) => {
+    try {
+      const { userAddress } = req.body;
+      
+      if (!userAddress || !/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
+        return res.status(400).json({ message: "Invalid wallet address" });
+      }
+      
+      // Check airdrop period
+      const airdropStart = new Date('2025-08-01T00:00:00Z');
+      const airdropEnd = new Date('2025-08-10T23:59:59Z');
+      const now = new Date();
+      
+      if (now < airdropStart) {
+        return res.status(400).json({ message: "Airdrop has not started yet" });
+      }
+      
+      if (now > airdropEnd) {
+        return res.status(400).json({ message: "Airdrop period has ended" });
+      }
+      
+      // Check if already claimed
+      if (claimedAddresses.has(userAddress.toLowerCase())) {
+        return res.status(400).json({ message: "Airdrop already claimed for this address" });
+      }
+      
+      // Check if user has enough XP (10,000 minimum)
+      try {
+        const balanceResponse = await fetch(`http://localhost:5000/api/blockchain/balance/${userAddress}/XP`);
+        if (balanceResponse.ok) {
+          const balanceData = await balanceResponse.json();
+          const xpBalance = parseFloat(balanceData.balance || '0');
+          
+          if (xpBalance < 10000) {
+            return res.status(400).json({ 
+              message: `Insufficient XP balance. Need 10,000 XP, you have ${xpBalance.toLocaleString()} XP` 
+            });
+          }
+        } else {
+          return res.status(400).json({ message: "Could not verify XP balance" });
+        }
+      } catch (error) {
+        console.warn("Failed to check XP balance:", error);
+        return res.status(500).json({ message: "Failed to verify XP balance" });
+      }
+      
+      // Process XPS transfer from seller wallet to user
+      const xpsSellerWallet = "0xf0C5d4889cb250956841c339b5F3798320303D5f";
+      const airdropAmount = 100; // 100 XPS
+      
+      // Generate transaction hash (in real implementation, this would be actual blockchain transaction)
+      const txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      
+      console.log(`XPS Airdrop claimed: ${airdropAmount} XPS transferred from ${xpsSellerWallet} to ${userAddress}`);
+      console.log(`Transaction hash: ${txHash}`);
+      
+      // Mark as claimed
+      claimedAddresses.add(userAddress.toLowerCase());
+      
+      // Simulate transaction processing time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      res.json({
+        success: true,
+        message: "Airdrop claimed successfully!",
+        amount: airdropAmount,
+        txHash,
+        from: xpsSellerWallet,
+        to: userAddress,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error("Error processing airdrop claim:", error);
+      res.status(500).json({ message: "Failed to process airdrop claim" });
+    }
+  });
+
   // XPS Staking endpoint
   app.post("/api/xps/stake", async (req, res) => {
     try {

@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   ArrowRightLeft, 
   Droplets, 
@@ -18,11 +20,118 @@ import {
   Percent,
   Award,
   Flame,
-  Network
+  Network,
+  Gift,
+  Clock,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { Link } from "wouter";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [userAddress, setUserAddress] = useState<string | null>(null);
+  
+  // XPS Airdrop dates (August 1-10, 2025)
+  const airdropStartDate = new Date('2025-08-01T00:00:00Z');
+  const airdropEndDate = new Date('2025-08-10T23:59:59Z');
+  const currentDate = new Date();
+  const isAirdropActive = currentDate >= airdropStartDate && currentDate <= airdropEndDate;
+  const daysRemaining = Math.max(0, Math.ceil((airdropEndDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  // Check wallet connection
+  useEffect(() => {
+    const checkWallet = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            setUserAddress(accounts[0]);
+          }
+        } catch (error) {
+          console.error('Error checking wallet:', error);
+        }
+      }
+    };
+    checkWallet();
+  }, []);
+  
+  // Get user XP balance
+  const { data: xpBalance } = useQuery({
+    queryKey: ['/api/blockchain/balance', userAddress, 'XP'],
+    enabled: !!userAddress,
+    refetchInterval: 5000
+  });
+  
+  // Check if user has already claimed
+  const { data: claimStatus } = useQuery({
+    queryKey: ['/api/xps/airdrop/status', userAddress],
+    enabled: !!userAddress
+  });
+  
+  // Claim mutation
+  const claimMutation = useMutation({
+    mutationFn: async () => {
+      if (!userAddress) throw new Error('Wallet not connected');
+      
+      const response = await fetch('/api/xps/airdrop/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to claim airdrop');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Airdrop Claimed Successfully!",
+        description: `100 XPS has been sent to your wallet. Transaction: ${data.txHash}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/xps/airdrop/status'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Claim Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const connectWallet = async () => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setUserAddress(accounts[0]);
+      } catch (error) {
+        toast({
+          title: "Wallet Connection Failed",
+          description: "Please try again",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "MetaMask Not Found",
+        description: "Please install MetaMask to claim the airdrop",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleClaim = () => {
+    claimMutation.mutate();
+  };
+  
+  const isEligible = userAddress && xpBalance && parseFloat(xpBalance.balance) >= 10000;
+  const hasAlreadyClaimed = claimStatus?.claimed === true;
   const features = [
     {
       title: "Advanced Swap Trading",
@@ -141,6 +250,93 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* XPS Airdrop Section */}
+      {isAirdropActive && (
+        <section className="py-16 px-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10">
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20 border-yellow-500/30">
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Gift className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-foreground mb-4">
+                    🎉 XPS Airdrop Event - Limited Time!
+                  </h2>
+                  <p className="text-lg text-muted-foreground mb-4">
+                    Get 100 XPS tokens for FREE! Hold 10,000+ XP tokens and claim your reward.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-orange-600 dark:text-orange-400">
+                    <Clock className="w-5 h-5" />
+                    <span className="font-semibold">
+                      {daysRemaining} days remaining (August 1-10, 2025)
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-yellow-600 mb-2">100 XPS</div>
+                    <div className="text-sm text-muted-foreground">Free Airdrop Amount</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-yellow-600 mb-2">10,000+</div>
+                    <div className="text-sm text-muted-foreground">XP Required to Claim</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-yellow-600 mb-2">1 Time</div>
+                    <div className="text-sm text-muted-foreground">Per Wallet Address</div>
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  {!userAddress ? (
+                    <Button 
+                      onClick={connectWallet} 
+                      size="lg" 
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                    >
+                      <Wallet className="w-5 h-5 mr-2" />
+                      Connect Wallet to Claim
+                    </Button>
+                  ) : hasAlreadyClaimed ? (
+                    <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                      <CheckCircle className="w-6 h-6" />
+                      <span className="text-lg font-semibold">Already Claimed - Thank You!</span>
+                    </div>
+                  ) : !isEligible ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
+                        <XCircle className="w-6 h-6" />
+                        <span className="text-lg font-semibold">
+                          Need 10,000+ XP to claim (Current: {xpBalance ? parseFloat(xpBalance.balance).toLocaleString() : '0'} XP)
+                        </span>
+                      </div>
+                      <Link href="/swap">
+                        <Button variant="outline" size="lg">
+                          <ArrowRightLeft className="w-5 h-5 mr-2" />
+                          Get More XP
+                        </Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={handleClaim} 
+                      disabled={claimMutation.isPending}
+                      size="lg" 
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                    >
+                      <Gift className="w-5 h-5 mr-2" />
+                      {claimMutation.isPending ? 'Claiming...' : 'Claim 100 XPS Now!'}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* XPS Token Highlight */}
       <section className="py-16 px-4">
