@@ -59,7 +59,7 @@ export function Layout({ children }: LayoutProps) {
               <Link href="/">
                 <div className="flex items-center space-x-3 cursor-pointer">
                   <img 
-                    src="/attached_assets/image_1752382591627.png" 
+                    src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2" 
                     alt="XPS" 
                     className="w-8 h-8 rounded-lg"
                   />
@@ -335,7 +335,7 @@ export function Layout({ children }: LayoutProps) {
             <div>
               <div className="flex items-center space-x-3 mb-3">
                 <img 
-                  src="/attached_assets/image_1752382591627.png" 
+                  src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2" 
                   alt="XPS" 
                   className="w-8 h-8 rounded-lg"
                 />

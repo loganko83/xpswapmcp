@@ -65,7 +65,7 @@ export const DEFAULT_TOKENS = [
     decimals: 18,
     isNative: false,
     network: "xphere",
-    iconUrl: "/attached_assets/image_1752382591627.png"
+    iconUrl: "https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2"
   },
   {
     id: 3,
