@@ -14,7 +14,8 @@ export const getTokenIcon = (symbol: string, token?: any) => {
   
   // Fallback to symbol mapping
   const iconMap: { [key: string]: string } = {
-    XP: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
+    XP: "/attached_assets/image_1752382591627.png",
+    XPS: "/attached_assets/image_1752382591627.png",
     ml: "https://api.tamsa.io/public/images/mello-token-image.png",
     XCR: "https://api.tamsa.io/public/images/xcroll-token-image.png",
     XEF: "https://api.tamsa.io/public/images/xef-token-image.png",

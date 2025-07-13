@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Xphere',
           price: cryptoData['36056']?.quote.USD.price || 0,
           change24h: cryptoData['36056']?.quote.USD.percent_change_24h || 0,
-          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png'
+          iconUrl: '/attached_assets/image_1752382591627.png'
         }
       ];
 

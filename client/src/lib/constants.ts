@@ -55,7 +55,7 @@ export const DEFAULT_TOKENS = [
     decimals: 18,
     isNative: true,
     network: "xphere",
-    iconUrl: "https://tamsa.tamadoge.com/images/xp-phere.png"
+    iconUrl: "/attached_assets/image_1752382591627.png"
   },
   {
     id: 2,
@@ -65,7 +65,7 @@ export const DEFAULT_TOKENS = [
     decimals: 18,
     isNative: false,
     network: "xphere",
-    iconUrl: "https://tamsa.tamadoge.com/images/xp-phere.png"
+    iconUrl: "/attached_assets/image_1752382591627.png"
   },
   {
     id: 3,

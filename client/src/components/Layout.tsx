@@ -59,8 +59,8 @@ export function Layout({ children }: LayoutProps) {
               <Link href="/">
                 <div className="flex items-center space-x-3 cursor-pointer">
                   <img 
-                    src="https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png" 
-                    alt="Xphere" 
+                    src="/attached_assets/image_1752382591627.png" 
+                    alt="XPS" 
                     className="w-8 h-8 rounded-lg"
                   />
                   <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -334,9 +334,11 @@ export function Layout({ children }: LayoutProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <div className="flex items-center space-x-3 mb-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-white" />
-                </div>
+                <img 
+                  src="/attached_assets/image_1752382591627.png" 
+                  alt="XPS" 
+                  className="w-8 h-8 rounded-lg"
+                />
                 <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                   XpSwap
                 </span>
