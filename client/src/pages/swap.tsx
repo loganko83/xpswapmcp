@@ -88,34 +88,7 @@ export default function SwapPage() {
           </Card>
         </div>
 
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              XpSwap
-            </h1>
-          </div>
-          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
-            The Ultimate DeFi Hub on Xphere Blockchain - Trade, Earn, and Govern with Lightning Speed
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Badge variant="outline" className="px-4 py-2 text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-              <TrendingUp className="w-4 h-4 mr-2 text-green-600" />
-              158.3% Max APY
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-              <Zap className="w-4 h-4 mr-2 text-blue-600" />
-              Lightning Fast
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
-              <Users className="w-4 h-4 mr-2 text-purple-600" />
-              1,247+ Active Users
-            </Badge>
-          </div>
-        </div>
+
 
         {/* Key Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">

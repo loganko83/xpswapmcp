@@ -342,8 +342,8 @@ export function Layout({ children }: LayoutProps) {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
-                The leading decentralized exchange on Xphere blockchain,
-                providing secure and efficient token swapping.
+                Production-ready DEX with XPS token ecosystem, advanced AMM, 
+                cross-chain bridge, and comprehensive DeFi features.
               </p>
             </div>
 

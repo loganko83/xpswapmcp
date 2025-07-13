@@ -217,7 +217,7 @@ export default function HomePage() {
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Link href="/swap">
+            <Link href="/trading">
               <Button size="lg" className="bg-primary hover:bg-primary/90">
                 Start Trading <ArrowRightLeft className="w-4 h-4 ml-2" />
               </Button>
@@ -374,7 +374,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="flex gap-4">
-                    <Link href="/buy-xps">
+                    <Link href="/xps-purchase">
                       <Button className="bg-primary hover:bg-primary/90">
                         Buy XPS (1 XPS = $1) <DollarSign className="w-4 h-4 ml-2" />
                       </Button>
@@ -521,7 +521,7 @@ export default function HomePage() {
             Start with as little as $10 and unlock the full potential of decentralized finance.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/swap">
+            <Link href="/trading">
               <Button size="lg" className="bg-primary hover:bg-primary/90">
                 Start Trading Now <ArrowRightLeft className="w-5 h-5 ml-2" />
               </Button>
