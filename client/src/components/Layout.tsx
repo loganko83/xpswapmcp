@@ -333,7 +333,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
             <div>
-              <div className="flex items-center space-x-2 mb-1">
+              <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
                   <Activity className="w-3 h-3 text-white" />
                 </div>
@@ -341,10 +341,6 @@ export function Layout({ children }: LayoutProps) {
                   XpSwap
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mb-1">
-                Production-ready DEX with XPS token ecosystem, advanced AMM, 
-                cross-chain bridge, and comprehensive DeFi features.
-              </p>
             </div>
 
             <div>
