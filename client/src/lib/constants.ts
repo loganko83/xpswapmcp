@@ -55,7 +55,7 @@ export const DEFAULT_TOKENS = [
     decimals: 18,
     isNative: true,
     network: "xphere",
-    iconUrl: "/attached_assets/image_1752382591627.png"
+    iconUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png"
   },
   {
     id: 2,
