@@ -329,11 +329,11 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="mt-12 bg-muted/30 border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <footer className="mt-6 bg-muted/30 border-t">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
             <div>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center space-x-3 mb-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
                   <Activity className="w-4 h-4 text-white" />
                 </div>
@@ -341,15 +341,15 @@ export function Layout({ children }: LayoutProps) {
                   XpSwap
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-2">
                 Production-ready DEX with XPS token ecosystem, advanced AMM, 
                 cross-chain bridge, and comprehensive DeFi features.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Products</h4>
-              <ul className="space-y-0.5 text-sm">
+              <h4 className="font-semibold mb-1 text-sm">Products</h4>
+              <ul className="space-y-0 text-xs">
                 <li>
                   <Link href="/swap">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -410,8 +410,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Developers</h4>
-              <ul className="space-y-0.5 text-sm">
+              <h4 className="font-semibold mb-1 text-sm">Developers</h4>
+              <ul className="space-y-0 text-xs">
                 <li>
                   <Link href="/documentation">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -440,8 +440,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Support</h4>
-              <ul className="space-y-0.5 text-sm">
+              <h4 className="font-semibold mb-1 text-sm">Support</h4>
+              <ul className="space-y-0 text-xs">
                 <li>
                   <a
                     href="https://trendy.storydot.kr"
@@ -469,8 +469,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Social</h4>
-              <ul className="space-y-0.5 text-sm">
+              <h4 className="font-semibold mb-1 text-sm">Social</h4>
+              <ul className="space-y-0 text-xs">
                 <li>
                   <a
                     href="https://medium.com/@teamxpsproject"
@@ -527,11 +527,11 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
 
-          <div className="border-t border-border mt-6 pt-6 flex flex-col md:flex-row items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div className="border-t border-border mt-2 pt-2 flex flex-col md:flex-row items-center justify-between">
+            <p className="text-xs text-muted-foreground">
               © 2025 XpSwap. All rights reserved.
             </p>
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+            <div className="flex items-center space-x-4 mt-2 md:mt-0">
               <Link href="/privacy-policy">
                 <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Privacy Policy
