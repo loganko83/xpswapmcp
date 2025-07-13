@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Layout } from "@/components/Layout";
 import SwapPage from "@/pages/swap";
+import TradingPage from "@/pages/trading";
 import PoolPage from "@/pages/pool";
 import FarmPage from "@/pages/farm";
 import BridgePage from "@/pages/bridge";
@@ -16,6 +17,7 @@ import PrivacyPolicyPage from "@/pages/privacy-policy";
 import TermsOfServicePage from "@/pages/terms-of-service";
 import BugBountyPage from "@/pages/bug-bounty";
 import MultiChainPortfolioPage from "@/pages/multichain-portfolio";
+import MintingPage from "@/pages/minting";
 import XPSStakingPage from "@/pages/xps-staking";
 import XPSPurchasePage from "@/pages/xps-purchase";
 import NotFound from "@/pages/not-found";
@@ -25,6 +27,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={SwapPage} />
+        <Route path="/trading" component={TradingPage} />
         <Route path="/pool" component={PoolPage} />
         <Route path="/farm" component={FarmPage} />
         <Route path="/bridge" component={BridgePage} />
@@ -35,6 +38,7 @@ function Router() {
         <Route path="/terms-of-service" component={TermsOfServicePage} />
         <Route path="/bug-bounty" component={BugBountyPage} />
         <Route path="/multichain-portfolio" component={MultiChainPortfolioPage} />
+        <Route path="/minting" component={MintingPage} />
         <Route path="/xps-staking" component={XPSStakingPage} />
         <Route path="/xps-purchase" component={XPSPurchasePage} />
         <Route component={NotFound} />

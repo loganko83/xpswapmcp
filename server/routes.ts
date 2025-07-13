@@ -5104,6 +5104,260 @@ Submitted at: ${new Date().toISOString()}
     }
   });
 
+  // Trading API endpoints
+  app.get("/api/trading/pairs", async (req, res) => {
+    try {
+      const pairs = [
+        {
+          id: "XP-USDT",
+          symbol: "XP-USDT",
+          name: "Xphere / Tether USD",
+          price: 0.01663,
+          change24h: -6.48,
+          volume24h: 1250000,
+          high24h: 0.01780,
+          low24h: 0.01620,
+          marketCap: 16630000,
+          liquidity: 850000,
+          lastUpdated: Date.now()
+        },
+        {
+          id: "XP-BNB",
+          symbol: "XP-BNB",
+          name: "Xphere / BNB",
+          price: 0.000025,
+          change24h: 2.5,
+          volume24h: 750000,
+          high24h: 0.000027,
+          low24h: 0.000023,
+          marketCap: 16630000,
+          liquidity: 450000,
+          lastUpdated: Date.now()
+        },
+        {
+          id: "XPS-XP",
+          symbol: "XPS-XP",
+          name: "XpSwap Token / Xphere",
+          price: 60.11,
+          change24h: 8.2,
+          volume24h: 320000,
+          high24h: 62.5,
+          low24h: 58.8,
+          marketCap: 60110000,
+          liquidity: 180000,
+          lastUpdated: Date.now()
+        }
+      ];
+      res.json(pairs);
+    } catch (error) {
+      console.error("Error fetching trading pairs:", error);
+      res.status(500).json({ message: "Failed to fetch trading pairs" });
+    }
+  });
+
+  app.get("/api/trading/chart/:pair/:timeframe", async (req, res) => {
+    try {
+      const { pair, timeframe } = req.params;
+      
+      // Generate sample OHLC data based on timeframe
+      const now = Date.now();
+      const intervals = {
+        '1m': 60 * 1000,
+        '5m': 5 * 60 * 1000,
+        '15m': 15 * 60 * 1000,
+        '1h': 60 * 60 * 1000,
+        '4h': 4 * 60 * 60 * 1000,
+        '1d': 24 * 60 * 60 * 1000
+      };
+      
+      const interval = intervals[timeframe as keyof typeof intervals] || intervals['1h'];
+      const basePrice = pair === 'XP-USDT' ? 0.01663 : pair === 'XPS-XP' ? 60.11 : 0.000025;
+      
+      const chartData = [];
+      for (let i = 100; i >= 0; i--) {
+        const time = Math.floor((now - (i * interval)) / 1000);
+        const volatility = 0.02;
+        const trend = Math.sin(i * 0.1) * 0.005;
+        
+        const open = basePrice * (1 + trend + (Math.random() - 0.5) * volatility);
+        const close = open * (1 + (Math.random() - 0.5) * volatility);
+        const high = Math.max(open, close) * (1 + Math.random() * volatility * 0.5);
+        const low = Math.min(open, close) * (1 - Math.random() * volatility * 0.5);
+        const volume = Math.random() * 10000 + 5000;
+        
+        chartData.push({ time, open, high, low, close, volume });
+      }
+      
+      res.json(chartData);
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+      res.status(500).json({ message: "Failed to fetch chart data" });
+    }
+  });
+
+  app.get("/api/trading/orderbook/:pair", async (req, res) => {
+    try {
+      const { pair } = req.params;
+      const basePrice = pair === 'XP-USDT' ? 0.01663 : pair === 'XPS-XP' ? 60.11 : 0.000025;
+      
+      const asks = [];
+      const bids = [];
+      
+      for (let i = 1; i <= 10; i++) {
+        const askPrice = basePrice * (1 + (i * 0.001));
+        const bidPrice = basePrice * (1 - (i * 0.001));
+        const askAmount = Math.random() * 10000 + 1000;
+        const bidAmount = Math.random() * 10000 + 1000;
+        
+        asks.push({
+          price: askPrice,
+          amount: askAmount,
+          total: askPrice * askAmount
+        });
+        
+        bids.push({
+          price: bidPrice,
+          amount: bidAmount,
+          total: bidPrice * bidAmount
+        });
+      }
+      
+      res.json({ asks, bids });
+    } catch (error) {
+      console.error("Error fetching order book:", error);
+      res.status(500).json({ message: "Failed to fetch order book" });
+    }
+  });
+
+  app.get("/api/trading/trades/:pair", async (req, res) => {
+    try {
+      const { pair } = req.params;
+      const basePrice = pair === 'XP-USDT' ? 0.01663 : pair === 'XPS-XP' ? 60.11 : 0.000025;
+      
+      const trades = [];
+      for (let i = 0; i < 20; i++) {
+        trades.push({
+          id: Math.random().toString(36).substr(2, 9),
+          price: basePrice * (1 + (Math.random() - 0.5) * 0.01),
+          amount: Math.random() * 1000 + 100,
+          side: Math.random() > 0.5 ? 'buy' : 'sell',
+          timestamp: Date.now() - (i * 60000)
+        });
+      }
+      
+      res.json(trades);
+    } catch (error) {
+      console.error("Error fetching trades:", error);
+      res.status(500).json({ message: "Failed to fetch trades" });
+    }
+  });
+
+  app.post("/api/trading/execute", async (req, res) => {
+    try {
+      const { pair, side, type, amount, price, slippage, userAddress } = req.body;
+      
+      // Simulate trading execution
+      const basePrice = pair === 'XP-USDT' ? 0.01663 : pair === 'XPS-XP' ? 60.11 : 0.000025;
+      const executionPrice = type === 'market' ? 
+        basePrice * (1 + (Math.random() - 0.5) * (slippage / 100)) : 
+        price;
+      
+      const txHash = '0x' + Math.random().toString(16).substr(2, 64);
+      
+      res.json({
+        success: true,
+        txHash,
+        executionPrice,
+        amount,
+        side,
+        pair,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error("Error executing trade:", error);
+      res.status(500).json({ message: "Failed to execute trade" });
+    }
+  });
+
+  // Minting API endpoints
+  app.get("/api/minting/fees", async (req, res) => {
+    try {
+      const baseGas = 50;
+      const tokenCreationFee = 100;
+      const liquidityFee = 200;
+      const totalFee = baseGas + tokenCreationFee + liquidityFee;
+      const xpPrice = 0.01663;
+      
+      res.json({
+        baseGas,
+        tokenCreationFee,
+        liquidityFee,
+        totalFee,
+        feeInXP: totalFee,
+        feeInUSD: (totalFee * xpPrice).toFixed(2)
+      });
+    } catch (error) {
+      console.error("Error fetching minting fees:", error);
+      res.status(500).json({ message: "Failed to fetch minting fees" });
+    }
+  });
+
+  app.post("/api/minting/deploy", async (req, res) => {
+    try {
+      const { name, symbol, totalSupply, recipientAddress, description, userAddress } = req.body;
+      
+      // Validate input
+      if (!name || !symbol || !totalSupply || !recipientAddress) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Simulate token deployment
+      const contractAddress = '0x' + Math.random().toString(16).substr(2, 40);
+      const txHash = '0x' + Math.random().toString(16).substr(2, 64);
+      
+      // Simulate deployment steps
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      res.json({
+        success: true,
+        contractAddress,
+        txHash,
+        tokenInfo: {
+          name,
+          symbol,
+          totalSupply,
+          decimals: 18,
+          owner: userAddress,
+          recipient: recipientAddress
+        },
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error("Error deploying token:", error);
+      res.status(500).json({ message: "Failed to deploy token" });
+    }
+  });
+
+  app.get("/api/minting/tokens", async (req, res) => {
+    try {
+      const tokens = [
+        {
+          address: '0x748031ccc6e1d',
+          name: 'XpSwap Token',
+          symbol: 'XPS',
+          totalSupply: '1000000000',
+          creator: '0xf0C5d4889cb250956841c339b5F3798320303D5f',
+          createdAt: Date.now() - 86400000,
+          verified: true
+        }
+      ];
+      res.json(tokens);
+    } catch (error) {
+      console.error("Error fetching minted tokens:", error);
+      res.status(500).json({ message: "Failed to fetch minted tokens" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

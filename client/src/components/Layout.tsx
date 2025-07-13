@@ -77,6 +77,13 @@ export function Layout({ children }: LayoutProps) {
                 }`}>
                   Swap
                 </Link>
+                <Link href="/trading" className={`text-sm font-medium transition-colors ${
+                  isActivePage("/trading") 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}>
+                  Trading
+                </Link>
                 <Link href="/pool" className={`text-sm font-medium transition-colors ${
                   isActivePage("/pool") 
                     ? "text-primary" 
@@ -118,6 +125,13 @@ export function Layout({ children }: LayoutProps) {
                     : "text-muted-foreground hover:text-primary"
                 }`}>
                   Portfolio
+                </Link>
+                <Link href="/minting" className={`text-sm font-medium transition-colors ${
+                  isActivePage("/minting") 
+                    ? "text-primary" 
+                    : "text-muted-foreground hover:text-primary"
+                }`}>
+                  Minting
                 </Link>
                 <Link href="/xps-staking" className={`text-sm font-medium transition-colors ${
                   isActivePage("/xps-staking") 
@@ -201,6 +215,15 @@ export function Layout({ children }: LayoutProps) {
                     Swap
                   </div>
                 </Link>
+                <Link href="/trading" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/trading") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Trading
+                  </div>
+                </Link>
                 <Link href="/pool" onClick={() => setIsMobileMenuOpen(false)}>
                   <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActivePage("/pool") 
@@ -253,6 +276,15 @@ export function Layout({ children }: LayoutProps) {
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}>
                     Portfolio
+                  </div>
+                </Link>
+                <Link href="/minting" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActivePage("/minting") 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-muted"
+                  }`}>
+                    Minting
                   </div>
                 </Link>
                 <Link href="/xps-staking" onClick={() => setIsMobileMenuOpen(false)}>
