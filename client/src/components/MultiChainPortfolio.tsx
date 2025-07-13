@@ -291,16 +291,16 @@ export function MultiChainPortfolio() {
 
   if (!wallet.isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="min-h-screen bg-white p-4">
         <div className="max-w-2xl mx-auto pt-20">
-          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+          <Card className="bg-white/90 backdrop-blur-lg border border-gray-200 shadow-lg">
             <CardContent className="p-8 text-center">
               <div className="mb-6">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Wallet className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
-                <p className="text-gray-300">Connect your wallet to view your multi-chain portfolio</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Wallet</h2>
+                <p className="text-gray-600">Connect your wallet to view your multi-chain portfolio</p>
               </div>
               <Button onClick={connectWallet} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
                 Connect Wallet
@@ -313,13 +313,13 @@ export function MultiChainPortfolio() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Multi-Chain Portfolio</h1>
-            <p className="text-gray-300">Track your assets across multiple blockchain networks</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Multi-Chain Portfolio</h1>
+            <p className="text-gray-600">Track your assets across multiple blockchain networks</p>
           </div>
           <div className="flex items-center gap-4">
             <NetworkSelector 
@@ -329,7 +329,7 @@ export function MultiChainPortfolio() {
             <Button
               variant="outline"
               onClick={() => refetch()}
-              className="bg-black/20 border-white/10 text-white hover:bg-white/10"
+              className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
@@ -339,35 +339,35 @@ export function MultiChainPortfolio() {
 
         {/* Portfolio Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+          <Card className="bg-white/90 backdrop-blur-lg border border-gray-200 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Value</p>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-sm text-gray-500">Total Value</p>
+                  <p className="text-2xl font-bold text-gray-900">
                     ${portfolioStats.totalValue.toFixed(2)}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-green-400" />
+                  <DollarSign className="w-6 h-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+          <Card className="bg-white/90 backdrop-blur-lg border border-gray-200 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">24h Change</p>
-                  <p className={`text-2xl font-bold ${portfolioStats.totalChange24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className="text-sm text-gray-500">24h Change</p>
+                  <p className={`text-2xl font-bold ${portfolioStats.totalChange24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {portfolioStats.totalChange24h >= 0 ? '+' : ''}{portfolioStats.totalChange24h.toFixed(2)}%
                   </p>
                 </div>
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${portfolioStats.totalChange24h >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
                   {portfolioStats.totalChange24h >= 0 ? 
-                    <TrendingUp className="w-6 h-6 text-green-400" /> : 
-                    <TrendingDown className="w-6 h-6 text-red-400" />
+                    <TrendingUp className="w-6 h-6 text-green-600" /> : 
+                    <TrendingDown className="w-6 h-6 text-red-600" />
                   }
                 </div>
               </div>

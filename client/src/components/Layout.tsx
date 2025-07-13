@@ -70,8 +70,8 @@ export function Layout({ children }: LayoutProps) {
               </Link>
 
               <nav className="hidden md:flex space-x-6">
-                <Link href="/" className={`text-sm font-medium transition-colors ${
-                  isActivePage("/") 
+                <Link href="/swap" className={`text-sm font-medium transition-colors ${
+                  isActivePage("/swap") 
                     ? "text-primary" 
                     : "text-muted-foreground hover:text-primary"
                 }`}>
@@ -206,9 +206,9 @@ export function Layout({ children }: LayoutProps) {
 
               {/* Navigation Links */}
               <nav className="space-y-2">
-                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/swap" onClick={() => setIsMobileMenuOpen(false)}>
                   <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/") 
+                    isActivePage("/swap") 
                       ? "bg-primary/10 text-primary" 
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}>

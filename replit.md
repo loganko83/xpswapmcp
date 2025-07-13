@@ -11,6 +11,11 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Revenue Model**: $100 minting fees, 1% trading fees, all directed to XPS seller wallet
 
 ## Recent Changes
+- **2025-01-13**: Fixed navigation routing issues - logo now correctly navigates to Home page (/) and Swap menu to Swap page (/swap)
+- **2025-01-13**: Updated Portfolio page background to white for design consistency across all pages
+- **2025-01-13**: Confirmed XPS airdrop section visibility on home page with campaign countdown and claim functionality
+- **2025-01-13**: Enhanced Documentation with XPS airdrop API endpoints (/api/xps/airdrop/status and /api/xps/airdrop/claim)
+- **2025-01-13**: Added comprehensive XPS airdrop campaign information to Documentation whitepaper section
 - **2025-01-13**: Implemented XPS Airdrop claim system on homepage requiring 10,000+ XP balance for 100 XPS reward
 - **2025-01-13**: Added one-time claim per wallet address with 7-day campaign period (August 1-10, 2025)
 - **2025-01-13**: Created comprehensive XPS airdrop interface with eligibility checking and MetaMask integration

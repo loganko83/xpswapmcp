@@ -234,6 +234,35 @@ const apiEndpoints = [
 }`
   },
   {
+    method: "GET",
+    path: "/api/xps/airdrop/status/:address",
+    description: "Check XPS airdrop eligibility and claim status",
+    response: `{
+  "claimed": false,
+  "eligible": true,
+  "airdropActive": true,
+  "airdropStart": "2025-08-01T00:00:00Z",
+  "airdropEnd": "2025-08-10T23:59:59Z"
+}`
+  },
+  {
+    method: "POST",
+    path: "/api/xps/airdrop/claim",
+    description: "Claim 100 XPS airdrop for eligible addresses",
+    body: `{
+  "userAddress": "0x123..."
+}`,
+    response: `{
+  "success": true,
+  "message": "Airdrop claimed successfully!",
+  "amount": 100,
+  "txHash": "0xabc123...",
+  "from": "0xf0C5d4889cb250956841c339b5F3798320303D5f",
+  "to": "0x123...",
+  "timestamp": 1722470400
+}`
+  },
+  {
     method: "POST",
     path: "/api/add-liquidity",
     description: "Add liquidity to pools with XPS rewards",
@@ -1303,6 +1332,35 @@ function checkProposalPassed(votesFor, votesAgainst, totalSupply) {
                         <li>• System calculates required XP</li>
                         <li>• XP sent to seller address</li>
                         <li>• XPS tokens transferred to buyer</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h4 className="font-semibold mb-3">XPS Airdrop Campaign</h4>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <strong>🎉 Limited Time:</strong> 100 XPS tokens airdrop for eligible wallet addresses (August 1-10, 2025)
+                    </p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="font-medium mb-2">Eligibility Requirements</h5>
+                      <ul className="space-y-1 text-sm">
+                        <li>• <strong>XP Balance:</strong> 10,000+ XP tokens</li>
+                        <li>• <strong>Wallet Connection:</strong> MetaMask integration</li>
+                        <li>• <strong>Campaign Period:</strong> August 1-10, 2025</li>
+                        <li>• <strong>One-Time Claim:</strong> Per wallet address</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="font-medium mb-2">Airdrop Details</h5>
+                      <ul className="space-y-1 text-sm">
+                        <li>• <strong>Reward Amount:</strong> 100 XPS tokens</li>
+                        <li>• <strong>Real-time Verification:</strong> XP balance check</li>
+                        <li>• <strong>Instant Transfer:</strong> Direct to wallet</li>
+                        <li>• <strong>API Endpoints:</strong> /api/xps/airdrop/*</li>
                       </ul>
                     </div>
                   </div>
