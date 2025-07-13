@@ -331,7 +331,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Footer */}
       <footer className="mt-16 bg-muted/30 border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
@@ -348,94 +348,70 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Products</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-semibold mb-3">Products</h4>
+              <ul className="space-y-1 text-sm">
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/swap"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Swap
-                  </a>
+                  <Link href="/swap">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Swap
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/trading"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Trading
-                  </a>
+                  <Link href="/trading">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Trading
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/pool"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Pool
-                  </a>
+                  <Link href="/pool">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Pool
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/farm"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Farm
-                  </a>
+                  <Link href="/farm">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Farm
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/bridge"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Bridge
-                  </a>
+                  <Link href="/bridge">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Bridge
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/minting"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Minting
-                  </a>
+                  <Link href="/minting">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Minting
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/xps-staking"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Staking
-                  </a>
+                  <Link href="/xps-staking">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      Staking
+                    </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="https://xpswapmvp.replit.app/xps-purchase"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    XPS
-                  </a>
+                  <Link href="/xps-purchase">
+                    <a className="text-muted-foreground hover:text-primary transition-colors">
+                      XPS
+                    </a>
+                  </Link>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Developers</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-semibold mb-3">Developers</h4>
+              <ul className="space-y-1 text-sm">
                 <li>
                   <Link href="/documentation">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -464,8 +440,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-semibold mb-3">Support</h4>
+              <ul className="space-y-1 text-sm">
                 <li>
                   <a
                     href="https://trendy.storydot.kr"
@@ -493,8 +469,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Social</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-semibold mb-3">Social</h4>
+              <ul className="space-y-1 text-sm">
                 <li>
                   <a
                     href="https://medium.com/@teamxpsproject"
