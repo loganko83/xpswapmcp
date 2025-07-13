@@ -329,23 +329,27 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="mt-6 bg-muted/30 border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
+      <footer className="mt-8 bg-muted/30 border-t">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
-                  <Activity className="w-3 h-3 text-white" />
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-sm font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                   XpSwap
                 </span>
               </div>
+              <p className="text-sm text-muted-foreground">
+                Production-ready DEX with XPS token ecosystem, advanced AMM, 
+                cross-chain bridge, and comprehensive DeFi features.
+              </p>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-1 text-xs">Products</h4>
-              <ul className="space-y-0 text-xs">
+              <h4 className="font-semibold mb-3 text-sm">Products</h4>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/swap">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -406,8 +410,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-1 text-xs">Developers</h4>
-              <ul className="space-y-0 text-xs">
+              <h4 className="font-semibold mb-3 text-sm">Developers</h4>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/documentation">
                     <a className="text-muted-foreground hover:text-primary transition-colors">
@@ -433,8 +437,8 @@ export function Layout({ children }: LayoutProps) {
                   </Link>
                 </li>
               </ul>
-              <h4 className="font-semibold mb-1 text-xs mt-2">Support</h4>
-              <ul className="space-y-0 text-xs">
+              <h4 className="font-semibold mb-3 text-sm mt-6">Support</h4>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <a
                     href="https://trendy.storydot.kr"
@@ -462,8 +466,8 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-1 text-xs">Social</h4>
-              <ul className="space-y-0 text-xs">
+              <h4 className="font-semibold mb-3 text-sm">Social</h4>
+              <ul className="space-y-2 text-sm">
                 <li>
                   <a
                     href="https://medium.com/@teamxpsproject"
@@ -508,18 +512,18 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
 
-          <div className="border-t border-border mt-3 pt-2 flex flex-col md:flex-row items-center justify-between">
-            <p className="text-xs text-muted-foreground">
+          <div className="border-t border-border mt-6 pt-4 flex flex-col md:flex-row items-center justify-between">
+            <p className="text-sm text-muted-foreground">
               © 2025 XpSwap. All rights reserved.
             </p>
-            <div className="flex items-center space-x-4 mt-2 md:mt-0">
+            <div className="flex items-center space-x-6 mt-3 md:mt-0">
               <Link href="/privacy-policy">
-                <a className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Privacy Policy
                 </a>
               </Link>
               <Link href="/terms-of-service">
-                <a className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Terms of Service
                 </a>
               </Link>
