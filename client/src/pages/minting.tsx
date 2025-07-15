@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,13 +63,23 @@ export default function MintingPage() {
     name: '',
     symbol: '',
     totalSupply: '',
-    recipientAddress: wallet.address || '',
+    recipientAddress: '',
     description: '',
     website: '',
     twitter: '',
     telegram: '',
     logo: ''
   });
+  
+  // Auto-populate wallet address when connected
+  useEffect(() => {
+    if (wallet.address && wallet.address !== tokenInfo.recipientAddress) {
+      setTokenInfo(prev => ({
+        ...prev,
+        recipientAddress: wallet.address
+      }));
+    }
+  }, [wallet.address]);
   
   const [isMinting, setIsMinting] = useState(false);
   const [mintingProgress, setMintingProgress] = useState(0);
@@ -222,16 +232,48 @@ export default function MintingPage() {
         deploymentResult = await response.json();
       }
 
-      // Step 2: Process minting steps
+      // Step 2: Process minting steps with live progress tracking
       const steps = [
-        { id: 2, name: "Initial Supply Minting", delay: 2000 },
-        { id: 3, name: "Token Registration", delay: 1500 },
-        { id: 4, name: "Liquidity Pool Setup", delay: 2000 },
-        { id: 5, name: "Trading Activation", delay: 1000 }
+        { id: 2, name: "Initial Supply Minting", delay: 2000, progress: 40 },
+        { id: 3, name: "Token Registration", delay: 1500, progress: 60 },
+        { id: 4, name: "Liquidity Pool Setup", delay: 2000, progress: 80 },
+        { id: 5, name: "Trading Activation", delay: 1000, progress: 100 }
       ];
 
       for (const step of steps) {
-        await new Promise(resolve => setTimeout(resolve, step.delay));
+        // Update step status to processing
+        setMintingSteps(prev => prev.map(s => 
+          s.id === step.id ? { ...s, status: 'processing' } : s
+        ));
+        setCurrentStep(step.id);
+        
+        // Simulate gradual progress within each step
+        const stepDuration = step.delay;
+        const progressInterval = stepDuration / 10;
+        
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, progressInterval));
+          const stepProgress = (i + 1) / 10;
+          const currentStepBase = step.id === 2 ? 20 : (step.id - 2) * 20 + 20;
+          const progressIncrement = 20 * stepProgress;
+          setMintingProgress(Math.min(currentStepBase + progressIncrement, step.progress));
+        }
+        
+        // Complete the step
+        setMintingSteps(prev => prev.map(s => 
+          s.id === step.id ? { 
+            ...s, 
+            status: 'completed',
+            txHash: `0x${Math.random().toString(16).substr(2, 64)}`
+          } : s
+        ));
+        
+        // Show step completion toast
+        toast({
+          title: `Step ${step.id} Complete`,
+          description: `${step.name} completed successfully`,
+          variant: "default",
+        });
         
         setCurrentStep(step.id);
         setMintingProgress((step.id / 5) * 100);

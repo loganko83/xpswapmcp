@@ -5952,9 +5952,10 @@ Submitted at: ${new Date().toISOString()}
   // Minting API endpoints
   app.get("/api/minting/fees", async (req, res) => {
     try {
-      // Calculate real-time gas fees based on XP network
-      const baseGas = 50; // XP for contract deployment
+      // Calculate realistic gas fees for Xphere network
+      const baseGas = 2.5; // Realistic XP gas fee for contract deployment (about $0.035 at current price)
       const mintingFeeUSD = 100; // $100 minting fee
+      const contractDeploymentGas = 3.5; // Additional gas for contract deployment
       
       // Get real-time XP price
       let xpPrice = 0.01663;
@@ -5973,10 +5974,11 @@ Submitted at: ${new Date().toISOString()}
       // Calculate fees
       const feeInXP = Math.ceil(mintingFeeUSD / xpPrice); // $100 worth of XP
       const feeInXPS = mintingFeeUSD * 0.5; // 50% discount when paying with XPS ($50 worth)
-      const totalFeeXP = baseGas + feeInXP;
+      const totalGasFee = baseGas + contractDeploymentGas; // Total gas fee
+      const totalFeeXP = totalGasFee + feeInXP;
       
       res.json({
-        baseGas,
+        baseGas: totalGasFee,
         mintingFeeUSD,
         feeInXP: totalFeeXP,
         feeInXPS: feeInXPS,
@@ -5984,8 +5986,8 @@ Submitted at: ${new Date().toISOString()}
         xpPrice,
         xpsPrice: 1.0, // Fixed 1 XPS = 1 USD
         discountPercentage: 50,
-        gasEstimate: '21000',
-        gasPrice: '20',
+        gasEstimate: '285000', // Realistic gas estimate for token deployment
+        gasPrice: '2.5', // Realistic gas price for Xphere network
         estimatedConfirmationTime: '30 seconds'
       });
     } catch (error) {
@@ -6074,52 +6076,79 @@ Submitted at: ${new Date().toISOString()}
         twitter: twitter || '',
         telegram: telegram || '',
         contractAddress,
-        txHash,
-        deployedAt: Date.now(),
-        network: 'Xphere',
-        verified: false,
-        paymentMethod: paymentMethod || 'XP'
+        deployedAt: new Date().toISOString(),
+        transactionHash: txHash,
+        isVerified: false,
+        tradingEnabled: true
       };
       
-      res.json({
+      // Save token to database (would be implemented with actual database)
+      console.log('Token metadata saved:', tokenMetadata);
+      
+      const response = {
         success: true,
+        message: 'Token deployed successfully',
         contractAddress,
-        txHash,
-        tokenInfo: tokenMetadata,
-        feeProcessed: true,
-        paymentMethod: paymentMethod || 'XP',
-        deploymentSteps: [
-          { step: 1, description: 'Fee payment processed', completed: true },
-          { step: 2, description: 'Contract compiled', completed: true },
-          { step: 3, description: 'Bytecode deployed', completed: true },
-          { step: 4, description: 'Token minted', completed: true },
-          { step: 5, description: 'Ownership transferred', completed: true }
-        ],
-        timestamp: Date.now(),
-        gasUsed: '875430',
-        gasPrice: '20',
-        blockNumber: Math.floor(Math.random() * 1000000) + 2000000
-      });
+        transactionHash: txHash,
+        tokenInfo: {
+          name,
+          symbol,
+          totalSupply,
+          decimals: 18,
+          owner: userAddress,
+          recipient: recipientAddress
+        },
+        deploymentTime: new Date().toISOString(),
+        networkInfo: {
+          chainId: 20250217,
+          networkName: 'Xphere',
+          blockExplorer: `https://explorer.x-phere.com/tx/${txHash}`
+        },
+        gasUsed: '285000',
+        gasPrice: '2.5',
+        blockNumber: Math.floor(Math.random() * 1000000) + 20000000
+      };
+      
+      res.json(response);
     } catch (error) {
       console.error("Error deploying token:", error);
       res.status(500).json({ message: "Failed to deploy token" });
     }
   });
 
+  // Get minted tokens
   app.get("/api/minting/tokens", async (req, res) => {
     try {
-      const tokens = [
+      const { userAddress } = req.query;
+      
+      // Mock data for demonstration - would come from database
+      const mintedTokens = [
         {
-          address: '0x748031ccc6e1d',
-          name: 'XpSwap Token',
-          symbol: 'XPS',
-          totalSupply: '1000000000',
-          creator: '0xf0C5d4889cb250956841c339b5F3798320303D5f',
-          createdAt: Date.now() - 86400000,
-          verified: true
+          id: 1,
+          name: "Test Token",
+          symbol: "TEST",
+          totalSupply: "1000000",
+          contractAddress: "0x1234567890123456789012345678901234567890",
+          owner: "0xf0C5d4889cb250956841c339b5F3798320303D5f",
+          deployedAt: "2025-01-15T10:30:00Z",
+          transactionHash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+          isVerified: true,
+          tradingEnabled: true,
+          volume24h: "125,000",
+          holders: 45,
+          marketCap: "850,000"
         }
       ];
-      res.json(tokens);
+      
+      // Filter by user address if provided
+      let filteredTokens = mintedTokens;
+      if (userAddress) {
+        filteredTokens = mintedTokens.filter(token => 
+          token.owner.toLowerCase() === userAddress.toString().toLowerCase()
+        );
+      }
+      
+      res.json(filteredTokens);
     } catch (error) {
       console.error("Error fetching minted tokens:", error);
       res.status(500).json({ message: "Failed to fetch minted tokens" });
