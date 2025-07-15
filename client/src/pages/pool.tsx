@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Minus, TrendingUp, Search, Sparkles, ArrowRight, ChevronDown } from "lucide-react";
+import { Plus, Minus, TrendingUp, Search, Sparkles, ArrowRight, ChevronDown, Trophy, Gift } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdvancedLiquidityPoolManager } from "@/components/LiquidityPoolManager";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { web3Service } from "@/lib/web3";
+import { lpTokenService } from "@/lib/lpTokenService";
 import { useToast } from "@/hooks/use-toast";
 
 export default function PoolPage() {
@@ -86,10 +87,44 @@ export default function PoolPage() {
     }
   }, [wallet.address]);
 
-  // Add liquidity mutation
+  // Fetch LP token data
+  const { data: lpTokens = [], isLoading: lpTokensLoading } = useQuery({
+    queryKey: ["/api/lp-tokens"],
+    queryFn: async () => {
+      const response = await fetch("/api/lp-tokens");
+      if (!response.ok) throw new Error("Failed to fetch LP tokens");
+      return response.json();
+    }
+  });
+
+  // Fetch LP token holdings for current user
+  const { data: lpHoldings = [], isLoading: lpHoldingsLoading } = useQuery({
+    queryKey: ["/api/lp-holdings", wallet.address],
+    queryFn: async () => {
+      if (!wallet.address) return [];
+      const response = await fetch(`/api/lp-holdings?userAddress=${wallet.address}`);
+      if (!response.ok) throw new Error("Failed to fetch LP holdings");
+      return response.json();
+    },
+    enabled: !!wallet.address
+  });
+
+  // Fetch LP rewards
+  const { data: lpRewards = [], isLoading: lpRewardsLoading } = useQuery({
+    queryKey: ["/api/lp-rewards", wallet.address],
+    queryFn: async () => {
+      if (!wallet.address) return [];
+      const response = await fetch(`/api/lp-rewards?userAddress=${wallet.address}`);
+      if (!response.ok) throw new Error("Failed to fetch LP rewards");
+      return response.json();
+    },
+    enabled: !!wallet.address
+  });
+
+  // Add liquidity mutation with LP token creation
   const addLiquidityMutation = useMutation({
     mutationFn: async (liquidityData: any) => {
-      const response = await fetch("/api/add-liquidity", {
+      const response = await fetch("/api/lp-tokens/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(liquidityData),
@@ -97,10 +132,10 @@ export default function PoolPage() {
       if (!response.ok) throw new Error("Failed to add liquidity");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
-        title: "유동성 추가 성공",
-        description: "리퀴디티 풀에 성공적으로 추가되었습니다.",
+        title: "LP Token Minted",
+        description: `Successfully created ${data.amount} LP tokens. You'll receive XPS rewards!`,
         variant: "default",
       });
       setAddLiquidityOpen(false);
@@ -108,11 +143,45 @@ export default function PoolPage() {
       setTokenB("");
       setAmountA("");
       setAmountB("");
-      queryClient.invalidateQueries({ queryKey: ["/api/pools"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/lp-tokens"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/lp-holdings", wallet.address] });
+      queryClient.invalidateQueries({ queryKey: ["/api/lp-rewards", wallet.address] });
     },
     onError: (error: any) => {
       toast({
-        title: "유동성 추가 실패",
+        title: "LP Token Creation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Claim LP rewards mutation
+  const claimLpRewardsMutation = useMutation({
+    mutationFn: async ({ lpTokenId }: { lpTokenId: number }) => {
+      const response = await fetch("/api/lp-rewards/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          userAddress: wallet.address, 
+          lpTokenId 
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to claim LP rewards");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "LP Rewards Claimed",
+        description: `Successfully claimed ${data.totalRewards} XPS tokens!`,
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/lp-rewards", wallet.address] });
+      queryClient.invalidateQueries({ queryKey: ["/api/lp-holdings", wallet.address] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Reward Claim Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -120,6 +189,109 @@ export default function PoolPage() {
   });
 
   const handleAddLiquidity = () => {
+    if (pools.length > 0) {
+      setSelectedPool(pools[0]); // Use first pool as default
+      setTokenA("XP");
+      setTokenB("USDT");
+      setAmountA("");
+      setAmountB("");
+    }
+    setAddLiquidityOpen(true);
+  };
+
+  const handleCreateLiquidity = () => {
+    if (!tokenA || !tokenB || !amountA || !amountB) {
+      toast({
+        title: "Missing Information",
+        description: "Please select tokens and enter amounts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const liquidityData = {
+      pairId: 1, // Use a default pair ID, in production this would be determined by tokenA/tokenB
+      userAddress: wallet.address,
+      amount: (parseFloat(amountA) * parseFloat(amountB) / 2).toFixed(6), // LP token amount
+      tokenAAmount: amountA,
+      tokenBAmount: amountB,
+    };
+
+    addLiquidityMutation.mutate(liquidityData);
+  };
+
+  const handleClaimRewards = (lpTokenId: number) => {
+    claimLpRewardsMutation.mutate({ lpTokenId });
+  };
+
+  const calculateUnclaimedRewards = () => {
+    return lpRewards.filter(reward => !reward.claimed).reduce((sum, reward) => sum + parseFloat(reward.rewardAmount), 0);
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  const formatNumber = (value: string | number) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 6
+    }).format(num);
+  };
+
+  const formatBalance = (balance: string) => {
+    const num = parseFloat(balance);
+    if (num === 0) return "0";
+    if (num < 0.000001) return "< 0.000001";
+    return formatNumber(num);
+  };
+
+  const getRewardsForLpToken = (lpTokenId: number) => {
+    return lpRewards.filter(reward => reward.lpTokenId === lpTokenId && !reward.claimed);
+  };
+
+  const getTotalRewardsForLpToken = (lpTokenId: number) => {
+    return getRewardsForLpToken(lpTokenId).reduce((sum, reward) => sum + parseFloat(reward.rewardAmount), 0);
+  };
+
+  const handleUpdateAmount = (value: string, isTokenA: boolean) => {
+    if (isTokenA) {
+      setAmountA(value);
+      // Auto-calculate tokenB amount based on a simple 1:1 ratio for demo
+      // In production, this would be calculated based on pool reserves
+      setAmountB(value);
+    } else {
+      setAmountB(value);
+      // Auto-calculate tokenA amount
+      setAmountA(value);
+    }
+  };
+
+  const handleAddLiquidityToPool = (pool: any) => {
+    setSelectedPool(pool);
+    setTokenA(pool.tokenA?.symbol || "XP");
+    setTokenB(pool.tokenB?.symbol || "USDT");
+    setAmountA("");
+    setAmountB("");
+    setAddLiquidityOpen(true);
+  };
+
+  const handleRemoveLiquidityFromPool = (pool: any) => {
+    // For now, we'll just show a toast
+    toast({
+      title: "Remove Liquidity",
+      description: "Remove liquidity functionality coming soon!",
+      variant: "default",
+    });
+  };
+
+  const handleCompleteAddLiquidity = () => {
     if (pools.length > 0) {
       setSelectedPool(pools[0]); // Use first pool as default
       setTokenA("XP");
@@ -149,18 +321,6 @@ export default function PoolPage() {
     } else {
       setAmountB(balance);
     }
-  };
-
-
-
-  const formatCurrency = (amount: string) => {
-    const num = parseFloat(amount.replace(/,/g, ''));
-    if (num >= 1000000) {
-      return `$${(num / 1000000).toFixed(1)}M`;
-    } else if (num >= 1000) {
-      return `$${(num / 1000).toFixed(0)}K`;
-    }
-    return `$${num.toLocaleString()}`;
   };
 
   return (
@@ -285,32 +445,159 @@ export default function PoolPage() {
         </TabsContent>
 
         <TabsContent value="my-liquidity" className="space-y-6">
-          <Card>
-            <CardContent className="p-12 text-center">
-              {wallet.isConnected ? (
-                <div>
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plus className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">No liquidity positions</h3>
-                  <p className="text-muted-foreground mb-4">
-                    You haven't provided liquidity to any pools yet.
-                  </p>
-                  <Button onClick={handleAddLiquidity}>Add Liquidity</Button>
+          {/* Add Liquidity Button */}
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleCompleteAddLiquidity}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Liquidity
+            </Button>
+          </div>
+
+          {/* LP Token Holdings Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Total LP Tokens</span>
+                  <TrendingUp className="w-4 h-4 text-green-500" />
                 </div>
-              ) : (
-                <div>
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plus className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Connect your wallet</h3>
-                  <p className="text-muted-foreground">
-                    Connect your wallet to view your liquidity positions.
-                  </p>
+                <div className="text-2xl font-bold">
+                  {lpHoldings.length}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <Badge variant="outline" className="text-green-600 border-green-200">
+                  Active
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Unclaimed XPS Rewards</span>
+                  <Gift className="w-4 h-4 text-yellow-500" />
+                </div>
+                <div className="text-2xl font-bold">
+                  {formatBalance(calculateUnclaimedRewards().toString())}
+                </div>
+                <Badge variant="outline" className="text-yellow-600 border-yellow-200">
+                  XPS
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-muted-foreground">LP Positions</span>
+                  <Trophy className="w-4 h-4 text-purple-500" />
+                </div>
+                <div className="text-2xl font-bold">
+                  {lpHoldings.filter(h => parseFloat(h.balance) > 0).length}
+                </div>
+                <Badge variant="outline" className="text-purple-600 border-purple-200">
+                  Active
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* My LP Token Holdings */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">My LP Token Holdings</h3>
+            
+            {lpHoldingsLoading ? (
+              <div className="text-center py-8">Loading LP holdings...</div>
+            ) : lpHoldings.length > 0 ? (
+              <div className="space-y-4">
+                {lpHoldings.map((holding: any) => {
+                  const lpToken = lpTokens.find(t => t.id === holding.lpTokenId);
+                  const totalRewards = getTotalRewardsForLpToken(holding.lpTokenId);
+                  const hasUnclaimedRewards = totalRewards > 0;
+                  
+                  return (
+                    <Card key={holding.id}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">LP</span>
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">{lpToken?.symbol || 'LP Token'}</h4>
+                              <p className="text-sm text-muted-foreground">{lpToken?.name || 'LP Token'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="font-semibold">{formatBalance(holding.balance)}</p>
+                              <p className="text-sm text-green-600">
+                                {formatBalance(holding.totalRewardsClaimed)} XPS claimed
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              {hasUnclaimedRewards && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleClaimRewards(holding.lpTokenId)}
+                                  disabled={claimLpRewardsMutation.isPending}
+                                  className="bg-yellow-50 text-yellow-600 hover:bg-yellow-100"
+                                >
+                                  <Gift className="w-4 h-4 mr-1" />
+                                  Claim {formatBalance(totalRewards.toString())} XPS
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                          <div>
+                            <p className="text-sm text-muted-foreground">LP Balance</p>
+                            <p className="font-medium">{formatBalance(holding.balance)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Staked Balance</p>
+                            <p className="font-medium">{formatBalance(holding.stakedBalance)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Pending Rewards</p>
+                            <p className="font-medium text-yellow-600">
+                              {formatBalance(totalRewards.toString())} XPS
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Plus className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No LP Tokens Yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Add liquidity to pools to start earning XPS rewards
+                    </p>
+                    <Button 
+                      onClick={handleCompleteAddLiquidity}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Add Your First Liquidity
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -475,10 +762,10 @@ export default function PoolPage() {
                   <Button 
                     className="w-full" 
                     size="lg"
-                    onClick={handleSubmitLiquidity}
+                    onClick={handleCreateLiquidity}
                     disabled={!tokenA || !tokenB || !amountA || !amountB || addLiquidityMutation.isPending}
                   >
-                    {addLiquidityMutation.isPending ? "Adding Liquidity..." : "Add Liquidity"}
+                    {addLiquidityMutation.isPending ? "Creating LP Token..." : "Create LP Token"}
                   </Button>
                 </div>
               </div>

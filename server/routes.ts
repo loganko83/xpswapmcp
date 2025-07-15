@@ -2,7 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
-import { insertTokenSchema, insertTradingPairSchema, insertTransactionSchema, insertLiquidityPoolSchema } from "@shared/schema";
+import { 
+  insertTokenSchema, 
+  insertTradingPairSchema, 
+  insertTransactionSchema, 
+  insertLiquidityPoolSchema,
+  insertLpTokenSchema,
+  insertLpTokenHoldingSchema,
+  insertLpRewardSchema,
+  insertLpStakingPoolSchema
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -3731,6 +3740,402 @@ Submitted at: ${new Date().toISOString()}
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: "Failed to calculate fee discount" });
+    }
+  });
+
+  // LP Token API endpoints
+  app.get("/api/lp-tokens", async (req, res) => {
+    try {
+      const lpTokens = await storage.getLpTokens();
+      res.json(lpTokens);
+    } catch (error) {
+      console.error("Failed to fetch LP tokens:", error);
+      res.status(500).json({ error: "Failed to fetch LP tokens" });
+    }
+  });
+
+  app.get("/api/lp-tokens/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const lpToken = await storage.getLpTokenById(id);
+      
+      if (!lpToken) {
+        return res.status(404).json({ error: "LP token not found" });
+      }
+      
+      res.json(lpToken);
+    } catch (error) {
+      console.error("Failed to fetch LP token:", error);
+      res.status(500).json({ error: "Failed to fetch LP token" });
+    }
+  });
+
+  app.post("/api/lp-tokens", async (req, res) => {
+    try {
+      const validationResult = insertLpTokenSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid LP token data", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const lpToken = await storage.createLpToken(validationResult.data);
+      res.status(201).json(lpToken);
+    } catch (error) {
+      console.error("Failed to create LP token:", error);
+      res.status(500).json({ error: "Failed to create LP token" });
+    }
+  });
+
+  app.get("/api/lp-tokens/pair/:pairId", async (req, res) => {
+    try {
+      const pairId = parseInt(req.params.pairId);
+      const lpToken = await storage.getLpTokenByPairId(pairId);
+      
+      if (!lpToken) {
+        return res.status(404).json({ error: "LP token not found for this pair" });
+      }
+      
+      res.json(lpToken);
+    } catch (error) {
+      console.error("Failed to fetch LP token by pair:", error);
+      res.status(500).json({ error: "Failed to fetch LP token by pair" });
+    }
+  });
+
+  // LP Token Holdings endpoints
+  app.get("/api/lp-holdings", async (req, res) => {
+    try {
+      const { userAddress } = req.query;
+      const holdings = await storage.getLpTokenHoldings(userAddress as string);
+      res.json(holdings);
+    } catch (error) {
+      console.error("Failed to fetch LP token holdings:", error);
+      res.status(500).json({ error: "Failed to fetch LP token holdings" });
+    }
+  });
+
+  app.get("/api/lp-holdings/:userAddress/:lpTokenId", async (req, res) => {
+    try {
+      const { userAddress, lpTokenId } = req.params;
+      const holding = await storage.getLpTokenHoldingByUserAndToken(userAddress, parseInt(lpTokenId));
+      
+      if (!holding) {
+        return res.status(404).json({ error: "LP token holding not found" });
+      }
+      
+      res.json(holding);
+    } catch (error) {
+      console.error("Failed to fetch LP token holding:", error);
+      res.status(500).json({ error: "Failed to fetch LP token holding" });
+    }
+  });
+
+  app.post("/api/lp-holdings", async (req, res) => {
+    try {
+      const validationResult = insertLpTokenHoldingSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid LP token holding data", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const holding = await storage.createLpTokenHolding(validationResult.data);
+      res.status(201).json(holding);
+    } catch (error) {
+      console.error("Failed to create LP token holding:", error);
+      res.status(500).json({ error: "Failed to create LP token holding" });
+    }
+  });
+
+  app.put("/api/lp-holdings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedHolding = await storage.updateLpTokenHolding(id, req.body);
+      
+      if (!updatedHolding) {
+        return res.status(404).json({ error: "LP token holding not found" });
+      }
+      
+      res.json(updatedHolding);
+    } catch (error) {
+      console.error("Failed to update LP token holding:", error);
+      res.status(500).json({ error: "Failed to update LP token holding" });
+    }
+  });
+
+  // LP Rewards endpoints
+  app.get("/api/lp-rewards", async (req, res) => {
+    try {
+      const { userAddress } = req.query;
+      const rewards = await storage.getLpRewards(userAddress as string);
+      res.json(rewards);
+    } catch (error) {
+      console.error("Failed to fetch LP rewards:", error);
+      res.status(500).json({ error: "Failed to fetch LP rewards" });
+    }
+  });
+
+  app.get("/api/lp-rewards/unclaimed/:userAddress", async (req, res) => {
+    try {
+      const { userAddress } = req.params;
+      const rewards = await storage.getUnclaimedLpRewards(userAddress);
+      res.json(rewards);
+    } catch (error) {
+      console.error("Failed to fetch unclaimed LP rewards:", error);
+      res.status(500).json({ error: "Failed to fetch unclaimed LP rewards" });
+    }
+  });
+
+  app.post("/api/lp-rewards", async (req, res) => {
+    try {
+      const validationResult = insertLpRewardSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid LP reward data", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const reward = await storage.createLpReward(validationResult.data);
+      res.status(201).json(reward);
+    } catch (error) {
+      console.error("Failed to create LP reward:", error);
+      res.status(500).json({ error: "Failed to create LP reward" });
+    }
+  });
+
+  app.put("/api/lp-rewards/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedReward = await storage.updateLpReward(id, req.body);
+      
+      if (!updatedReward) {
+        return res.status(404).json({ error: "LP reward not found" });
+      }
+      
+      res.json(updatedReward);
+    } catch (error) {
+      console.error("Failed to update LP reward:", error);
+      res.status(500).json({ error: "Failed to update LP reward" });
+    }
+  });
+
+  // LP Staking Pool endpoints
+  app.get("/api/lp-staking-pools", async (req, res) => {
+    try {
+      const stakingPools = await storage.getLpStakingPools();
+      res.json(stakingPools);
+    } catch (error) {
+      console.error("Failed to fetch LP staking pools:", error);
+      res.status(500).json({ error: "Failed to fetch LP staking pools" });
+    }
+  });
+
+  app.get("/api/lp-staking-pools/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const stakingPool = await storage.getLpStakingPoolById(id);
+      
+      if (!stakingPool) {
+        return res.status(404).json({ error: "LP staking pool not found" });
+      }
+      
+      res.json(stakingPool);
+    } catch (error) {
+      console.error("Failed to fetch LP staking pool:", error);
+      res.status(500).json({ error: "Failed to fetch LP staking pool" });
+    }
+  });
+
+  app.post("/api/lp-staking-pools", async (req, res) => {
+    try {
+      const validationResult = insertLpStakingPoolSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid LP staking pool data", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const stakingPool = await storage.createLpStakingPool(validationResult.data);
+      res.status(201).json(stakingPool);
+    } catch (error) {
+      console.error("Failed to create LP staking pool:", error);
+      res.status(500).json({ error: "Failed to create LP staking pool" });
+    }
+  });
+
+  app.get("/api/lp-staking-pools/lp-token/:lpTokenId", async (req, res) => {
+    try {
+      const lpTokenId = parseInt(req.params.lpTokenId);
+      const stakingPool = await storage.getLpStakingPoolByLpTokenId(lpTokenId);
+      
+      if (!stakingPool) {
+        return res.status(404).json({ error: "LP staking pool not found for this LP token" });
+      }
+      
+      res.json(stakingPool);
+    } catch (error) {
+      console.error("Failed to fetch LP staking pool by LP token:", error);
+      res.status(500).json({ error: "Failed to fetch LP staking pool by LP token" });
+    }
+  });
+
+  // LP Token Operation endpoints
+  app.post("/api/lp-tokens/mint", async (req, res) => {
+    try {
+      const { pairId, userAddress, amount, tokenAAmount, tokenBAmount } = req.body;
+      
+      if (!pairId || !userAddress || !amount || !tokenAAmount || !tokenBAmount) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Create or get LP token for the pair
+      let lpToken = await storage.getLpTokenByPairId(pairId);
+      
+      if (!lpToken) {
+        // Create new LP token
+        const pair = await storage.getTradingPairById(pairId);
+        if (!pair) {
+          return res.status(404).json({ error: "Trading pair not found" });
+        }
+        
+        const tokenA = await storage.getTokenById(pair.tokenAId);
+        const tokenB = await storage.getTokenById(pair.tokenBId);
+        
+        lpToken = await storage.createLpToken({
+          symbol: `${tokenA?.symbol}-${tokenB?.symbol}-LP`,
+          name: `${tokenA?.name}-${tokenB?.name} LP Token`,
+          address: `0x${Math.random().toString(16).substr(2, 40)}`, // Generate address
+          pairId,
+          totalSupply: amount,
+          decimals: 18,
+          isActive: true
+        });
+      }
+      
+      // Create or update LP token holding
+      const existingHolding = await storage.getLpTokenHoldingByUserAndToken(userAddress, lpToken.id);
+      
+      if (existingHolding) {
+        // Update existing holding
+        const newBalance = (parseFloat(existingHolding.balance) + parseFloat(amount)).toString();
+        await storage.updateLpTokenHolding(existingHolding.id, { balance: newBalance });
+      } else {
+        // Create new holding
+        await storage.createLpTokenHolding({
+          userAddress,
+          lpTokenId: lpToken.id,
+          balance: amount,
+          stakedBalance: "0",
+          totalRewardsClaimed: "0",
+          lastRewardClaim: null
+        });
+      }
+      
+      // Create LP reward for minting
+      await storage.createLpReward({
+        lpTokenId: lpToken.id,
+        userAddress,
+        rewardAmount: (parseFloat(amount) * 0.01).toString(), // 1% reward
+        rewardType: "XPS",
+        claimed: false
+      });
+      
+      res.json({
+        success: true,
+        lpToken,
+        amount,
+        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`
+      });
+    } catch (error) {
+      console.error("Failed to mint LP tokens:", error);
+      res.status(500).json({ error: "Failed to mint LP tokens" });
+    }
+  });
+
+  app.post("/api/lp-tokens/burn", async (req, res) => {
+    try {
+      const { lpTokenId, userAddress, amount } = req.body;
+      
+      if (!lpTokenId || !userAddress || !amount) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const holding = await storage.getLpTokenHoldingByUserAndToken(userAddress, lpTokenId);
+      
+      if (!holding) {
+        return res.status(404).json({ error: "LP token holding not found" });
+      }
+      
+      const currentBalance = parseFloat(holding.balance);
+      const burnAmount = parseFloat(amount);
+      
+      if (burnAmount > currentBalance) {
+        return res.status(400).json({ error: "Insufficient LP token balance" });
+      }
+      
+      const newBalance = (currentBalance - burnAmount).toString();
+      await storage.updateLpTokenHolding(holding.id, { balance: newBalance });
+      
+      res.json({
+        success: true,
+        newBalance,
+        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`
+      });
+    } catch (error) {
+      console.error("Failed to burn LP tokens:", error);
+      res.status(500).json({ error: "Failed to burn LP tokens" });
+    }
+  });
+
+  app.post("/api/lp-rewards/claim", async (req, res) => {
+    try {
+      const { userAddress, lpTokenId } = req.body;
+      
+      if (!userAddress || !lpTokenId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const unclaimedRewards = await storage.getUnclaimedLpRewards(userAddress);
+      const lpRewards = unclaimedRewards.filter(r => r.lpTokenId === lpTokenId);
+      
+      if (lpRewards.length === 0) {
+        return res.status(404).json({ error: "No unclaimed rewards found" });
+      }
+      
+      let totalRewards = 0;
+      for (const reward of lpRewards) {
+        totalRewards += parseFloat(reward.rewardAmount);
+        await storage.updateLpReward(reward.id, { 
+          claimed: true,
+          claimDate: new Date(),
+          transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`
+        });
+      }
+      
+      // Update holding with claimed rewards
+      const holding = await storage.getLpTokenHoldingByUserAndToken(userAddress, lpTokenId);
+      if (holding) {
+        const newTotalClaimed = (parseFloat(holding.totalRewardsClaimed) + totalRewards).toString();
+        await storage.updateLpTokenHolding(holding.id, { 
+          totalRewardsClaimed: newTotalClaimed,
+          lastRewardClaim: new Date()
+        });
+      }
+      
+      res.json({
+        success: true,
+        totalRewards: totalRewards.toString(),
+        claimedRewards: lpRewards.length,
+        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`
+      });
+    } catch (error) {
+      console.error("Failed to claim LP rewards:", error);
+      res.status(500).json({ error: "Failed to claim LP rewards" });
     }
   });
 
