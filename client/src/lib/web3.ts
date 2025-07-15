@@ -91,10 +91,20 @@ export class Web3Service {
         try {
           await this.addNetworkToMetaMask(chainId);
           return true;
-        } catch (addError) {
+        } catch (addError: any) {
+          // Check if request is already pending
+          if (addError.code === -32002) {
+            console.log("Network add request already pending, waiting...");
+            return false;
+          }
           console.error('Failed to add network:', addError);
           return false;
         }
+      }
+      // User rejected the request
+      if (switchError.code === 4001) {
+        console.log("User rejected network switch");
+        return false;
       }
       console.error('Failed to switch network:', switchError);
       return false;
@@ -136,17 +146,18 @@ export class Web3Service {
           blockExplorerUrls: ["https://bscscan.com"]
         };
         break;
-      case "0x1349489": // Xphere
+      case "0x134fe69": // Xphere
         networkConfig = {
-          chainId: "0x1349489",
-          chainName: "Xphere Network",
+          chainId: "0x134fe69",
+          chainName: "Xphere Mainnet",
           nativeCurrency: {
-            name: "XP",
+            name: "Xphere",
             symbol: "XP",
             decimals: 18
           },
           rpcUrls: ["https://en-bkk.x-phere.com"],
-          blockExplorerUrls: ["https://explorer.x-phere.com"]
+          blockExplorerUrls: ["https://explorer.x-phere.com"],
+          iconUrls: ["https://xphere.io/favicon.ico"]
         };
         break;
       default:

@@ -35,6 +35,7 @@ export function TokenSelector({
   const [favoriteTokens] = useState<string[]>(["XP", "XPS", "XCR", "XEF", "ETH", "BTC", "USDT", "BNB", "USDC"]);
   const [showCrossChainWarning, setShowCrossChainWarning] = useState(false);
   const [activeTab, setActiveTab] = useState("xphere");
+  const [switchingNetwork, setSwitchingNetwork] = useState(false);
 
   // Fetch tokens from different networks
   const { data: xphereTokensData, isLoading: xphereLoading, refetch: refetchXphere } = useQuery({
@@ -98,15 +99,20 @@ export function TokenSelector({
   const handleNetworkSwitch = async (network: string) => {
     setActiveTab(network);
     
-    // Auto-switch MetaMask network
-    try {
-      let chainId = "0x1349489"; // Xphere default
-      if (network === "ethereum") chainId = "0x1";
-      if (network === "bsc") chainId = "0x38";
-      
-      await switchNetwork(chainId);
-    } catch (error) {
-      console.error("Failed to switch network:", error);
+    // Auto-switch MetaMask network only if not already switching
+    if (!switchingNetwork) {
+      setSwitchingNetwork(true);
+      try {
+        let chainId = "0x134fe69"; // Xphere default
+        if (network === "ethereum") chainId = "0x1";
+        if (network === "bsc") chainId = "0x38";
+        
+        await switchNetwork(chainId);
+      } catch (error) {
+        console.error("Failed to switch network:", error);
+      } finally {
+        setSwitchingNetwork(false);
+      }
     }
   };
 
@@ -257,9 +263,10 @@ export function TokenSelector({
                       size="sm"
                       onClick={() => handleNetworkSwitch("ethereum")}
                       className="text-xs"
+                      disabled={switchingNetwork}
                     >
                       <Wallet className="w-3 h-3 mr-1" />
-                      Switch Network
+                      {switchingNetwork ? "Switching..." : "Switch Network"}
                     </Button>
                   </div>
                 </div>
@@ -335,9 +342,10 @@ export function TokenSelector({
                       size="sm"
                       onClick={() => handleNetworkSwitch("bsc")}
                       className="text-xs"
+                      disabled={switchingNetwork}
                     >
                       <Wallet className="w-3 h-3 mr-1" />
-                      Switch Network
+                      {switchingNetwork ? "Switching..." : "Switch Network"}
                     </Button>
                   </div>
                 </div>
