@@ -72,6 +72,93 @@ export class Web3Service {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
+  // Network switching functionality
+  async switchNetwork(chainId: string): Promise<boolean> {
+    if (!window.ethereum) {
+      throw new Error("MetaMask is not installed");
+    }
+
+    try {
+      // Try to switch to the network
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId }],
+      });
+      return true;
+    } catch (switchError: any) {
+      // Network not added to MetaMask
+      if (switchError.code === 4902) {
+        try {
+          await this.addNetworkToMetaMask(chainId);
+          return true;
+        } catch (addError) {
+          console.error('Failed to add network:', addError);
+          return false;
+        }
+      }
+      console.error('Failed to switch network:', switchError);
+      return false;
+    }
+  }
+
+  // Add network to MetaMask
+  private async addNetworkToMetaMask(chainId: string): Promise<void> {
+    if (!window.ethereum) {
+      throw new Error("MetaMask is not installed");
+    }
+
+    let networkConfig;
+    
+    switch (chainId) {
+      case "0x1": // Ethereum
+        networkConfig = {
+          chainId: "0x1",
+          chainName: "Ethereum Mainnet",
+          nativeCurrency: {
+            name: "Ether",
+            symbol: "ETH",
+            decimals: 18
+          },
+          rpcUrls: ["https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"],
+          blockExplorerUrls: ["https://etherscan.io"]
+        };
+        break;
+      case "0x38": // BSC
+        networkConfig = {
+          chainId: "0x38",
+          chainName: "Binance Smart Chain",
+          nativeCurrency: {
+            name: "BNB",
+            symbol: "BNB",
+            decimals: 18
+          },
+          rpcUrls: ["https://bsc-dataseed.binance.org/"],
+          blockExplorerUrls: ["https://bscscan.com"]
+        };
+        break;
+      case "0x1349489": // Xphere
+        networkConfig = {
+          chainId: "0x1349489",
+          chainName: "Xphere Network",
+          nativeCurrency: {
+            name: "XP",
+            symbol: "XP",
+            decimals: 18
+          },
+          rpcUrls: ["https://en-bkk.x-phere.com"],
+          blockExplorerUrls: ["https://explorer.x-phere.com"]
+        };
+        break;
+      default:
+        throw new Error(`Unsupported chain ID: ${chainId}`);
+    }
+
+    await window.ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [networkConfig],
+    });
+  }
+
   // Mobile MetaMask deep link handler
   private async handleMobileMetaMask(): Promise<void> {
     if (this.isMobile()) {
@@ -1080,3 +1167,8 @@ export class Web3Service {
 }
 
 export const web3Service = new Web3Service();
+
+// Export standalone network switching function
+export const switchNetwork = async (chainId: string): Promise<boolean> => {
+  return await web3Service.switchNetwork(chainId);
+};

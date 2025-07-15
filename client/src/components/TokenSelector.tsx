@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Search, Star, AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Star, AlertTriangle, ExternalLink, RefreshCw, Wallet } from "lucide-react";
 import { Token } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { useQuery } from "@tanstack/react-query";
+import { switchNetwork } from "@/lib/web3";
 
 interface TokenSelectorProps {
   isOpen: boolean;
@@ -30,47 +32,62 @@ export function TokenSelector({
   selectedToken,
 }: TokenSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [favoriteTokens] = useState<string[]>(["XP", "XPS", "XCR", "XEF"]);
+  const [favoriteTokens] = useState<string[]>(["XP", "XPS", "XCR", "XEF", "ETH", "BTC", "USDT", "BNB", "USDC"]);
   const [showCrossChainWarning, setShowCrossChainWarning] = useState(false);
+  const [activeTab, setActiveTab] = useState("xphere");
 
-  // Fetch Xphere tokens from API
+  // Fetch tokens from different networks
   const { data: xphereTokensData, isLoading: xphereLoading, refetch: refetchXphere } = useQuery({
     queryKey: ["/api/xphere-tokens"],
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
-  // Convert DEFAULT_TOKENS to Token type for cross-chain tokens
-  const crossChainTokens: Token[] = DEFAULT_TOKENS
-    .filter((token) => (token as any).network !== "Xphere")
-    .map((token, index) => ({
-      id: index + 1000, // Offset to avoid conflicts
-      ...token,
-      isActive: true,
-    }));
+  const { data: ethereumTokensData, isLoading: ethereumLoading, refetch: refetchEthereum } = useQuery({
+    queryKey: ["/api/ethereum-tokens"],
+    refetchInterval: 60000,
+    enabled: activeTab === "ethereum",
+  });
 
-  // Combine Xphere tokens from API with cross-chain tokens
-  const allTokens = [
-    ...(xphereTokensData || []),
-    ...crossChainTokens
-  ];
+  const { data: bscTokensData, isLoading: bscLoading, refetch: refetchBSC } = useQuery({
+    queryKey: ["/api/bsc-tokens"],
+    refetchInterval: 60000,
+    enabled: activeTab === "bsc",
+  });
 
-  // Separate tokens by network
-  const xphereTokens = allTokens.filter(token => (token as any).network === "Xphere");
-  const otherNetworkTokens = allTokens.filter(token => (token as any).network !== "Xphere");
+  // Get current network tokens based on active tab
+  const getCurrentNetworkTokens = () => {
+    switch (activeTab) {
+      case "ethereum":
+        return ethereumTokensData || [];
+      case "bsc":
+        return bscTokensData || [];
+      default:
+        return xphereTokensData || [];
+    }
+  };
 
-  const filteredTokens = allTokens.filter(
+  const currentNetworkTokens = getCurrentNetworkTokens();
+  const isLoading = xphereLoading || ethereumLoading || bscLoading;
+
+  const filteredTokens = currentNetworkTokens.filter(
     (token) =>
       token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
       token.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelectToken = (token: Token) => {
-    // Check if this is a cross-chain token selection
-    const isCrossChain = (token as any).network !== "Xphere";
+  const handleSelectToken = async (token: Token) => {
+    const tokenNetwork = (token as any).network || "Xphere";
     
-    if (isCrossChain) {
-      setShowCrossChainWarning(true);
-      return;
+    // Check if network switching is needed
+    if (tokenNetwork !== "Xphere") {
+      try {
+        const chainId = tokenNetwork === "Ethereum" ? "0x1" : tokenNetwork === "BSC" ? "0x38" : "0x1349489";
+        await switchNetwork(chainId);
+      } catch (error) {
+        console.error("Failed to switch network:", error);
+        setShowCrossChainWarning(true);
+        return;
+      }
     }
     
     onSelectToken(token);
@@ -78,24 +95,28 @@ export function TokenSelector({
     setSearchQuery("");
   };
 
-
-
-  const getNetworkBadge = (network: string) => {
-    if (network === "Xphere") {
-      return <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">Xphere</Badge>;
-    } else {
-      return <Badge variant="outline" className="text-xs border-orange-300 text-orange-600">Cross-chain</Badge>;
+  const handleNetworkSwitch = async (network: string) => {
+    setActiveTab(network);
+    
+    // Auto-switch MetaMask network
+    try {
+      let chainId = "0x1349489"; // Xphere default
+      if (network === "ethereum") chainId = "0x1";
+      if (network === "bsc") chainId = "0x38";
+      
+      await switchNetwork(chainId);
+    } catch (error) {
+      console.error("Failed to switch network:", error);
     }
   };
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Select a Token</DialogTitle>
+            <DialogTitle>Select a token</DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -111,7 +132,7 @@ export function TokenSelector({
               <div>
                 <h4 className="text-sm font-medium mb-2">Popular tokens</h4>
                 <div className="flex flex-wrap gap-2">
-                  {allTokens
+                  {currentNetworkTokens
                     .filter((token) => favoriteTokens.includes(token.symbol))
                     .map((token) => (
                       <Button
@@ -138,29 +159,40 @@ export function TokenSelector({
               </div>
             )}
 
-            <div className="space-y-4">
-              {/* Xphere Network Tokens */}
-              <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                  Xphere Network
-                  {xphereLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => refetchXphere()}
-                    className="h-6 w-6 p-0"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                  </Button>
-                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">Native</Badge>
-                </h4>
-                <ScrollArea className="h-48">
+            <Tabs value={activeTab} onValueChange={handleNetworkSwitch} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="xphere" className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+                  Xphere
+                </TabsTrigger>
+                <TabsTrigger value="ethereum" className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-gray-700"></div>
+                  Ethereum
+                </TabsTrigger>
+                <TabsTrigger value="bsc" className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+                  BSC
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="xphere" className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Xphere Network Tokens</h4>
+                  <div className="flex items-center gap-2">
+                    {xphereLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => refetchXphere()}
+                      className="h-6 w-6 p-0"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <ScrollArea className="h-64">
                   <div className="space-y-1">
-                    {xphereTokens.filter(token =>
-                      searchQuery === "" || 
-                      token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      token.name.toLowerCase().includes(searchQuery.toLowerCase())
-                    ).map((token) => (
+                    {filteredTokens.map((token) => (
                       <Button
                         key={token.id}
                         variant="ghost"
@@ -183,7 +215,7 @@ export function TokenSelector({
                           <div className="text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{token.symbol}</span>
-                              {getNetworkBadge((token as any).network)}
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">Xphere</Badge>
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {token.name}
@@ -205,64 +237,164 @@ export function TokenSelector({
                     ))}
                   </div>
                 </ScrollArea>
-              </div>
+              </TabsContent>
 
-              {/* Cross-chain Tokens */}
-              {otherNetworkTokens.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    Other Networks
-                    <Badge variant="outline" className="text-xs border-orange-300 text-orange-600">Cross-chain</Badge>
-                  </h4>
-                  <ScrollArea className="h-24">
-                    <div className="space-y-1">
-                      {otherNetworkTokens.filter(token =>
-                        searchQuery === "" || 
-                        token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        token.name.toLowerCase().includes(searchQuery.toLowerCase())
-                      ).map((token) => (
-                        <Button
-                          key={token.id}
-                          variant="ghost"
-                          className="w-full justify-between p-3 h-auto opacity-75"
-                          onClick={() => handleSelectToken(token)}
-                          disabled={selectedToken?.id === token.id}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
-                              <img 
-                                src={getTokenIcon(token.symbol, token)} 
-                                alt={token.symbol}
-                                className="w-8 h-8 rounded-full"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                }}
-                              />
-                            </div>
-                            <div className="text-left flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{token.symbol}</span>
-                                {getNetworkBadge((token as any).network)}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {token.name}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <ExternalLink className="w-4 h-4 text-orange-500" />
-                            <div className="text-right">
-                              <div className="font-medium text-sm">Bridge Required</div>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </ScrollArea>
+              <TabsContent value="ethereum" className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Ethereum Network Tokens</h4>
+                  <div className="flex items-center gap-2">
+                    {ethereumLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => refetchEthereum()}
+                      className="h-6 w-6 p-0"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleNetworkSwitch("ethereum")}
+                      className="text-xs"
+                    >
+                      <Wallet className="w-3 h-3 mr-1" />
+                      Switch Network
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </div>
+                <ScrollArea className="h-64">
+                  <div className="space-y-1">
+                    {filteredTokens.map((token) => (
+                      <Button
+                        key={token.id}
+                        variant="ghost"
+                        className="w-full justify-between p-3 h-auto"
+                        onClick={() => handleSelectToken(token)}
+                        disabled={selectedToken?.id === token.id}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                            <img 
+                              src={(token as any).iconUrl || getTokenIcon(token.symbol, token)} 
+                              alt={token.symbol}
+                              className="w-8 h-8 rounded-full"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                          <div className="text-left flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{token.symbol}</span>
+                              <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">Ethereum</Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {token.name}
+                            </div>
+                            {(token as any).price && (
+                              <div className="text-xs text-green-600">
+                                ${(token as any).price.toFixed(4)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {favoriteTokens.includes(token.symbol) && (
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          )}
+                          <div className="text-right">
+                            <div className="font-medium">0.00</div>
+                            <div className="text-sm text-muted-foreground">
+                              Balance
+                            </div>
+                          </div>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+
+              <TabsContent value="bsc" className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">BSC Network Tokens</h4>
+                  <div className="flex items-center gap-2">
+                    {bscLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => refetchBSC()}
+                      className="h-6 w-6 p-0"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleNetworkSwitch("bsc")}
+                      className="text-xs"
+                    >
+                      <Wallet className="w-3 h-3 mr-1" />
+                      Switch Network
+                    </Button>
+                  </div>
+                </div>
+                <ScrollArea className="h-64">
+                  <div className="space-y-1">
+                    {filteredTokens.map((token) => (
+                      <Button
+                        key={token.id}
+                        variant="ghost"
+                        className="w-full justify-between p-3 h-auto"
+                        onClick={() => handleSelectToken(token)}
+                        disabled={selectedToken?.id === token.id}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                            <img 
+                              src={(token as any).iconUrl || getTokenIcon(token.symbol, token)} 
+                              alt={token.symbol}
+                              className="w-8 h-8 rounded-full"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                          <div className="text-left flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{token.symbol}</span>
+                              <Badge variant="outline" className="text-xs border-yellow-300 text-yellow-600">BSC</Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {token.name}
+                            </div>
+                            {(token as any).price && (
+                              <div className="text-xs text-green-600">
+                                ${(token as any).price.toFixed(4)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {favoriteTokens.includes(token.symbol) && (
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          )}
+                          <div className="text-right">
+                            <div className="font-medium">0.00</div>
+                            <div className="text-sm text-muted-foreground">
+                              Balance
+                            </div>
+                          </div>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
           </div>
         </DialogContent>
       </Dialog>
@@ -296,9 +428,11 @@ export function TokenSelector({
               <Button 
                 onClick={() => {
                   setShowCrossChainWarning(false);
+                  onClose();
+                  // Navigate to bridge page
                   window.location.href = '/bridge';
                 }}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Go to Bridge

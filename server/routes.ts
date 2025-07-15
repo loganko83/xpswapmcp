@@ -31,6 +31,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Fetch Ethereum tokens from CoinGecko API
+  app.get("/api/ethereum-tokens", async (req, res) => {
+    try {
+      const response = await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=ethereum-ecosystem&order=market_cap_desc&per_page=50&page=1&sparkline=false");
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch Ethereum tokens");
+      }
+      
+      const data = await response.json();
+      
+      const ethereumTokens = data.map((token: any, index: number) => ({
+        id: index + 2000, // Offset for Ethereum tokens
+        symbol: token.symbol.toUpperCase(),
+        name: token.name,
+        address: token.platforms?.ethereum || "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        isNative: token.symbol.toLowerCase() === "eth",
+        network: "Ethereum",
+        iconUrl: token.image,
+        totalSupply: token.total_supply?.toString() || "0",
+        totalTransfers: 0,
+        isActive: true,
+        price: token.current_price || 0,
+        marketCap: token.market_cap || 0,
+        volume24h: token.total_volume || 0,
+        priceChange24h: token.price_change_percentage_24h || 0
+      }));
+      
+      res.json(ethereumTokens);
+    } catch (error) {
+      console.error("Error fetching Ethereum tokens:", error);
+      res.status(500).json({ message: "Failed to fetch Ethereum tokens" });
+    }
+  });
+
+  // Fetch BSC tokens from CoinGecko API
+  app.get("/api/bsc-tokens", async (req, res) => {
+    try {
+      const response = await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=binance-smart-chain&order=market_cap_desc&per_page=50&page=1&sparkline=false");
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch BSC tokens");
+      }
+      
+      const data = await response.json();
+      
+      const bscTokens = data.map((token: any, index: number) => ({
+        id: index + 3000, // Offset for BSC tokens
+        symbol: token.symbol.toUpperCase(),
+        name: token.name,
+        address: token.platforms?.["binance-smart-chain"] || "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        isNative: token.symbol.toLowerCase() === "bnb",
+        network: "BSC",
+        iconUrl: token.image,
+        totalSupply: token.total_supply?.toString() || "0",
+        totalTransfers: 0,
+        isActive: true,
+        price: token.current_price || 0,
+        marketCap: token.market_cap || 0,
+        volume24h: token.total_volume || 0,
+        priceChange24h: token.price_change_percentage_24h || 0
+      }));
+      
+      res.json(bscTokens);
+    } catch (error) {
+      console.error("Error fetching BSC tokens:", error);
+      res.status(500).json({ message: "Failed to fetch BSC tokens" });
+    }
+  });
+
   // Fetch Xphere tokens from Tamsa API
   app.get("/api/xphere-tokens", async (req, res) => {
     try {
