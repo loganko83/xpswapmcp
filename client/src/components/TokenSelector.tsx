@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Search, Star, AlertTriangle, ExternalLink } from "lucide-react";
+import { Search, Star, AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
 import { Token } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { getTokenIcon } from "@/lib/tokenUtils";
+import { useQuery } from "@tanstack/react-query";
 
 interface TokenSelectorProps {
   isOpen: boolean;
@@ -29,21 +30,35 @@ export function TokenSelector({
   selectedToken,
 }: TokenSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [favoriteTokens] = useState<string[]>(["XP", "USDT", "ETH"]);
+  const [favoriteTokens] = useState<string[]>(["XP", "XPS", "XCR", "XEF"]);
   const [showCrossChainWarning, setShowCrossChainWarning] = useState(false);
 
-  // Convert DEFAULT_TOKENS to Token type
-  const tokens: Token[] = DEFAULT_TOKENS.map((token, index) => ({
-    id: index + 1,
-    ...token,
-    isActive: true,
-  }));
+  // Fetch Xphere tokens from API
+  const { data: xphereTokensData, isLoading: xphereLoading, refetch: refetchXphere } = useQuery({
+    queryKey: ["/api/xphere-tokens"],
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  // Convert DEFAULT_TOKENS to Token type for cross-chain tokens
+  const crossChainTokens: Token[] = DEFAULT_TOKENS
+    .filter((token) => (token as any).network !== "Xphere")
+    .map((token, index) => ({
+      id: index + 1000, // Offset to avoid conflicts
+      ...token,
+      isActive: true,
+    }));
+
+  // Combine Xphere tokens from API with cross-chain tokens
+  const allTokens = [
+    ...(xphereTokensData || []),
+    ...crossChainTokens
+  ];
 
   // Separate tokens by network
-  const xphereTokens = tokens.filter(token => (token as any).network === "Xphere");
-  const crossChainTokens = tokens.filter(token => (token as any).network !== "Xphere");
+  const xphereTokens = allTokens.filter(token => (token as any).network === "Xphere");
+  const otherNetworkTokens = allTokens.filter(token => (token as any).network !== "Xphere");
 
-  const filteredTokens = tokens.filter(
+  const filteredTokens = allTokens.filter(
     (token) =>
       token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
       token.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -96,7 +111,7 @@ export function TokenSelector({
               <div>
                 <h4 className="text-sm font-medium mb-2">Popular tokens</h4>
                 <div className="flex flex-wrap gap-2">
-                  {tokens
+                  {allTokens
                     .filter((token) => favoriteTokens.includes(token.symbol))
                     .map((token) => (
                       <Button
@@ -128,6 +143,15 @@ export function TokenSelector({
               <div>
                 <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                   Xphere Network
+                  {xphereLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => refetchXphere()}
+                    className="h-6 w-6 p-0"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </Button>
                   <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">Native</Badge>
                 </h4>
                 <ScrollArea className="h-48">
@@ -184,7 +208,7 @@ export function TokenSelector({
               </div>
 
               {/* Cross-chain Tokens */}
-              {crossChainTokens.length > 0 && (
+              {otherNetworkTokens.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                     Other Networks
@@ -192,7 +216,7 @@ export function TokenSelector({
                   </h4>
                   <ScrollArea className="h-24">
                     <div className="space-y-1">
-                      {crossChainTokens.filter(token =>
+                      {otherNetworkTokens.filter(token =>
                         searchQuery === "" || 
                         token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         token.name.toLowerCase().includes(searchQuery.toLowerCase())

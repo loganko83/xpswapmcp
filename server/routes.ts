@@ -30,6 +30,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch tokens" });
     }
   });
+  
+  // Fetch Xphere tokens from Tamsa API
+  app.get("/api/xphere-tokens", async (req, res) => {
+    try {
+      // Return hardcoded tokens from Tamsa explorer data
+      const xphereTokens = [
+        {
+          id: 1,
+          symbol: "XP",
+          name: "Xphere",
+          address: "0x0000000000000000000000000000000000000000",
+          decimals: 18,
+          isNative: true,
+          network: "Xphere",
+          iconUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
+          totalSupply: "0",
+          totalTransfers: 0,
+          isActive: true
+        },
+        {
+          id: 2,
+          symbol: "XPS",
+          name: "XpSwap Token",
+          address: "0xf1ba1af6fae54c0f9d82c1d12aef0c57543f12e2",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2",
+          totalSupply: "1000000000",
+          totalTransfers: 0,
+          isActive: true
+        },
+        {
+          id: 3,
+          symbol: "XCR",
+          name: "XCROLL",
+          address: "0x0C6bd4C7581cCc3205eC69BEaB6e6E89A27D45aE",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/xcroll-token-image.png",
+          totalSupply: "55000000000",
+          totalTransfers: 5468,
+          isActive: true
+        },
+        {
+          id: 4,
+          symbol: "XEF",
+          name: "XEF",
+          address: "0x80252c2d06bbd85699c555fc3633d5b8ee67c9ad",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/xef-token-image.png",
+          totalSupply: "6000000000",
+          totalTransfers: 1065,
+          isActive: true
+        },
+        {
+          id: 5,
+          symbol: "ml",
+          name: "Mello",
+          address: "0x889E7CA318d7653630E3e874597D2f35EE7ACc84",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/mello-token-image.png",
+          totalSupply: "1000000000000",
+          totalTransfers: 30,
+          isActive: true
+        },
+        {
+          id: 6,
+          symbol: "WARP",
+          name: "WARP",
+          address: "0x6c14e0bfed4720b06d12902368034394a98252e7",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/warp-xp.png",
+          totalSupply: "10000000083",
+          totalTransfers: 13,
+          isActive: true
+        },
+        {
+          id: 7,
+          symbol: "JTK",
+          name: "JoyToken",
+          address: "0xbe6f5ec8c881fbae2a1a2038ef5e29b875aa90a6",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "1000000",
+          totalTransfers: 102,
+          isActive: true
+        },
+        {
+          id: 8,
+          symbol: "WXP",
+          name: "Wrapped XP",
+          address: "0x56d743a0da63a585006e39688a096ece2a0e1244",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "5",
+          totalTransfers: 9,
+          isActive: true
+        },
+        {
+          id: 9,
+          symbol: "USDT",
+          name: "USDT",
+          address: "0x6485cc42b36b4c982d3f1b6ec42b92007fb0b596",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "800000",
+          totalTransfers: 2,
+          isActive: true
+        },
+        {
+          id: 10,
+          symbol: "xDOG",
+          name: "Xphere Dog",
+          address: "0x3c9048e0a49c9bf31ffa6678e2d2931d5590b5e4",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "1000000000",
+          totalTransfers: 2,
+          isActive: true
+        },
+        {
+          id: 11,
+          symbol: "MEME",
+          name: "XP MEME",
+          address: "0x47A932878A2E3979E7B54F9e9a831e3700463336",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "1000",
+          totalTransfers: 3,
+          isActive: true
+        },
+        {
+          id: 12,
+          symbol: "TTK",
+          name: "TestToken",
+          address: "0x98bc5d8847a850062f373f6e88cbafb890eb0336",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "5500000000",
+          totalTransfers: 10,
+          isActive: true
+        },
+        {
+          id: 13,
+          symbol: "ATK",
+          name: "ABCToken",
+          address: "0xc5b6fee0256b48b992cf317134f921035749a5ac",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "1000000",
+          totalTransfers: 3,
+          isActive: true
+        },
+        {
+          id: 14,
+          symbol: "MTK",
+          name: "My Token",
+          address: "0x2bc089053364f3a8240a573fa28393ad41feb577",
+          decimals: 18,
+          isNative: false,
+          network: "Xphere",
+          iconUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+          totalSupply: "1000000",
+          totalTransfers: 3,
+          isActive: true
+        }
+      ];
+      
+      res.json(xphereTokens);
+    } catch (error) {
+      console.error("Error fetching Xphere tokens:", error);
+      res.status(500).json({ message: "Failed to fetch Xphere tokens" });
+    }
+  });
 
   app.get("/api/tokens/:id", async (req, res) => {
     try {
