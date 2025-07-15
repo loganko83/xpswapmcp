@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { crossChainService } from "@/lib/crossChainService";
+import { lifiService } from "@/lib/lifiService";
 
 interface SupportedNetwork {
   chainId: number;
@@ -177,6 +178,40 @@ export function CrossChainBridge() {
   const [amount, setAmount] = useState("");
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [bridgeData, setBridgeData] = useState<any>(null);
+  const [lifiInitialized, setLifiInitialized] = useState(false);
+  const [lifiError, setLifiError] = useState<string | null>(null);
+
+  // Initialize LI.FI service
+  useEffect(() => {
+    const initializeLiFi = async () => {
+      try {
+        console.log("Initializing LI.FI Bridge Service...");
+        await lifiService.initialize();
+        setLifiInitialized(true);
+        console.log("LI.FI Bridge Service initialized successfully");
+        
+        // Log supported chains
+        const supportedChains = lifiService.getSupportedChains();
+        console.log("LI.FI supported chains:", supportedChains.length);
+        
+        toast({
+          title: "Bridge Service Active",
+          description: `LI.FI Bridge initialized with ${supportedChains.length} supported networks`,
+          variant: "default",
+        });
+      } catch (error) {
+        console.error("Failed to initialize LI.FI service:", error);
+        setLifiError("Failed to initialize bridge service");
+        toast({
+          title: "Bridge Service Error",
+          description: "Unable to initialize cross-chain bridge. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    initializeLiFi();
+  }, [toast]);
 
   // Fetch supported networks
   const { data: networks = [] } = useQuery({
@@ -442,6 +477,26 @@ export function CrossChainBridge() {
         <div className="text-center py-8">
           <h1 className="text-4xl font-bold text-white mb-2">Cross-Chain Bridge</h1>
           <p className="text-gray-300">Transfer tokens seamlessly across different blockchain networks</p>
+          
+          {/* Li.Fi Service Status */}
+          <div className="mt-6 max-w-md mx-auto">
+            <Card className={`${lifiInitialized ? 'border-green-500/30 bg-green-500/10' : lifiError ? 'border-red-500/30 bg-red-500/10' : 'border-yellow-500/30 bg-yellow-500/10'}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${lifiInitialized ? 'bg-green-500' : lifiError ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'}`} />
+                  <div className="text-left">
+                    <div className={`font-medium ${lifiInitialized ? 'text-green-300' : lifiError ? 'text-red-300' : 'text-yellow-300'}`}>
+                      {lifiInitialized ? 'Li.Fi Bridge Service: Connected' : lifiError ? 'Li.Fi Bridge Service: Disconnected' : 'Li.Fi Bridge Service: Connecting...'}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      {lifiInitialized ? `${lifiService.getSupportedChains().length} networks available` : 
+                       lifiError ? 'Bridge service unavailable' : 'Connecting to bridge aggregator...'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
