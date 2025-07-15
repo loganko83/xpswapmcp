@@ -67,6 +67,46 @@ export class Web3Service {
     return typeof window.ethereum !== "undefined";
   }
 
+  // Mobile detection helper
+  private isMobile(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Mobile MetaMask deep link handler
+  private async handleMobileMetaMask(): Promise<void> {
+    if (this.isMobile()) {
+      // Check if MetaMask app is installed
+      const isMetaMaskApp = window.ethereum?.isMetaMask;
+      
+      if (!isMetaMaskApp) {
+        // Try to open MetaMask app with deep link
+        const currentUrl = window.location.href;
+        const metamaskDeepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+        
+        // Show user instruction toast
+        console.log("Redirecting to MetaMask mobile app...");
+        
+        // Open MetaMask app
+        window.location.href = metamaskDeepLink;
+        
+        // Fallback: redirect to app store after delay
+        setTimeout(() => {
+          if (document.hidden) return; // User already left
+          
+          // Redirect to app store
+          const userAgent = navigator.userAgent;
+          if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+            window.location.href = 'https://apps.apple.com/app/metamask/id1438144202';
+          } else {
+            window.location.href = 'https://play.google.com/store/apps/details?id=io.metamask';
+          }
+        }, 3000);
+        
+        throw new Error("MetaMask 앱을 열고 있습니다. 잠시 후 다시 시도해주세요.");
+      }
+    }
+  }
+
   async initializeProvider(): Promise<void> {
     if (!window.ethereum) {
       throw new Error("MetaMask is not installed");
@@ -84,11 +124,21 @@ export class Web3Service {
 
   async connectWallet(): Promise<string> {
     if (!await this.isMetaMaskInstalled()) {
+      // Handle mobile case
+      if (this.isMobile()) {
+        await this.handleMobileMetaMask();
+        return ""; // This will be handled by the mobile flow
+      }
       throw new Error("MetaMask is not installed. Please install MetaMask extension.");
     }
 
     try {
       console.log("Requesting MetaMask connection...");
+      
+      // Handle mobile MetaMask connection
+      if (this.isMobile()) {
+        await this.handleMobileMetaMask();
+      }
       
       // Request account access - this should trigger MetaMask popup
       const accounts = await window.ethereum.request({
@@ -110,13 +160,18 @@ export class Web3Service {
     } catch (error: any) {
       console.error("MetaMask connection error:", error);
       
+      // Handle mobile-specific errors
+      if (this.isMobile() && error.message.includes("User rejected")) {
+        throw new Error("MetaMask 앱에서 연결을 승인해주세요.");
+      }
+      
       // Handle specific MetaMask errors
       if (error.code === 4001) {
-        throw new Error("Connection cancelled by user");
+        throw new Error("사용자가 연결을 취소했습니다.");
       } else if (error.code === -32002) {
-        throw new Error("Connection request already pending. Please check MetaMask.");
+        throw new Error("연결 요청이 이미 진행 중입니다. MetaMask를 확인해주세요.");
       } else {
-        throw new Error(`Failed to connect wallet: ${error.message || error}`);
+        throw new Error(`지갑 연결 실패: ${error.message || error}`);
       }
     }
   }

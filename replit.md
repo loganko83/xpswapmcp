@@ -11,6 +11,11 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Revenue Model**: $100 minting fees, 1% trading fees, all directed to XPS seller wallet
 
 ## Recent Changes
+- **2025-01-15**: Enhanced mobile MetaMask connectivity with dedicated mobile handler
+- **2025-01-15**: Added mobile device detection and deep linking for MetaMask app
+- **2025-01-15**: Created MobileMetaMaskHandler component with app store redirects
+- **2025-01-15**: Updated WalletConnect component with mobile-optimized connection flow
+- **2025-01-15**: Improved mobile user experience with Korean language support for connection messages
 - **2025-01-13**: Fixed footer navigation - Products use internal links, Social links open in new tabs, reduced spacing for single-line display
 - **2025-01-13**: Updated footer external links - Products section now links to https://xpswapmvp.replit.app/[page] for all features
 - **2025-01-13**: Updated Social media links - Medium (https://medium.com/@teamxpsproject), Telegram (https://t.me/xpscommunity), X (https://x.com/xpsproject), News (https://eng.storydot.kr/)
