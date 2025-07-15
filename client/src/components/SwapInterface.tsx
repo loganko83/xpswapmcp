@@ -78,6 +78,10 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     return "0";
   };
 
+  // Format token balance for display
+  const fromTokenBalance = wallet.isConnected ? parseFloat(tokenBalance?.balance || "0").toFixed(4) : "0.0000";
+  const toTokenBalanceAmount = wallet.isConnected ? parseFloat(toTokenBalance?.balance || "0").toFixed(4) : "0.0000";
+
   // Clear inputs when wallet disconnects
   useEffect(() => {
     if (!wallet.isConnected) {
@@ -254,8 +258,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   const fromAmountUSD = fromAmount ? (parseFloat(fromAmount) * fromTokenPrice).toFixed(2) : "0.00";
   const toAmountUSD = toAmount ? (parseFloat(toAmount) * toTokenPrice).toFixed(2) : "0.00";
 
-  const fromTokenBalance = getTokenBalance(fromToken);
-  const toTokenBalanceAmount = getTokenBalance(toToken);
+
   const isInsufficientBalance = fromAmount && 
     parseFloat(fromAmount) > parseFloat(fromTokenBalance);
   
