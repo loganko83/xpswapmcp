@@ -301,9 +301,9 @@ const smartContracts = [
     ]
   },
   {
-    name: "XpSwapDEX",
+    name: "XpSwapDEX Main Router",
     address: "0x5b0bcfa1490d",
-    description: "Main DEX router with real AMM algorithms (x * y = k)",
+    description: "Main DEX router with real AMM algorithms (x * y = k) - Our custom implementation",
     functions: [
       "swapExactTokensForTokens",
       "addLiquidity",
@@ -315,7 +315,7 @@ const smartContracts = [
   {
     name: "XpSwapAdvancedAMM",
     address: "0x123c1d407d04a",
-    description: "Advanced automated market maker with MEV protection",
+    description: "Advanced automated market maker with MEV protection system",
     functions: [
       "swapExactTokensForTokens",
       "addLiquidity",
@@ -869,6 +869,40 @@ export async function checkNetworkStatus(rpcUrl: string): Promise<boolean> {
                 Detailed information about XpSwap's 9 deployed smart contracts on Xphere Network
               </p>
             </div>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Router Addresses
+                </CardTitle>
+                <CardDescription>
+                  Main DEX router addresses for XpSwap custom implementation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div>
+                      <div className="font-semibold text-blue-900">XpSwapDEX Main Router</div>
+                      <div className="text-sm text-blue-700">Our custom implementation</div>
+                    </div>
+                    <code className="bg-blue-100 px-3 py-1 rounded text-sm text-blue-800">
+                      0x5b0bcfa1490d
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                    <div>
+                      <div className="font-semibold text-purple-900">XpSwapAdvancedAMM</div>
+                      <div className="text-sm text-purple-700">MEV protection system</div>
+                    </div>
+                    <code className="bg-purple-100 px-3 py-1 rounded text-sm text-purple-800">
+                      0x123c1d407d04a
+                    </code>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="grid gap-6">
               {smartContracts.map((contract, index) => (

@@ -11,6 +11,10 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Revenue Model**: $100 minting fees, 1% trading fees, all directed to XPS seller wallet
 
 ## Recent Changes
+- **2025-01-17**: Updated Documentation page with Router Address section highlighting XpSwapDEX Main Router and XpSwapAdvancedAMM addresses
+- **2025-01-17**: Enhanced Smart Contracts documentation with visual router address display and custom implementation emphasis
+- **2025-01-17**: Added Router Addresses section to replit.md with complete smart contract suite information
+- **2025-01-17**: Clarified XpSwap custom DEX implementation distinct from PancakeSwap V2/V3 for Xphere Network
 - **2025-01-15**: Enhanced mobile MetaMask connectivity with dedicated mobile handler
 - **2025-01-15**: Added mobile device detection and deep linking for MetaMask app
 - **2025-01-15**: Created MobileMetaMaskHandler component with app store redirects
@@ -395,8 +399,12 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 
 ## Smart Contract Architecture
 
-### Deployed Contract Addresses (Xphere Network)
-- **XpSwapToken**: `0x748031ccc6e1d` (XPS native token)
+### Router Addresses (Xphere Network)
+- **XpSwapDEX Main Router**: `0x5b0bcfa1490d` (Our custom implementation)
+- **XpSwapAdvancedAMM**: `0x123c1d407d04a` (MEV protection system)
+
+### Complete Smart Contract Suite (Xphere Network)
+- **XpSwapToken (XPS)**: `0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2` (Native token)
 - **XpSwapDEX**: `0x5b0bcfa1490d` (Main DEX router)
 - **XpSwapLiquidityPool**: `0xe909098d05c06` (AMM with time-locked liquidity)
 - **XpSwapAdvancedAMM**: `0x123c1d407d04a` (MEV protection system)
