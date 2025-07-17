@@ -502,7 +502,7 @@ export function Layout({ children }: LayoutProps) {
                 </li>
                 <li>
                   <a
-                    href="https://eng.storydot.kr/"
+                    href="https://trendy.storydot.kr"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors"

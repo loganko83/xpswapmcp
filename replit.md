@@ -11,6 +11,7 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 **Revenue Model**: $100 minting fees, 1% trading fees, all directed to XPS seller wallet
 
 ## Recent Changes
+- **2025-01-17**: Updated footer News link from https://eng.storydot.kr/ to https://trendy.storydot.kr for consistent domain usage
 - **2025-01-17**: Updated Documentation page with Router Address section highlighting XpSwapDEX Main Router and XpSwapAdvancedAMM addresses
 - **2025-01-17**: Enhanced Smart Contracts documentation with visual router address display and custom implementation emphasis
 - **2025-01-17**: Added Router Addresses section to replit.md with complete smart contract suite information
@@ -22,7 +23,7 @@ A sophisticated decentralized exchange (DEX) platform built on the Xphere blockc
 - **2025-01-15**: Improved mobile user experience with Korean language support for connection messages
 - **2025-01-13**: Fixed footer navigation - Products use internal links, Social links open in new tabs, reduced spacing for single-line display
 - **2025-01-13**: Updated footer external links - Products section now links to https://xpswapmvp.replit.app/[page] for all features
-- **2025-01-13**: Updated Social media links - Medium (https://medium.com/@teamxpsproject), Telegram (https://t.me/xpscommunity), X (https://x.com/xpsproject), News (https://eng.storydot.kr/)
+- **2025-01-13**: Updated Social media links - Medium (https://medium.com/@teamxpsproject), Telegram (https://t.me/xpscommunity), X (https://x.com/xpsproject), News (https://trendy.storydot.kr)
 - **2025-01-13**: Fixed "Start Trading" buttons on homepage to navigate to Trading page (/trading) instead of Swap page
 - **2025-01-13**: Corrected "Buy XPS" link routing to navigate to xps-purchase page (/xps-purchase)
 - **2025-01-13**: Updated footer production information to reflect latest platform capabilities with XPS ecosystem and DeFi features
