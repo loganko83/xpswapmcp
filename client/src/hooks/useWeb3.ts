@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { WalletConnection } from "@/types";
 import { web3Service } from "@/lib/web3";
+import { zigapWalletService } from "@/lib/zigapWallet";
 import { XPHERE_NETWORK } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,181 +12,327 @@ export function useWeb3() {
     address: null,
     balance: "0",
     chainId: null,
+    walletType: null,
   });
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateWalletInfo = useCallback(async (address: string) => {
+  // Check if mobile device
+  const isMobile = useCallback(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }, []);
+
+  const updateWalletInfo = useCallback(async (address: string, walletType: 'metamask' | 'zigap') => {
     try {
-      // Initialize provider first if not already done
-      if (!web3Service.provider && window.ethereum) {
-        await web3Service.initializeProvider();
+      let balance = "0";
+      let chainId = null;
+
+      if (walletType === 'metamask') {
+        // Initialize provider first if not already done
+        if (!web3Service.provider && window.ethereum) {
+          await web3Service.initializeProvider();
+        }
+        balance = await web3Service.getBalance(address);
+        chainId = await web3Service.getChainId();
+      } else if (walletType === 'zigap') {
+        balance = await zigapWalletService.getZigapBalance(address);
+        chainId = await zigapWalletService.getZigapChainId();
       }
-      
-      const balance = await web3Service.getBalance(address);
-      const chainId = await web3Service.getChainId();
       
       setWallet({
         isConnected: true,
         address,
         balance,
         chainId,
+        walletType,
       });
       
-      console.log("Wallet info updated successfully:", { address, balance, chainId });
+      console.log(`✅ ${walletType} wallet info updated:`, { 
+        address: address.substring(0, 6) + "...", 
+        balance, 
+        chainId,
+        walletType 
+      });
     } catch (err) {
-      console.error("Failed to update wallet info:", err);
+      console.error("❌ Failed to update wallet info:", err);
       setError("Failed to update wallet information");
     }
   }, []);
 
-  const connectWallet = useCallback(async () => {
+  const connectWallet = useCallback(async (walletType: 'metamask' | 'zigap' = 'metamask') => {
     setIsConnecting(true);
     setError(null);
 
     try {
-      const address = await web3Service.connectWallet();
+      console.log(`🔗 Starting ${walletType} wallet connection...`);
       
-      // Smoothly update wallet info
-      await updateWalletInfo(address);
+      let address = "";
+      
+      if (walletType === 'metamask') {
+        // Special handling for mobile devices
+        if (isMobile() && !window.ethereum?.isMetaMask) {
+          throw new Error("모바일에서는 MetaMask 앱을 통해 연결해주세요.");
+        }
+        address = await web3Service.connectWallet();
+      } else if (walletType === 'zigap') {
+        address = await zigapWalletService.connectZigap();
+      }
+      
+      if (!address) {
+        throw new Error("지갑 주소를 가져올 수 없습니다.");
+      }
+
+      console.log(`✅ ${walletType} wallet connected successfully`);
+      
+      // Update wallet info smoothly
+      await updateWalletInfo(address, walletType);
       
       // Show success toast
       toast({
-        title: "지갑 연결 성공",
-        description: `메타마스크가 성공적으로 연결되었습니다.`,
+        title: "🎉 연결 성공",
+        description: `${walletType === 'metamask' ? 'MetaMask' : 'ZIGAP'} 지갑이 성공적으로 연결되었습니다!`,
         variant: "default",
       });
       
-      // Try to switch to Xphere network with delay for better UX
-      setTimeout(async () => {
-        try {
-          await web3Service.switchToXphereNetwork();
-          if (address) {
-            await updateWalletInfo(address);
+      // Try to switch to Xphere network with delay for better UX (MetaMask only)
+      if (walletType === 'metamask') {
+        setTimeout(async () => {
+          try {
+            await web3Service.switchToXphereNetwork();
+            if (address) {
+              await updateWalletInfo(address, walletType);
+              
+              toast({
+                title: "🌐 네트워크 전환",
+                description: "Xphere 네트워크로 전환되었습니다.",
+                variant: "default",
+              });
+            }
+          } catch (networkError) {
+            console.warn("⚠️ Failed to switch to Xphere network:", networkError);
+            toast({
+              title: "ℹ️ 네트워크 안내",
+              description: "수동으로 Xphere 네트워크로 전환해주세요.",
+              variant: "default",
+            });
           }
-        } catch (networkError) {
-          console.warn("Failed to switch to Xphere network:", networkError);
-        }
-      }, 500);
+        }, 1000);
+      }
       
     } catch (err: any) {
+      console.error(`❌ ${walletType} wallet connection failed:`, err);
       setError(err.message);
-      console.error("Failed to connect wallet:", err);
       
-      // Show error toast
+      // Show error toast with better messaging
+      let errorMessage = "지갑 연결에 실패했습니다.";
+      
+      if (err.code === 4001) {
+        errorMessage = "사용자가 연결을 취소했습니다.";
+      } else if (err.code === -32002) {
+        errorMessage = "이미 연결 요청이 진행 중입니다. 지갑을 확인해주세요.";
+      } else if (err.message.includes("User rejected")) {
+        errorMessage = "연결 요청이 거부되었습니다.";
+      } else if (err.message.includes("MetaMask") || err.message.includes("ZIGAP")) {
+        errorMessage = err.message;
+      }
+      
       toast({
-        title: "지갑 연결 실패",
-        description: "메타마스크 연결에 실패했습니다. 다시 시도해주세요.",
+        title: "❌ 연결 실패",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsConnecting(false);
     }
-  }, [updateWalletInfo, toast]);
+  }, [updateWalletInfo, toast, isMobile]);
 
   const disconnectWallet = useCallback(() => {
-    // Add a brief delay for smoother transition
+    console.log("🔌 Disconnecting wallet...");
+    
+    // Smooth transition
     setWallet(prev => ({ ...prev, isConnected: false }));
     
-    // Show disconnect toast
-    toast({
-      title: "지갑 연결 해제",
-      description: "메타마스크 연결이 해제되었습니다.",
-      variant: "default",
-    });
-    
     setTimeout(() => {
-      web3Service.disconnect();
+      if (wallet.walletType === 'metamask') {
+        web3Service.disconnect();
+      } else if (wallet.walletType === 'zigap') {
+        zigapWalletService.disconnectZigap();
+      }
+      
       setWallet({
         isConnected: false,
         address: null,
         balance: "0",
         chainId: null,
+        walletType: null,
       });
       setError(null);
+      
+      console.log("✅ Wallet disconnected successfully");
     }, 300);
-  }, [toast]);
+  }, [wallet.walletType]);
 
   const switchToXphere = useCallback(async () => {
+    setError(null);
+    
     try {
-      await web3Service.switchToXphereNetwork();
-      if (wallet.address) {
-        await updateWalletInfo(wallet.address);
+      console.log("🌐 Switching to Xphere network...");
+      
+      if (wallet.walletType === 'metamask') {
+        await web3Service.switchToXphereNetwork();
+      } else if (wallet.walletType === 'zigap') {
+        await zigapWalletService.switchZigapNetwork(XPHERE_NETWORK.chainId);
       }
       
-      // Show network switch success toast
+      if (wallet.address && wallet.walletType) {
+        await updateWalletInfo(wallet.address, wallet.walletType);
+      }
+      
       toast({
-        title: "네트워크 전환 완료",
+        title: "✅ 네트워크 전환 완료",
         description: "Xphere 네트워크로 성공적으로 전환되었습니다.",
         variant: "default",
       });
+      
+      console.log("✅ Network switched to Xphere successfully");
     } catch (err: any) {
+      console.error("❌ Network switch failed:", err);
       setError(err.message);
       
-      // Show network switch error toast
+      let errorMessage = "네트워크 전환에 실패했습니다.";
+      
+      if (err.code === 4001) {
+        errorMessage = "사용자가 네트워크 전환을 취소했습니다.";
+      } else if (err.code === 4902) {
+        errorMessage = "Xphere 네트워크를 추가하는 중 오류가 발생했습니다.";
+      }
+      
       toast({
-        title: "네트워크 전환 실패",
-        description: "Xphere 네트워크 전환에 실패했습니다.",
+        title: "❌ 네트워크 전환 실패",
+        description: errorMessage,
         variant: "destructive",
       });
     }
-  }, [wallet.address, updateWalletInfo, toast]);
+  }, [wallet.address, wallet.walletType, updateWalletInfo, toast]);
 
-  // Listen for account changes
+  // Enhanced event listeners for both MetaMask and ZIGAP
   useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      const handleAccountsChanged = (accounts: string[]) => {
-        console.log("MetaMask accounts changed:", accounts);
-        if (accounts.length === 0) {
-          // User disconnected from MetaMask
-          disconnectWallet();
-        } else if (accounts[0] !== wallet.address) {
-          // User switched accounts
-          updateWalletInfo(accounts[0]);
-        }
-      };
-
-      const handleChainChanged = (chainId: string) => {
-        const newChainId = parseInt(chainId, 16);
-        console.log("MetaMask network changed:", newChainId);
-        setWallet(prev => ({ ...prev, chainId: newChainId }));
+    const handleAccountsChanged = (accounts: string[]) => {
+      console.log("🔄 Wallet accounts changed:", accounts);
+      
+      if (accounts.length === 0) {
+        // User disconnected from wallet
+        console.log("🔌 User disconnected from wallet");
+        disconnectWallet();
         
-        // Refresh wallet info after network change
-        if (wallet.address) {
-          updateWalletInfo(wallet.address);
-        }
-      };
+        toast({
+          title: "🔌 연결 해제됨",
+          description: "지갑에서 연결이 해제되었습니다.",
+          variant: "default",
+        });
+      } else if (accounts[0] !== wallet.address && wallet.walletType) {
+        // User switched accounts
+        console.log("🔄 User switched accounts");
+        updateWalletInfo(accounts[0], wallet.walletType);
+        
+        toast({
+          title: "🔄 계정 변경됨",
+          description: "지갑 계정이 변경되었습니다.",
+          variant: "default",
+        });
+      }
+    };
 
+    const handleChainChanged = (chainId: string) => {
+      const newChainId = parseInt(chainId, 16);
+      console.log("🌐 Network changed:", newChainId);
+      
+      setWallet(prev => ({ ...prev, chainId: newChainId }));
+      
+      // Refresh wallet info after network change
+      if (wallet.address && wallet.walletType) {
+        updateWalletInfo(wallet.address, wallet.walletType);
+      }
+      
+      // Show network change notification
+      const networkName = newChainId === XPHERE_NETWORK.chainId ? "Xphere" : `Chain ${newChainId}`;
+      toast({
+        title: "🌐 네트워크 변경됨",
+        description: `${networkName} 네트워크로 변경되었습니다.`,
+        variant: "default",
+      });
+    };
+
+    // MetaMask event listeners
+    if (typeof window.ethereum !== "undefined") {
       window.ethereum.on("accountsChanged", handleAccountsChanged);
       window.ethereum.on("chainChanged", handleChainChanged);
+    }
 
-      return () => {
+    // ZIGAP event listeners
+    if (zigapWalletService.isZigapConnected()) {
+      zigapWalletService.onZigapAccountsChanged(handleAccountsChanged);
+      zigapWalletService.onZigapChainChanged(handleChainChanged);
+    }
+
+    return () => {
+      // Cleanup MetaMask event listeners
+      if (typeof window.ethereum !== "undefined") {
         window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
         window.ethereum.removeListener("chainChanged", handleChainChanged);
-      };
-    }
-  }, [wallet.address, updateWalletInfo, disconnectWallet]);
+      }
+      
+      // Cleanup ZIGAP event listeners
+      zigapWalletService.removeZigapListener("accountsChanged", handleAccountsChanged);
+      zigapWalletService.removeZigapListener("chainChanged", handleChainChanged);
+    };
+  }, [wallet.address, wallet.walletType, wallet.isConnected, updateWalletInfo, disconnectWallet, toast]);
 
   // Check if already connected on mount
   useEffect(() => {
     const checkConnection = async () => {
       try {
+        // Check MetaMask connection
         if (typeof window.ethereum !== "undefined") {
           const accounts = await window.ethereum.request({
             method: "eth_accounts",
           });
           
           if (accounts.length > 0) {
-            await updateWalletInfo(accounts[0]);
+            console.log("🔄 Restoring MetaMask connection...");
+            await updateWalletInfo(accounts[0], 'metamask');
+            console.log("✅ MetaMask connection restored");
+            return;
+          }
+        }
+        
+        // Check ZIGAP connection
+        if (await zigapWalletService.isZigapInstalled()) {
+          const zigapAccounts = await zigapWalletService.getZigapAccounts();
+          if (zigapAccounts.length > 0) {
+            console.log("🔄 Restoring ZIGAP connection...");
+            await updateWalletInfo(zigapAccounts[0], 'zigap');
+            console.log("✅ ZIGAP connection restored");
           }
         }
       } catch (err) {
-        console.error("Failed to check existing connection:", err);
+        console.error("❌ Failed to check existing connection:", err);
       }
     };
 
     checkConnection();
   }, [updateWalletInfo]);
+
+  // Auto-clear errors after some time
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 10000); // Clear error after 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const isXphereNetwork = wallet.chainId === XPHERE_NETWORK.chainId;
 
@@ -194,6 +341,7 @@ export function useWeb3() {
     isConnecting,
     error,
     isXphereNetwork,
+    isMobile: isMobile(),
     connectWallet,
     disconnectWallet,
     switchToXphere,

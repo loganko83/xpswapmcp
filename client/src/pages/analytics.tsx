@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
           ETH: tokenPrices.ETH?.price || 2700,
           BNB: tokenPrices.BNB?.price || 310,
           timestamp: now.getTime(),
-          volume: Math.random() * 1000000 + 500000 // Simulated volume
+          volume: getSecureRandomInt(0, 1000000) + 500000 // Simulated volume
         };
         
         // Keep last 24 data points (12 hours with 30-second intervals)

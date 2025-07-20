@@ -8,6 +8,19 @@ import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { Activity, TrendingUp, TrendingDown, DollarSign, Users, Zap, RefreshCw, AlertCircle, Target, Eye, Radio } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+
+// 보안 강화된 유틸리티 함수
+const generateSecureId = (length: number = 16): string => {
+  const array = new Uint8Array(Math.ceil(length / 2));
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').slice(0, length);
+};
+
+const getSecureRandom = (): number => {
+  const array = new Uint8Array(4);
+  crypto.getRandomValues(array);
+  return array[0] / 255;
+};
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 
 interface LiveMetrics {
@@ -104,15 +117,15 @@ export function RealTimeAnalyticsDashboard() {
     const now = Date.now();
     const basePrice = tokenPrices?.XP?.price || 0.0152;
     const volatility = 0.02; // 2% volatility
-    const priceChange = (Math.random() - 0.5) * volatility;
+    const priceChange = ((getSecureRandom() - 0.5)) * volatility;
     const newPrice = basePrice * (1 + priceChange);
 
     const newDataPoint: LiveMetrics = {
       timestamp: now,
       price: newPrice,
-      volume: Math.random() * 50000 + 25000,
-      trades: Math.floor(Math.random() * 10) + 5,
-      liquidity: 5200000 + (Math.random() - 0.5) * 200000,
+      volume: getSecureRandomInt(0, 50000) + 25000,
+      trades: Math.floor(getSecureRandomInt(0, 10)) + 5,
+      liquidity: 5200000 + ((getSecureRandom() - 0.5)) * 200000,
       volatility: Math.abs(priceChange) * 100,
       marketCap: newPrice * 1000000000, // Assuming 1B supply
       change: ((newPrice - basePrice) / basePrice) * 100
@@ -158,14 +171,14 @@ export function RealTimeAnalyticsDashboard() {
     const types: ('buy' | 'sell')[] = ['buy', 'sell'];
     
     const newTrade: TradeData = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: getSecureRandom().toString(36).substr(2, 9),
       timestamp: Date.now(),
-      pair: pairs[Math.floor(Math.random() * pairs.length)],
-      type: types[Math.floor(Math.random() * types.length)],
-      amount: Math.random() * 10000 + 100,
-      price: tokenPrices.XP.price * (1 + (Math.random() - 0.5) * 0.01),
+      pair: pairs[Math.floor(getSecureRandom() * pairs.length)],
+      type: types[Math.floor(getSecureRandom() * types.length)],
+      amount: getSecureRandomInt(0, 10000) + 100,
+      price: tokenPrices.XP.price * (1 + ((getSecureRandom() - 0.5)) * 0.01),
       value: 0,
-      user: `0x${Math.random().toString(16).substr(2, 8)}...`
+      user: `0x${generateSecureId(8)}...`
     };
     newTrade.value = newTrade.amount * newTrade.price;
 
@@ -189,7 +202,7 @@ export function RealTimeAnalyticsDashboard() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (isLive) {
-        setConnectionStatus(Math.random() > 0.95 ? 'connecting' : 'connected');
+        setConnectionStatus(getSecureRandom() > 0.95 ? 'connecting' : 'connected');
       } else {
         setConnectionStatus('disconnected');
       }

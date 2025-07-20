@@ -1,10 +1,17 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve markdown files as static content
+app.use('/DEVELOPERS_GUIDE.md', express.static(path.join(process.cwd(), 'DEVELOPERS_GUIDE.md')));
+app.use('/API_REFERENCE.md', express.static(path.join(process.cwd(), 'API_REFERENCE.md')));
+app.use('/README.md', express.static(path.join(process.cwd(), 'README.md')));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -60,11 +67,9 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  const host = process.env.NODE_ENV === 'development' ? 'localhost' : '0.0.0.0';
+  
+  server.listen(port, host, () => {
+    log(`serving on http://${host}:${port}`);
   });
 })();

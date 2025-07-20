@@ -9,6 +9,13 @@ import {
   Token as LifiToken 
 } from '@lifi/sdk';
 
+// 보안 강화된 유틸리티 함수
+const generateSecureTxHash = (): string => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return `0x${Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')}`;
+};
+
 // Initialize LI.FI SDK configuration
 createConfig({
   integrator: 'XpSwap'
@@ -138,7 +145,7 @@ export class LiFiBridgeService {
       // This would typically integrate with the user's wallet
       // For now, we'll return a mock transaction hash
       console.log('Executing bridge transaction:', route);
-      return '0x' + Math.random().toString(16).substr(2, 64);
+      return generateSecureTxHash();
     } catch (error) {
       console.error('Failed to execute bridge:', error);
       return null;

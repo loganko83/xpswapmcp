@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,15 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Eye,
+  Lock,
+  RefreshCw
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useWeb3 } from "@/hooks/useWeb3";
+import { useToast } from "@/hooks/use-toast";
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface RiskMetric {
   id: string;
@@ -32,7 +37,7 @@ interface RiskMetric {
 
 interface RiskAlert {
   id: string;
-  type: "liquidation" | "impermanent_loss" | "volatility" | "concentration";
+  type: "liquidation" | "impermanent_loss" | "volatility" | "concentration" | "security";
   severity: "low" | "medium" | "high";
   title: string;
   description: string;
@@ -41,9 +46,19 @@ interface RiskAlert {
   timestamp: number;
 }
 
+interface SecurityMetric {
+  name: string;
+  status: "secure" | "warning" | "critical";
+  value: number;
+  description: string;
+  last_checked: number;
+}
+
 export function RiskManagement() {
   const { wallet } = useWeb3();
+  const { toast } = useToast();
   const [selectedTimeframe, setSelectedTimeframe] = useState("7d");
+  const [activeTab, setActiveTab] = useState("portfolio");
 
   // Fetch risk analysis data
   const { data: riskData, isLoading } = useQuery({
@@ -71,21 +86,31 @@ export function RiskManagement() {
     refetchInterval: 10000, // Update every 10 seconds
   });
 
+  // Fetch security metrics
+  const { data: securityMetrics } = useQuery({
+    queryKey: ["/api/security/status"],
+    refetchInterval: 5000, // Update every 5 seconds
+  });
+
   const getRiskColor = (status: string) => {
     switch (status) {
-      case "safe": return "text-green-500";
+      case "safe":
+      case "secure": return "text-green-500";
       case "warning": return "text-yellow-500";
-      case "danger": return "text-red-500";
+      case "danger":
+      case "critical": return "text-red-500";
       default: return "text-gray-500";
     }
   };
 
   const getRiskBadge = (status: string) => {
     switch (status) {
-      case "safe": return "bg-green-100 text-green-800";
-      case "warning": return "bg-yellow-100 text-yellow-800";
-      case "danger": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "safe":
+      case "secure": return "bg-green-100 text-green-800 border-green-200";
+      case "warning": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "danger":
+      case "critical": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -98,384 +123,440 @@ export function RiskManagement() {
     }
   };
 
-  const calculateOverallRisk = () => {
-    if (!riskData?.metrics) return 0;
-    const totalRisk = riskData.metrics.reduce((sum: number, metric: RiskMetric) => sum + metric.value, 0);
-    return Math.min(100, totalRisk / riskData.metrics.length);
+  const handleMitigateRisk = async (alertId: string) => {
+    try {
+      const response = await fetch(`/api/risk/mitigate/${alertId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userAddress: wallet.address }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Risk Mitigation Initiated",
+          description: "Risk mitigation measures have been applied",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to initiate risk mitigation",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!wallet.isConnected) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Card className="text-center py-12">
-          <CardContent>
-            <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-bold mb-2">Connect Your Wallet</h2>
-            <p className="text-muted-foreground">Connect your wallet to access risk management tools</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+        <div className="max-w-2xl mx-auto pt-20">
+          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
+                <p className="text-gray-300">Connect your wallet to access risk management tools</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Risk Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Shield className="w-5 h-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Overall Risk Score</p>
-                <p className="text-2xl font-bold">{Math.round(calculateOverallRisk())}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="w-5 h-5 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Portfolio Health</p>
-                <p className="text-2xl font-bold">{portfolioRisk?.healthScore || "85"}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Active Alerts</p>
-                <p className="text-2xl font-bold">{alerts?.length || 0}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Risk Limit Usage</p>
-                <p className="text-2xl font-bold">{portfolioRisk?.limitUsage || "42"}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center py-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Risk Management</h1>
+          <p className="text-gray-300">Monitor and manage your portfolio risks and security</p>
+        </div>
 
-      {/* Risk Alerts */}
-      {alerts && alerts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              <span>Risk Alerts</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {alerts.map((alert: RiskAlert) => (
-                <Alert key={alert.id} className="border-l-4 border-l-yellow-500">
-                  <div className="flex items-start space-x-3">
-                    {getAlertIcon(alert.severity)}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">{alert.title}</h4>
-                        <Badge className={getRiskBadge(alert.severity)}>
-                          {alert.severity}
-                        </Badge>
-                      </div>
-                      <AlertDescription className="mt-1">
-                        {alert.description}
-                      </AlertDescription>
-                      <div className="mt-2 text-sm">
-                        <p className="text-muted-foreground">
-                          <strong>Impact:</strong> {alert.impact}
-                        </p>
-                        <p className="text-muted-foreground">
-                          <strong>Recommendation:</strong> {alert.recommendation}
-                        </p>
-                      </div>
-                    </div>
+        {/* Risk Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-blue-500/20">
+                  <Target className="w-6 h-6 text-blue-400" />
+                </div>
+                <div>
+                  <div className="text-white font-medium">Risk Score</div>
+                  <div className="text-2xl font-bold text-blue-400">
+                    {portfolioRisk?.risk_score || 72}/100
                   </div>
-                </Alert>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      <Tabs defaultValue="metrics" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="metrics">Risk Metrics</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio Risk</TabsTrigger>
-          <TabsTrigger value="market">Market Risk</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-full ${securityMetrics?.overall === 'secure' ? 'bg-green-500/20' : 'bg-yellow-500/20'}`}>
+                  <Shield className={`w-6 h-6 ${getRiskColor(securityMetrics?.overall || 'secure')}`} />
+                </div>
+                <div>
+                  <div className="text-white font-medium">Security Status</div>
+                  <Badge className={getRiskBadge(securityMetrics?.overall || 'secure')}>
+                    {securityMetrics?.overall?.toUpperCase() || 'SECURE'}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="metrics" className="space-y-4">
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-8">Loading risk metrics...</div>
-            ) : (
-              (riskData?.metrics || [
-                {
-                  id: "liquidation",
-                  name: "Liquidation Risk",
-                  value: 15,
-                  threshold: 80,
-                  status: "safe",
-                  description: "Risk of position liquidation based on collateral ratio",
-                  recommendation: "Maintain healthy collateral ratios above 150%"
-                },
-                {
-                  id: "impermanent_loss",
-                  name: "Impermanent Loss",
-                  value: 23,
-                  threshold: 50,
-                  status: "safe",
-                  description: "Potential loss from providing liquidity vs holding tokens",
-                  recommendation: "Monitor price divergence between paired tokens"
-                },
-                {
-                  id: "volatility",
-                  name: "Portfolio Volatility",
-                  value: 65,
-                  threshold: 70,
-                  status: "warning",
-                  description: "Price volatility of your portfolio over time",
-                  recommendation: "Consider diversifying into more stable assets"
-                },
-                {
-                  id: "concentration",
-                  name: "Concentration Risk",
-                  value: 45,
-                  threshold: 60,
-                  status: "safe",
-                  description: "Risk from over-concentration in single assets",
-                  recommendation: "Diversify holdings across multiple tokens"
-                }
-              ]).map((metric: RiskMetric) => (
-                <Card key={metric.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{metric.name}</CardTitle>
-                      <Badge className={getRiskBadge(metric.status)}>
-                        {metric.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Current Risk Level</span>
-                          <span className="font-medium">{metric.value}%</span>
-                        </div>
-                        <Progress value={metric.value} className="h-2" />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Safe Zone</span>
-                          <span>Threshold: {metric.threshold}%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">{metric.description}</p>
-                        <div className="flex items-start space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <p className="text-sm font-medium">{metric.recommendation}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </TabsContent>
+          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-yellow-500/20">
+                  <AlertTriangle className="w-6 h-6 text-yellow-400" />
+                </div>
+                <div>
+                  <div className="text-white font-medium">Active Alerts</div>
+                  <div className="text-2xl font-bold text-yellow-400">
+                    {alerts?.filter((alert: RiskAlert) => alert.severity === 'high' || alert.severity === 'medium').length || 3}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="portfolio" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Asset Allocation Risk</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {(portfolioRisk?.assetAllocation || [
-                    { asset: "XP", allocation: 45, risk: "medium" },
-                    { asset: "USDT", allocation: 25, risk: "low" },
-                    { asset: "ETH", allocation: 20, risk: "medium" },
-                    { asset: "BTC", allocation: 10, risk: "medium" }
-                  ]).map((asset: any) => (
-                    <div key={asset.asset} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">{asset.asset}</span>
-                        <Badge variant="outline" className={getRiskBadge(asset.risk)}>
-                          {asset.risk}
+          <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-purple-500/20">
+                  <Activity className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <div className="text-white font-medium">Volatility</div>
+                  <div className="text-2xl font-bold text-purple-400">
+                    {marketRisk?.volatility_index || 24}%
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Risk Management Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-black/20 border-white/10">
+            <TabsTrigger value="portfolio" className="text-white data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+              Portfolio Risk
+            </TabsTrigger>
+            <TabsTrigger value="security" className="text-white data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="market" className="text-white data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+              Market Risk
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="text-white data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+              Risk Alerts
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Portfolio Risk Tab */}
+          <TabsContent value="portfolio" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Portfolio Risk Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Mock portfolio risk metrics */}
+                  {[
+                    { name: "Concentration Risk", value: 65, status: "warning", description: "High concentration in XP tokens" },
+                    { name: "Liquidity Risk", value: 82, status: "safe", description: "Good liquidity across positions" },
+                    { name: "Volatility Risk", value: 45, status: "safe", description: "Moderate volatility exposure" },
+                    { name: "Impermanent Loss", value: 23, status: "warning", description: "Potential IL in LP positions" }
+                  ].map((metric, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-white font-medium">{metric.name}</span>
+                        <Badge className={getRiskBadge(metric.status)}>
+                          {metric.value}%
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm">{asset.allocation}%</span>
-                        <Progress value={asset.allocation} className="w-16 h-2" />
-                      </div>
+                      <Progress value={metric.value} className="h-2" />
+                      <p className="text-gray-400 text-sm">{metric.description}</p>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Risk Factors</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {(portfolioRisk?.riskFactors || [
-                    { factor: "Smart Contract Risk", level: "Low", impact: "Minor" },
-                    { factor: "Liquidity Risk", level: "Medium", impact: "Moderate" },
-                    { factor: "Market Risk", level: "High", impact: "Major" },
-                    { factor: "Counterparty Risk", level: "Low", impact: "Minor" }
-                  ]).map((factor: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between">
+              <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white">Risk Trend</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={[
+                        { timestamp: Date.now() - 86400000 * 6, risk: 68 },
+                        { timestamp: Date.now() - 86400000 * 5, risk: 71 },
+                        { timestamp: Date.now() - 86400000 * 4, risk: 69 },
+                        { timestamp: Date.now() - 86400000 * 3, risk: 74 },
+                        { timestamp: Date.now() - 86400000 * 2, risk: 72 },
+                        { timestamp: Date.now() - 86400000 * 1, risk: 70 },
+                        { timestamp: Date.now(), risk: 72 }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="timestamp" stroke="#9CA3AF" />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: "#1F2937", 
+                            border: "1px solid #374151",
+                            borderRadius: "8px",
+                            color: "#F9FAFB"
+                          }} 
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="risk" 
+                          stroke="#8B5CF6" 
+                          strokeWidth={2}
+                          name="Risk Score"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Security Systems
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {securityMetrics?.systems && Object.entries(securityMetrics.systems).map(([system, active]) => (
+                    <div key={system} className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-white/10">
+                      <div className="flex items-center gap-3">
+                        {active ? (
+                          <CheckCircle className="w-5 h-5 text-green-400" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-red-400" />
+                        )}
+                        <span className="text-white capitalize">
+                          {system.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <Badge className={active ? getRiskBadge('secure') : getRiskBadge('critical')}>
+                        {active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    Security Monitoring
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-400">97.8%</div>
+                      <div className="text-gray-400 text-sm">Success Rate</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-400">47</div>
+                      <div className="text-gray-400 text-sm">Threats Blocked</div>
+                    </div>
+                  </div>
+                  
+                  <Alert className="border-green-500/20 bg-green-500/10">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    <AlertDescription className="text-green-300">
+                      All security systems are operational and monitoring actively.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Market Risk Tab */}
+          <TabsContent value="market" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Activity className="w-5 h-5" />
+                    Market Risk Indicators
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { name: "Market Volatility", value: 24, status: "warning", trend: "up" },
+                    { name: "Liquidity Depth", value: 78, status: "safe", trend: "stable" },
+                    { name: "Price Impact", value: 12, status: "safe", trend: "down" },
+                    { name: "Slippage Risk", value: 8, status: "safe", trend: "stable" }
+                  ].map((indicator, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-white/10">
                       <div>
-                        <div className="font-medium">{factor.factor}</div>
-                        <div className="text-sm text-muted-foreground">Impact: {factor.impact}</div>
+                        <div className="text-white font-medium">{indicator.name}</div>
+                        <div className="text-gray-400 text-sm">
+                          {indicator.value}% 
+                          {indicator.trend === 'up' && <TrendingUp className="w-3 h-3 inline ml-1 text-red-400" />}
+                          {indicator.trend === 'down' && <TrendingDown className="w-3 h-3 inline ml-1 text-green-400" />}
+                        </div>
                       </div>
-                      <Badge className={getRiskBadge(factor.level.toLowerCase())}>
-                        {factor.level}
+                      <Badge className={getRiskBadge(indicator.status)}>
+                        {indicator.status}
                       </Badge>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                </CardContent>
+              </Card>
 
-        <TabsContent value="market" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
+              <Card className="bg-black/20 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white">Market Volatility Trend</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={[
+                        { timestamp: Date.now() - 86400000 * 6, volatility: 18 },
+                        { timestamp: Date.now() - 86400000 * 5, volatility: 22 },
+                        { timestamp: Date.now() - 86400000 * 4, volatility: 19 },
+                        { timestamp: Date.now() - 86400000 * 3, volatility: 26 },
+                        { timestamp: Date.now() - 86400000 * 2, volatility: 24 },
+                        { timestamp: Date.now() - 86400000 * 1, volatility: 21 },
+                        { timestamp: Date.now(), volatility: 24 }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="timestamp" stroke="#9CA3AF" />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: "#1F2937", 
+                            border: "1px solid #374151",
+                            borderRadius: "8px",
+                            color: "#F9FAFB"
+                          }} 
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="volatility"
+                          stroke="#F59E0B"
+                          fill="#F59E0B"
+                          fillOpacity={0.2}
+                          name="Volatility %"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Risk Alerts Tab */}
+          <TabsContent value="alerts" className="space-y-6">
+            <Card className="bg-black/20 backdrop-blur-lg border-white/10">
               <CardHeader>
-                <CardTitle>Market Volatility</CardTitle>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Active Risk Alerts
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Current VIX</span>
-                    <span className="text-2xl font-bold">{marketRisk?.vix || "24.5"}</span>
-                  </div>
-                  <Progress value={marketRisk?.vix || 24.5} className="h-2" />
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span>Stable market conditions</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Fear & Greed Index</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Current Index</span>
-                    <span className="text-2xl font-bold">{marketRisk?.fearGreed || "67"}</span>
-                  </div>
-                  <Progress value={marketRisk?.fearGreed || 67} className="h-2" />
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span>Greed territory - exercise caution</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Market Risk Indicators</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(marketRisk?.indicators || [
-                  { name: "Correlation Risk", value: 0.85, description: "High correlation between assets" },
-                  { name: "Liquidity Risk", value: 0.23, description: "Low liquidity in some markets" },
-                  { name: "Systemic Risk", value: 0.34, description: "Overall system stability" }
-                ]).map((indicator: any, index: number) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">{indicator.name}</span>
-                      <span className="text-sm">{Math.round(indicator.value * 100)}%</span>
+              <CardContent className="space-y-4">
+                {/* Mock risk alerts */}
+                {[
+                  {
+                    id: "alert_001",
+                    type: "concentration",
+                    severity: "medium",
+                    title: "High Token Concentration",
+                    description: "Over 65% of portfolio concentrated in XP tokens",
+                    impact: "Increased volatility exposure",
+                    recommendation: "Consider diversifying into stablecoins"
+                  },
+                  {
+                    id: "alert_002",
+                    type: "impermanent_loss",
+                    severity: "low",
+                    title: "Potential Impermanent Loss",
+                    description: "LP position showing 3.2% impermanent loss",
+                    impact: "Reduced returns compared to holding",
+                    recommendation: "Monitor price divergence"
+                  },
+                  {
+                    id: "alert_003",
+                    type: "security",
+                    severity: "high",
+                    title: "MEV Attack Detected",
+                    description: "Suspicious MEV activity on recent transactions",
+                    impact: "Potential value extraction",
+                    recommendation: "Use MEV protection services"
+                  }
+                ].map((alert, index) => (
+                  <div key={alert.id} className="p-4 bg-black/20 rounded-lg border border-white/10">
+                    <div className="flex items-start gap-3">
+                      {getAlertIcon(alert.severity)}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-white font-medium">{alert.title}</div>
+                          <Badge className={`text-xs ${
+                            alert.severity === 'high' ? 'bg-red-100 text-red-800' :
+                            alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {alert.severity}
+                          </Badge>
+                        </div>
+                        <div className="text-gray-300 text-sm mb-2">{alert.description}</div>
+                        <div className="text-gray-400 text-xs mb-2">Impact: {alert.impact}</div>
+                        <div className="text-blue-300 text-xs">{alert.recommendation}</div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleMitigateRisk(alert.id)}
+                        className="bg-purple-500 hover:bg-purple-600"
+                      >
+                        Mitigate
+                      </Button>
                     </div>
-                    <Progress value={indicator.value * 100} className="h-2" />
-                    <p className="text-sm text-muted-foreground">{indicator.description}</p>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Risk Management Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Risk Tolerance</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="conservative" name="risk-tolerance" className="mr-2" />
-                      <label htmlFor="conservative">Conservative (Low Risk)</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="moderate" name="risk-tolerance" className="mr-2" defaultChecked />
-                      <label htmlFor="moderate">Moderate (Medium Risk)</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="aggressive" name="risk-tolerance" className="mr-2" />
-                      <label htmlFor="aggressive">Aggressive (High Risk)</label>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Alert Thresholds</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Liquidation Risk</span>
-                      <span className="text-sm font-medium">80%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Portfolio Volatility</span>
-                      <span className="text-sm font-medium">70%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Concentration Risk</span>
-                      <span className="text-sm font-medium">60%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline">Reset to Default</Button>
-                  <Button>Save Settings</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

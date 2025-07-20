@@ -67,7 +67,7 @@ export default function TradingPage() {
   const [candlestickSeries, setCandlestickSeries] = useState<any>(null);
   const [volumeSeries, setVolumeSeries] = useState<any>(null);
   
-  const [selectedPair, setSelectedPair] = useState("XP-USDT");
+  const [selectedPair, setSelectedPair] = useState("XPS-XP");
   const [timeFrame, setTimeFrame] = useState("1h");
   const [orderType, setOrderType] = useState("market");
   const [side, setSide] = useState("buy");

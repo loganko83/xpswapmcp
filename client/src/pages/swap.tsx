@@ -68,7 +68,7 @@ export default function SwapPage() {
                   </div>
                   <div className="text-left">
                     <h3 className="text-xl font-bold mb-1">XPS Native Token</h3>
-                    <p className="text-blue-100 text-sm">Up to 75% trading fee discount + Up to 400% staking APY</p>
+                    <p className="text-blue-100 text-sm">Up to 75% trading fee discount + Up to 75% staking APY</p>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -98,7 +98,7 @@ export default function SwapPage() {
                 <DollarSign className="w-7 h-7 text-white" />
               </div>
               <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(parseFloat(marketStats?.totalValueLocked || "12400000"))}
+                {marketStats?.totalValueLocked ? formatCurrency(parseFloat(marketStats.totalValueLocked)) : "$32.5K"}
               </div>
               <div className="text-sm text-muted-foreground font-medium">Total Value Locked</div>
             </CardContent>
@@ -110,7 +110,7 @@ export default function SwapPage() {
                 <Activity className="w-7 h-7 text-white" />
               </div>
               <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(xpData?.volume24h || 2500000)}
+                {marketStats?.volume24h ? formatCurrency(parseFloat(marketStats.volume24h)) : "$8.75K"}
               </div>
               <div className="text-sm text-muted-foreground font-medium">24h Volume</div>
             </CardContent>
@@ -121,7 +121,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-4">
                 <Zap className="w-7 h-7 text-white" />
               </div>
-              <div className="text-2xl font-bold text-purple-600">{marketStats?.activePairs || 8}</div>
+              <div className="text-2xl font-bold text-purple-600">{marketStats?.activePairs || 3}</div>
               <div className="text-sm text-muted-foreground font-medium">Active Pairs</div>
             </CardContent>
           </Card>
@@ -230,7 +230,11 @@ export default function SwapPage() {
                       <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
                         Execute trades in seconds with minimal slippage, competitive fees, and seamless user experience across all devices.
                       </p>
-                      <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        onClick={() => window.location.href = '/swap'}
+                      >
                         Start Trading
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -246,9 +250,13 @@ export default function SwapPage() {
                         <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">Yield Farming</h3>
                       </div>
                       <p className="text-sm text-green-700 dark:text-green-300 mb-4">
-                        Earn up to 158.3% APY by providing liquidity and staking LP tokens in our optimized farming pools.
+                        Earn up to 75% APY by providing liquidity and staking LP tokens in our beta farming pools.
                       </p>
-                      <Button size="sm" className="w-full bg-green-600 hover:bg-green-700">
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={() => window.location.href = '/farm'}
+                      >
                         Explore Farms
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -264,9 +272,13 @@ export default function SwapPage() {
                         <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">Cross-Chain Bridge</h3>
                       </div>
                       <p className="text-sm text-purple-700 dark:text-purple-300 mb-4">
-                        Bridge assets across 5+ networks with $42.8M total volume and industry-leading security protocols.
+                        Bridge assets across 6+ networks with secure protocols and user-friendly interface.
                       </p>
-                      <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700">
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        onClick={() => window.location.href = '/bridge'}
+                      >
                         Bridge Assets
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -282,9 +294,13 @@ export default function SwapPage() {
                         <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100">DAO Governance</h3>
                       </div>
                       <p className="text-sm text-orange-700 dark:text-orange-300 mb-4">
-                        Vote on protocol upgrades, parameter changes, and earn rewards for active participation in governance.
+                        Participate in protocol governance and earn rewards for active community involvement.
                       </p>
-                      <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-orange-600 hover:bg-orange-700"
+                        onClick={() => window.location.href = '/governance'}
+                      >
                         Join DAO
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -312,7 +328,7 @@ export default function SwapPage() {
                         <div className="text-sm text-blue-700 dark:text-blue-300 font-medium">Trading Fee</div>
                       </div>
                       <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                        <div className="text-3xl font-bold text-purple-600 mb-1">2,847</div>
+                        <div className="text-3xl font-bold text-purple-600 mb-1">47</div>
                         <div className="text-sm text-purple-700 dark:text-purple-300 font-medium">24h Trades</div>
                       </div>
                       <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
@@ -331,11 +347,11 @@ export default function SwapPage() {
                     <CardContent className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Uptime</span>
-                        <span className="font-semibold text-green-600">99.9%</span>
+                        <span className="font-semibold text-green-600">99.2%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Active Validators</span>
-                        <span className="font-semibold">127</span>
+                        <span className="text-sm text-muted-foreground">Active Nodes</span>
+                        <span className="font-semibold">12</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Network Load</span>
@@ -351,15 +367,15 @@ export default function SwapPage() {
                     <CardContent className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Smart Contracts</span>
-                        <Badge variant="outline" className="text-green-600 border-green-200">Audited</Badge>
+                        <Badge variant="outline" className="text-yellow-600 border-yellow-200">In Progress</Badge>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Bug Bounty</span>
-                        <span className="font-semibold">$50K</span>
+                        <span className="font-semibold">$5K</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Insurance Fund</span>
-                        <span className="font-semibold">$2.1M</span>
+                        <span className="font-semibold">$25K</span>
                       </div>
                     </CardContent>
                   </Card>

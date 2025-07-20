@@ -10,6 +10,7 @@ import { Wallet, TrendingUp, TrendingDown, DollarSign, Target, AlertCircle, Eye,
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
 import { QuickShareButton } from "./SocialSharing";
+import { WalletSelector } from "./WalletSelector";
 
 interface PortfolioAsset {
   symbol: string;
@@ -58,6 +59,7 @@ export function PortfolioManager() {
   const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d' | '90d'>('7d');
   const [showPrivate, setShowPrivate] = useState(true);
   const [selectedView, setSelectedView] = useState<'overview' | 'positions' | 'performance' | 'analytics'>('overview');
+  const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState(false);
 
   // Fetch portfolio data
   const { data: portfolioData, refetch: refetchPortfolio } = useQuery({
@@ -151,7 +153,7 @@ export function PortfolioManager() {
           <p className="text-muted-foreground mb-4">
             Connect your wallet to view your portfolio and manage your DeFi positions
           </p>
-          <Button onClick={() => window.ethereum?.request({ method: 'eth_requestAccounts' })}>
+          <Button onClick={() => setIsWalletSelectorOpen(true)}>
             Connect Wallet
           </Button>
         </CardContent>
@@ -617,6 +619,12 @@ export function PortfolioManager() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Wallet Selector */}
+      <WalletSelector
+        isOpen={isWalletSelectorOpen}
+        onClose={() => setIsWalletSelectorOpen(false)}
+      />
     </div>
   );
 }

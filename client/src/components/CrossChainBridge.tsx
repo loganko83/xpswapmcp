@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { crossChainService } from "@/lib/crossChainService";
 import { lifiService } from "@/lib/lifiService";
+import { WalletSelector } from "./WalletSelector";
 
 interface SupportedNetwork {
   chainId: number;
@@ -180,6 +181,7 @@ export function CrossChainBridge() {
   const [bridgeData, setBridgeData] = useState<any>(null);
   const [lifiInitialized, setLifiInitialized] = useState(false);
   const [lifiError, setLifiError] = useState<string | null>(null);
+  const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState(false);
 
   // Initialize LI.FI service
   useEffect(() => {
@@ -512,7 +514,7 @@ export function CrossChainBridge() {
                 <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
                 <p className="text-gray-300">Connect your wallet to access cross-chain bridge functionality</p>
               </div>
-              <Button onClick={connectWallet} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+              <Button onClick={() => setIsWalletSelectorOpen(true)} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
                 Connect Wallet
               </Button>
             </CardContent>
@@ -804,6 +806,12 @@ export function CrossChainBridge() {
           onConfirm={handleConfirmBridge}
         />
       )}
+
+      {/* Wallet Selector */}
+      <WalletSelector
+        isOpen={isWalletSelectorOpen}
+        onClose={() => setIsWalletSelectorOpen(false)}
+      />
     </div>
   );
 }

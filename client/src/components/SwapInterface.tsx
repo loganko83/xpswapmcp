@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowUpDown, Settings, ChevronDown, Loader2, AlertTriangle, ExternalLink } from "lucide-react";
 import { TokenSelector } from "./TokenSelector";
+import { WalletSelector } from "./WalletSelector";
 import { Token, SwapQuote } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { useWeb3 } from "@/hooks/useWeb3";
@@ -43,6 +44,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   const [isFromSelectorOpen, setIsFromSelectorOpen] = useState(false);
   const [isToSelectorOpen, setIsToSelectorOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState(false);
   const [swapQuote, setSwapQuote] = useState<SwapQuote | null>(null);
 
   // Fetch real-time token prices
@@ -494,7 +496,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
           {!wallet.isConnected ? (
             <Button 
               className="w-full" 
-              onClick={connectWallet}
+              onClick={() => setIsWalletSelectorOpen(true)}
             >
               Connect Wallet
             </Button>
@@ -553,6 +555,12 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
         onClose={() => setIsToSelectorOpen(false)}
         onSelectToken={handleTokenSelect}
         selectedToken={toToken}
+      />
+
+      {/* Wallet Selector */}
+      <WalletSelector
+        isOpen={isWalletSelectorOpen}
+        onClose={() => setIsWalletSelectorOpen(false)}
       />
     </Card>
   );

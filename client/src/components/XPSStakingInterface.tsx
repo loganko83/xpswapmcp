@@ -15,6 +15,7 @@ import { web3Service } from '@/lib/web3';
 import { directWeb3Service } from '@/lib/web3-direct';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import { WalletSelector } from './WalletSelector';
 
 export function XPSStakingInterface() {
   const [userAddress, setUserAddress] = useState<string>('');
@@ -25,6 +26,7 @@ export function XPSStakingInterface() {
   const [lockPeriod, setLockPeriod] = useState<string>('30');
   const [loading, setLoading] = useState<boolean>(false);
   const [isStakeDialogOpen, setIsStakeDialogOpen] = useState<boolean>(false);
+  const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Staking analytics data
@@ -474,7 +476,7 @@ export function XPSStakingInterface() {
             <p className="text-muted-foreground mb-4">
               Connect your wallet to start staking XPS tokens
             </p>
-            <Button onClick={handleConnectWallet} disabled={loading}>
+            <Button onClick={() => setIsWalletSelectorOpen(true)} disabled={loading}>
               {loading ? 'Connecting...' : 'Connect Wallet'}
             </Button>
           </CardContent>
@@ -755,6 +757,12 @@ export function XPSStakingInterface() {
         </TabsContent>
         </Tabs>
       )}
+
+      {/* Wallet Selector */}
+      <WalletSelector
+        isOpen={isWalletSelectorOpen}
+        onClose={() => setIsWalletSelectorOpen(false)}
+      />
     </div>
   );
 }

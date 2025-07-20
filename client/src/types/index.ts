@@ -3,6 +3,7 @@ export interface WalletConnection {
   address: string | null;
   balance: string;
   chainId: number | null;
+  walletType: 'metamask' | 'zigap' | null;
 }
 
 export interface Token {

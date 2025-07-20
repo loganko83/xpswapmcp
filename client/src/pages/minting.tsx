@@ -24,6 +24,14 @@ import {
 } from "lucide-react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useQuery } from "@tanstack/react-query";
+
+// 보안 강화된 유틸리티 함수
+const generateSecureTxHash = (): string => {
+  // 브라우저 환경에서는 crypto.getRandomValues 사용
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return `0x${Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')}`;
+};
 import { useToast } from "@/hooks/use-toast";
 
 interface TokenInfo {
@@ -264,7 +272,7 @@ export default function MintingPage() {
           s.id === step.id ? { 
             ...s, 
             status: 'completed',
-            txHash: `0x${Math.random().toString(16).substr(2, 64)}`
+            txHash: generateSecureTxHash()
           } : s
         ));
         

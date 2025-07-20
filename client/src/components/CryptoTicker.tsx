@@ -44,7 +44,7 @@ export function CryptoTicker() {
   const duplicatedTickers = [...tickers, ...tickers];
 
   return (
-    <div className="w-full bg-slate-900 dark:bg-slate-950 backdrop-blur-sm border-b border-slate-700 overflow-hidden relative shadow-lg">
+    <div className="w-full bg-gradient-to-r from-slate-900/90 via-slate-800/90 to-slate-900/90 dark:from-slate-950/90 dark:via-slate-900/90 dark:to-slate-950/90 backdrop-blur-md border-b border-slate-700/50 overflow-hidden relative shadow-lg">
       <div 
         className={`flex whitespace-nowrap ${isPaused ? '' : 'animate-scroll-ticker'}`}
         onMouseEnter={() => setIsPaused(true)}
@@ -53,30 +53,30 @@ export function CryptoTicker() {
         {duplicatedTickers.map((ticker, index) => (
           <div
             key={`${ticker.id}-${index}`}
-            className="flex items-center space-x-2 px-3 py-1.5 min-w-fit"
+            className="flex items-center space-x-3 px-4 py-2 min-w-fit hover:bg-white/5 transition-colors duration-200 rounded-lg mx-1"
           >
-            <img 
-              src={ticker.iconUrl} 
-              alt={ticker.name}
-              className="w-5 h-5 rounded-full"
-              onError={(e) => {
-                // 이미지 로드 실패 시 대체 텍스트 표시
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling!.style.display = 'inline';
-              }}
-            />
-            <span className="text-lg hidden">{ticker.symbol}</span>
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-white text-sm">{ticker.symbol}</span>
+              <img 
+                src={ticker.iconUrl} 
+                alt={ticker.name}
+                className="w-5 h-5 rounded-full shadow-sm"
+                onError={(e) => {
+                  // 이미지 로드 실패 시 대체 텍스트 표시
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling!.style.display = 'inline';
+                }}
+              />
+              <span className="text-lg hidden">{ticker.symbol}</span>
+              <span className="font-bold text-white/90 text-sm tracking-wide">{ticker.symbol}</span>
             </div>
-            <span className="font-mono text-sm font-medium text-white">
+            <span className="font-mono text-sm font-medium text-white/80">
               {formatPrice(ticker.price, ticker.symbol)}
             </span>
             <span
-              className={`text-xs font-bold px-2 py-1 rounded ${
+              className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
                 ticker.change24h >= 0
-                  ? 'text-green-400 bg-green-900/50'
-                  : 'text-red-400 bg-red-900/50'
+                  ? 'text-green-300 bg-green-500/20 border-green-500/30'
+                  : 'text-red-300 bg-red-500/20 border-red-500/30'
               }`}
             >
               {formatChange(ticker.change24h)}

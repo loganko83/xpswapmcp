@@ -154,7 +154,7 @@ export class DEXAggregator {
     confidence: number;
   }> {
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+    await new Promise(resolve => setTimeout(resolve, 100 + getSecureRandomInt(0, 200)));
     
     const inputAmount = parseFloat(amountIn);
     
@@ -178,17 +178,17 @@ export class DEXAggregator {
     }
     
     // Add some randomness to simulate market conditions
-    rate *= (0.98 + Math.random() * 0.04);
+    rate *= (0.98 + 0.04 * getSecureRandom());
     
     const amountOut = (inputAmount * rate * (1 - fee)).toFixed(6);
-    const priceImpact = Math.random() * 0.5; // 0-0.5% price impact
-    const gasEstimate = (21000 + Math.random() * 100000).toFixed(0);
+    const priceImpact = 0.5 * getSecureRandom(); // 0-0.5% price impact
+    const gasEstimate = (21000 + getSecureRandomInt(0, 100000)).toFixed(0);
     
     return {
       amountOut,
       priceImpact,
       gas: gasEstimate,
-      confidence: 85 + Math.random() * 10, // 85-95% confidence
+      confidence: 85 + getSecureRandomInt(0, 10), // 85-95% confidence
     };
   }
 

@@ -213,22 +213,22 @@ export default function HomePage() {
               />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-              Welcome to <span className="text-primary">XpSwap</span>
+              Trade the Future with <span className="text-primary">XpSwap</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              The most advanced decentralized exchange on Xphere blockchain. Trade, farm, bridge, and mint tokens with institutional-grade features and maximum security.
+              🚀 Revolutionary DEX on Xphere blockchain. Experience lightning-fast trades, zero-slippage swaps, and earn rewards through advanced DeFi features. Join the next generation of decentralized trading!
             </p>
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
             <Link href="/trading">
               <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Start Trading <ArrowRightLeft className="w-4 h-4 ml-2" />
+                Start Trading Now <ArrowRightLeft className="w-4 h-4 ml-2" />
               </Button>
             </Link>
             <Link href="/xps-staking">
               <Button size="lg" variant="outline">
-                Discover XPS Token <Star className="w-4 h-4 ml-2" />
+                Earn with XPS <Star className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </div>
@@ -236,20 +236,20 @@ export default function HomePage() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">$2.5M+</div>
-              <div className="text-sm text-muted-foreground">Total Volume</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">40+</div>
+              <div className="text-3xl font-bold text-primary mb-2">5+</div>
               <div className="text-sm text-muted-foreground">Supported Networks</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">15,000+</div>
-              <div className="text-sm text-muted-foreground">Active Users</div>
+              <div className="text-3xl font-bold text-primary mb-2">24/7</div>
+              <div className="text-sm text-muted-foreground">DEX Available</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">99.9%</div>
-              <div className="text-sm text-muted-foreground">Uptime</div>
+              <div className="text-3xl font-bold text-primary mb-2">0.3%</div>
+              <div className="text-sm text-muted-foreground">Trading Fees</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-primary mb-2">100%</div>
+              <div className="text-sm text-muted-foreground">Decentralized</div>
             </div>
           </div>
         </div>
@@ -368,7 +368,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <TrendingUp className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">400% APY staking rewards</span>
+                      <span className="text-foreground">Up to 50% APY staking rewards</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Shield className="w-5 h-5 text-primary" />
@@ -402,7 +402,7 @@ export default function HomePage() {
                   </Card>
                   <Card className="bg-background/50 backdrop-blur-sm">
                     <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-2">400%</div>
+                      <div className="text-2xl font-bold text-primary mb-2">75%</div>
                       <div className="text-sm text-muted-foreground">Max APY</div>
                       <div className="text-xs text-muted-foreground mt-1">1 Year Lock</div>
                     </CardContent>
@@ -432,9 +432,9 @@ export default function HomePage() {
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">Comprehensive DeFi Suite</h2>
+            <h2 className="text-4xl font-bold text-foreground mb-4">🚀 All-in-One DeFi Powerhouse</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Everything you need for decentralized finance in one powerful platform
+              Experience the future of decentralized finance. Trade, earn, bridge, and grow your crypto portfolio with cutting-edge features designed for the next generation of DeFi users.
             </p>
           </div>
           
@@ -509,7 +509,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Multi-chain Ready</h3>
               <p className="text-muted-foreground">
-                Seamlessly operate across 40+ blockchains with unified interface and cross-chain asset management.
+                Connect to multiple blockchains including Ethereum, BSC, and Polygon with unified interface and cross-chain capabilities.
               </p>
             </div>
           </div>
@@ -520,21 +520,20 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-foreground mb-6">
-            Ready to Experience the Future of DeFi?
+            🎯 Be an Early Pioneer in the Future of DeFi
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of users already trading, farming, and earning on XpSwap. 
-            Start with as little as $10 and unlock the full potential of decentralized finance.
+            Join the revolutionary XpSwap ecosystem today! As an early user, you'll enjoy exclusive benefits, lower fees, and the opportunity to shape the future of decentralized trading.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/trading">
               <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Start Trading Now <ArrowRightLeft className="w-5 h-5 ml-2" />
+                Start Your DeFi Journey <ArrowRightLeft className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/documentation">
+            <Link href="/xps-staking">
               <Button size="lg" variant="outline">
-                Read Documentation <ChevronRight className="w-5 h-5 ml-2" />
+                Earn XPS Rewards <ChevronRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </div>
