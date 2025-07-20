@@ -11,6 +11,7 @@ import TradingPage from "@/pages/trading";
 import PoolPage from "@/pages/pool";
 import FarmPage from "@/pages/farm";
 import BridgePage from "@/pages/bridge";
+import AtomicSwapPage from "@/pages/atomic-swap";
 import GovernancePage from "@/pages/governance";
 import AnalyticsPage from "@/pages/analytics";
 import SecurityPage from "@/pages/security";
@@ -25,6 +26,7 @@ import XPSPurchasePage from "@/pages/xps-purchase";
 import OptionsPage from "@/pages/options";
 import FuturesPage from "@/pages/futures";
 import FlashLoansPage from "@/pages/flashloans";
+import MemeCoinPage from "@/pages/memecoin";
 import NotFound from "@/pages/not-found";
 
 function RouterComponent() {
@@ -38,6 +40,7 @@ function RouterComponent() {
           <Route path="/pool" component={PoolPage} />
           <Route path="/farm" component={FarmPage} />
           <Route path="/bridge" component={BridgePage} />
+          <Route path="/atomic-swap" component={AtomicSwapPage} />
           <Route path="/governance" component={GovernancePage} />
           <Route path="/analytics" component={AnalyticsPage} />
           <Route path="/security" component={SecurityPage} />
@@ -47,6 +50,7 @@ function RouterComponent() {
           <Route path="/bug-bounty" component={BugBountyPage} />
           <Route path="/multichain-portfolio" component={MultiChainPortfolioPage} />
           <Route path="/minting" component={MintingPage} />
+          <Route path="/memecoin" component={MemeCoinPage} />
           <Route path="/xps-staking" component={XPSStakingPage} />
           <Route path="/xps-purchase" component={XPSPurchasePage} />
           <Route path="/options" component={OptionsPage} />

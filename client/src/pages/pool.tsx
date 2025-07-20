@@ -30,11 +30,37 @@ export default function PoolPage() {
 
   // Fetch real pool data from API
   const { data: pools = [], isLoading: poolsLoading } = useQuery({
-    queryKey: ["/api/pools"],
+    queryKey: ["pools"],
     queryFn: async () => {
-      const response = await fetch("/api/pools");
-      if (!response.ok) throw new Error("Failed to fetch pools");
-      return response.json();
+      try {
+        const response = await fetch("/api/pools");
+        if (!response.ok) {
+          console.error("Pool API error:", response.status, response.statusText);
+          throw new Error(`Failed to fetch pools: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Pool data received:", data);
+        
+        // Transform API data to match AdvancedLiquidityPoolManager interface
+        return data.map((pool: any) => ({
+          id: pool.id,
+          tokenA: pool.pair?.tokenA || { symbol: "XP", name: "Xphere", address: "0x0" },
+          tokenB: pool.pair?.tokenB || { symbol: "USDT", name: "Tether USD", address: "0x0" },
+          tvl: pool.totalLiquidity || "0",
+          apr: pool.apr || "0",
+          volume24h: pool.pair?.volume24h || "0",
+          fees24h: ((parseFloat(pool.pair?.volume24h || "0") * 0.003).toString()), // 0.3% fee
+          userLiquidity: "0", // User-specific data would come from separate API
+          userRewards: "0",
+          reserveA: pool.pair?.liquidityTokenA || "0",
+          reserveB: pool.pair?.liquidityTokenB || "0",
+          lpTokens: "100000", // Mock total LP tokens
+          feeRate: "0.3" // 0.3% fee rate
+        }));
+      } catch (error) {
+        console.error("Pool fetch error:", error);
+        throw error;
+      }
     }
   });
 
@@ -89,7 +115,7 @@ export default function PoolPage() {
 
   // Fetch LP token data
   const { data: lpTokens = [], isLoading: lpTokensLoading } = useQuery({
-    queryKey: ["/api/lp-tokens"],
+    queryKey: ["lp-tokens"],
     queryFn: async () => {
       const response = await fetch("/api/lp-tokens");
       if (!response.ok) throw new Error("Failed to fetch LP tokens");
@@ -99,7 +125,7 @@ export default function PoolPage() {
 
   // Fetch LP token holdings for current user
   const { data: lpHoldings = [], isLoading: lpHoldingsLoading } = useQuery({
-    queryKey: ["/api/lp-holdings", wallet.address],
+    queryKey: ["lp-holdings", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return [];
       const response = await fetch(`/api/lp-holdings?userAddress=${wallet.address}`);
@@ -111,7 +137,7 @@ export default function PoolPage() {
 
   // Fetch LP rewards
   const { data: lpRewards = [], isLoading: lpRewardsLoading } = useQuery({
-    queryKey: ["/api/lp-rewards", wallet.address],
+    queryKey: ["lp-rewards", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return [];
       const response = await fetch(`/api/lp-rewards?userAddress=${wallet.address}`);
@@ -143,9 +169,9 @@ export default function PoolPage() {
       setTokenB("");
       setAmountA("");
       setAmountB("");
-      queryClient.invalidateQueries({ queryKey: ["/api/lp-tokens"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/lp-holdings", wallet.address] });
-      queryClient.invalidateQueries({ queryKey: ["/api/lp-rewards", wallet.address] });
+      queryClient.invalidateQueries({ queryKey: ["lp-tokens"] });
+      queryClient.invalidateQueries({ queryKey: ["lp-holdings", wallet.address] });
+      queryClient.invalidateQueries({ queryKey: ["lp-rewards", wallet.address] });
     },
     onError: (error: any) => {
       toast({
@@ -176,8 +202,8 @@ export default function PoolPage() {
         description: `Successfully claimed ${data.totalRewards} XPS tokens!`,
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/lp-rewards", wallet.address] });
-      queryClient.invalidateQueries({ queryKey: ["/api/lp-holdings", wallet.address] });
+      queryClient.invalidateQueries({ queryKey: ["lp-rewards", wallet.address] });
+      queryClient.invalidateQueries({ queryKey: ["lp-holdings", wallet.address] });
     },
     onError: (error: any) => {
       toast({

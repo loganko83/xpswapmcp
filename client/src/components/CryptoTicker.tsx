@@ -14,8 +14,14 @@ export function CryptoTicker() {
   const [isPaused, setIsPaused] = useState(false);
 
   const { data: tickerData, isLoading } = useQuery({
-    queryKey: ["/api/crypto-ticker"],
-    refetchInterval: 30000, // 30초마다 업데이트
+    queryKey: ["crypto-ticker"],
+    queryFn: async () => {
+      const response = await fetch("/api/crypto-ticker");
+      if (!response.ok) throw new Error("Failed to fetch ticker data");
+      const data = await response.json();
+      return data;
+    },
+    refetchInterval: 15000, // 15초마다 업데이트 (더 빠른 실시간성)
   });
 
   if (isLoading || !tickerData) return null;

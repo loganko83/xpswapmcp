@@ -380,7 +380,7 @@ export default function MintingPage() {
             <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
               <Coins className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold text-foreground">Token Minting</h1>
+            <h1 className="text-4xl font-bold text-foreground">XIP-20 Mint</h1>
           </div>
           <p className="text-muted-foreground text-lg">
             Create XIP-20 standard tokens easily on Xphere Network

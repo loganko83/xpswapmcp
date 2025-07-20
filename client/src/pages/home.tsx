@@ -150,6 +150,38 @@ export default function HomePage() {
       highlights: ["OHLC charts", "Live orderbook", "Market & limit orders"]
     },
     {
+      title: "Options Trading",
+      description: "Trade call and put options with Black-Scholes pricing model. Access real-time Greeks, option chains, and implied volatility analytics for advanced strategies.",
+      icon: Target,
+      color: "from-violet-500 to-violet-600",
+      link: "/options",
+      highlights: ["Call/Put options", "Greeks calculation", "IV analytics"]
+    },
+    {
+      title: "Perpetual Futures",
+      description: "Trade perpetual futures with up to 125x leverage. Features funding rates, mark price tracking, and advanced risk management for professional traders.",
+      icon: BarChart3,
+      color: "from-red-500 to-red-600",
+      link: "/futures",
+      highlights: ["125x leverage", "Funding rates", "Risk management"]
+    },
+    {
+      title: "Flash Loans",
+      description: "Access instant uncollateralized loans for arbitrage, liquidation, and collateral swapping strategies. Pre-built templates with 85% success rate.",
+      icon: Zap,
+      color: "from-amber-500 to-amber-600",
+      link: "/flashloans",
+      highlights: ["Instant loans", "Strategy templates", "85% success rate"]
+    },
+    {
+      title: "Atomic Swaps",
+      description: "Execute trustless cross-chain swaps without intermediaries using Hash Time-Locked Contracts (HTLC). Completely decentralized asset exchange.",
+      icon: ArrowRightLeft,
+      color: "from-teal-500 to-teal-600",
+      link: "/atomic-swap",
+      highlights: ["Trustless swaps", "HTLC protocol", "Cross-chain support"]
+    },
+    {
       title: "Liquidity Pools",
       description: "Provide liquidity and earn rewards through our automated market maker (AMM). Features time-locked positions with boosted APY and auto-compounding.",
       icon: Droplets,
@@ -174,12 +206,20 @@ export default function HomePage() {
       highlights: ["40+ networks", "LI.FI integration", "Secure transfers"]
     },
     {
-      title: "Token Minting",
+      title: "XIP-20 Mint",
       description: "Create custom XIP-20 tokens on Xphere Network with automated deployment, metadata management, and DEX integration for instant trading.",
       icon: Coins,
       color: "from-yellow-500 to-yellow-600",
       link: "/minting",
       highlights: ["XIP-20 standard", "Auto deployment", "Instant trading"]
+    },
+    {
+      title: "MemeCoin Launch",
+      description: "Launch your own meme coin with bonding curve pricing mechanism. When market cap reaches $69K, liquidity automatically migrates to DEX for trading.",
+      icon: Flame,
+      color: "from-orange-500 to-red-500",
+      link: "/memecoin",
+      highlights: ["Bonding curve", "Auto-listing", "Viral potential"]
     },
     {
       title: "Multi-chain Portfolio",

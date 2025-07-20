@@ -1,6 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
-import { PortfolioManager } from "@/components/PortfolioManager";
 import { RealTimeAnalyticsDashboard } from "@/components/RealTimeAnalyticsDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +26,18 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, Activity, DollarSign, Users, Zap, RefreshCw, Sparkles, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
+
+// Secure random number generator
+function getSecureRandomInt(min: number, max: number): number {
+  const range = max - min + 1;
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return min + (array[0] % range);
+  }
+  // Fallback for environments without crypto.getRandomValues
+  return min + Math.floor(getSecureRandom() * range);
+}
 
 export default function AnalyticsPage() {
   const { data: tokenPrices } = useTokenPrices();
@@ -299,7 +310,23 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="portfolio">
-          <PortfolioManager />
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-8 h-8 text-blue-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Portfolio Analytics</h3>
+              <p className="text-muted-foreground mb-4">
+                Portfolio management features are available in the dedicated Portfolio section.
+              </p>
+              <Button 
+                onClick={() => window.location.href = '/portfolio'}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Go to Portfolio Manager
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="price" className="space-y-6">

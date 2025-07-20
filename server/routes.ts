@@ -877,6 +877,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Crypto ticker prices endpoint (for xpswap base path)
+  app.get('/xpswap/api/crypto-ticker', async (req, res) => {
+    try {
+      // CoinMarketCap IDs: BTC(1), ETH(1027), BNB(1839), SOL(5426), DOGE(74), XP(36056)
+      const response = await fetch('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=1,1027,1839,5426,74,36056', {
+        headers: {
+          'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const cryptoData = data.data;
+      
+      const tickers = [
+        {
+          id: '1',
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: cryptoData['1']?.quote.USD.price || 0,
+          change24h: cryptoData['1']?.quote.USD.percent_change_24h || 0,
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png'
+        },
+        {
+          id: '1027',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          price: cryptoData['1027']?.quote.USD.price || 0,
+          change24h: cryptoData['1027']?.quote.USD.percent_change_24h || 0,
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png'
+        },
+        {
+          id: '1839',
+          symbol: 'BNB',
+          name: 'BNB',
+          price: cryptoData['1839']?.quote.USD.price || 0,
+          change24h: cryptoData['1839']?.quote.USD.percent_change_24h || 0,
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'
+        },
+        {
+          id: '5426',
+          symbol: 'SOL',
+          name: 'Solana',
+          price: cryptoData['5426']?.quote.USD.price || 0,
+          change24h: cryptoData['5426']?.quote.USD.percent_change_24h || 0,
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png'
+        },
+        {
+          id: '74',
+          symbol: 'DOGE',
+          name: 'Dogecoin',
+          price: cryptoData['74']?.quote.USD.price || 0,
+          change24h: cryptoData['74']?.quote.USD.percent_change_24h || 0,
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png'
+        },
+        {
+          id: '36056',
+          symbol: 'XP',
+          name: 'Xphere',
+          price: cryptoData['36056']?.quote.USD.price || 0,
+          change24h: cryptoData['36056']?.quote.USD.percent_change_24h || 0,
+          iconUrl: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png'
+        }
+      ];
+
+      res.json({
+        tickers,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching crypto ticker:', error);
+      res.status(500).json({ error: 'Failed to fetch crypto ticker data' });
+    }
+  });
+
   // Get multiple token prices from CoinMarketCap
   app.get("/api/token-prices", async (req, res) => {
     try {
@@ -7732,6 +7811,485 @@ Submitted at: ${new Date().toISOString()}
     } catch (error) {
       console.error("Error executing flash loan:", error);
       res.status(500).json({ error: "Failed to execute flash loan" });
+    }
+  });
+
+  // MemeCoin API Endpoints
+  
+  // Get all meme coins with stats
+  app.get("/api/memecoin/list", async (req, res) => {
+    try {
+      // Mock data for meme coins - in production this would come from database
+      const memeCoins = [
+        {
+          name: "PEPE COIN",
+          symbol: "PEPE",
+          description: "The most memeable memecoin in existence. The first meme coin for verticals.",
+          image: "https://pump.mypinata.cloud/ipfs/QmSBR2cH4b5pkyzGzEQJjTJrUqxb7BPkjCxJx5tXoVPfKD",
+          website: "https://pepe.vip",
+          twitter: "@pepecoin",
+          telegram: "@pepecommunity",
+          totalSupply: "1000000000",
+          initialPrice: 0.000001,
+          currentPrice: 0.000156,
+          marketCap: 45789,
+          progress: 66.3,
+          holders: 247,
+          volume24h: 12456,
+          contractAddress: "0x1234567890abcdef1234567890abcdef12345678",
+          createdAt: new Date("2025-07-19T10:30:00Z"),
+          creatorAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
+          bondingCurveProgress: 66.3,
+          liquidityRaised: 45789,
+          targetLiquidity: 69000
+        },
+        {
+          name: "DOGE KILLER",
+          symbol: "KILLER",
+          description: "Here to take down DOGE once and for all. Moon mission activated! 🚀",
+          image: "https://pump.mypinata.cloud/ipfs/QmYzK8GfG2pF9JdN3xVb7h2LvPrZ5aK6Wd8UxQnF2MpR4S",
+          website: "",
+          twitter: "@dogekiller",
+          telegram: "",
+          totalSupply: "1000000000",
+          initialPrice: 0.000001,
+          currentPrice: 0.000089,
+          marketCap: 23145,
+          progress: 33.5,
+          holders: 189,
+          volume24h: 8934,
+          contractAddress: "0x2345678901bcdef12345678901bcdef123456789",
+          createdAt: new Date("2025-07-20T14:15:00Z"),
+          creatorAddress: "0xbcdef12345678901bcdef12345678901bcdef123",
+          bondingCurveProgress: 33.5,
+          liquidityRaised: 23145,
+          targetLiquidity: 69000
+        },
+        {
+          name: "MOON CAT",
+          symbol: "MCAT",
+          description: "Cats are taking over the moon! First cat coin on Xphere Network! 🐱🌙",
+          image: "",
+          website: "https://mooncat.space",
+          twitter: "@mooncatxp",
+          telegram: "@mooncatofficial",
+          totalSupply: "1000000000",
+          initialPrice: 0.000001,
+          currentPrice: 0.000234,
+          marketCap: 67834,
+          progress: 98.3,
+          holders: 456,
+          volume24h: 34567,
+          contractAddress: "0x3456789012cdef123456789012cdef1234567890",
+          createdAt: new Date("2025-07-18T08:45:00Z"),
+          creatorAddress: "0xcdef123456789012cdef123456789012cdef1234",
+          bondingCurveProgress: 98.3,
+          liquidityRaised: 67834,
+          targetLiquidity: 69000
+        }
+      ];
+
+      const stats = {
+        totalLaunched: 47,
+        graduated: 12,
+        totalHolders: 1247,
+        volume24h: "89.2K"
+      };
+
+      res.json({
+        coins: memeCoins,
+        ...stats
+      });
+    } catch (error) {
+      console.error("Error fetching meme coins:", error);
+      res.status(500).json({ error: "Failed to fetch meme coins" });
+    }
+  });
+
+  // Get bonding curve data for specific coin
+  app.get("/api/memecoin/bonding-curve/:contractAddress", async (req, res) => {
+    try {
+      const { contractAddress } = req.params;
+      
+      // Mock bonding curve data
+      const bondingCurve = {
+        currentPrice: 0.000156,
+        nextPrice: 0.000162,
+        priceImpact: 2.3,
+        liquidityRaised: 45789,
+        targetLiquidity: 69000,
+        progress: 66.3,
+        graduated: false
+      };
+
+      res.json(bondingCurve);
+    } catch (error) {
+      console.error("Error fetching bonding curve:", error);
+      res.status(500).json({ error: "Failed to fetch bonding curve data" });
+    }
+  });
+
+  // Create new meme coin
+  app.post("/api/memecoin/create", async (req, res) => {
+    try {
+      const {
+        name,
+        symbol,
+        description,
+        image,
+        website,
+        twitter,
+        telegram,
+        initialBuy,
+        creatorAddress
+      } = req.body;
+
+      // Validate required fields
+      if (!name || !symbol || !description || !creatorAddress) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Check symbol uniqueness (mock check)
+      const existingSymbols = ["PEPE", "KILLER", "MCAT"];
+      if (existingSymbols.includes(symbol.toUpperCase())) {
+        return res.status(400).json({ error: "Symbol already exists" });
+      }
+
+      // Generate contract address and transaction hash
+      const contractAddress = `0x${crypto.randomBytes(20).toString('hex')}`;
+      const txHash = SecurityUtils.generateTxHash();
+      
+      // Simulate deployment delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      const newMemeCoin = {
+        name,
+        symbol: symbol.toUpperCase(),
+        description,
+        image,
+        website,
+        twitter,
+        telegram,
+        totalSupply: "1000000000", // Fixed supply for meme coins
+        initialPrice: 0.000001, // Starting price
+        currentPrice: 0.000001,
+        marketCap: 1, // Initial market cap
+        progress: 0.1,
+        holders: 1, // Creator is first holder
+        volume24h: 0,
+        contractAddress,
+        createdAt: new Date(),
+        creatorAddress,
+        bondingCurveProgress: 0.1,
+        liquidityRaised: parseFloat(initialBuy) * 0.000001, // Initial buy amount
+        targetLiquidity: 69000
+      };
+
+      res.json({
+        success: true,
+        memeCoin: newMemeCoin,
+        txHash,
+        deploymentCost: 100, // XP tokens
+        message: "MemeCoin successfully launched on bonding curve!"
+      });
+
+    } catch (error) {
+      console.error("Error creating meme coin:", error);
+      res.status(500).json({ error: "Failed to create meme coin" });
+    }
+  });
+
+  // Get MemeCoin launch fees
+  app.get("/api/memecoin/fees", async (req, res) => {
+    try {
+      // Get XP price from CoinMarketCap
+      const response = await fetch(
+        "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=XP&convert=USD",
+        {
+          headers: {
+            "X-CMC_PRO_API_KEY": "b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c"
+          }
+        }
+      );
+
+      let xpPrice = 0.014594; // Fallback price
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && data.data.XP && data.data.XP.quote && data.data.XP.quote.USD) {
+          xpPrice = data.data.XP.quote.USD.price;
+        }
+      }
+
+      const baseGas = 2.5;
+      const launchFeeUSD = 100;
+      const feeInXP = Math.ceil(launchFeeUSD / xpPrice);
+      const feeInXPS = 50; // Fixed XPS price with 50% discount
+
+      res.json({
+        baseGas,
+        launchFeeUSD,
+        feeInXP,
+        feeInXPS,
+        xpPrice,
+        xpsDiscountPercent: 50
+      });
+    } catch (error) {
+      console.error("Error fetching memecoin fees:", error);
+      res.status(500).json({ error: "Failed to fetch fees" });
+    }
+  });
+
+  // Launch MemeCoin with bonding curve
+  app.post("/api/memecoin/launch", async (req, res) => {
+    try {
+      const {
+        name,
+        symbol,
+        description,
+        image,
+        website,
+        twitter,
+        telegram,
+        category,
+        userAddress,
+        bondingCurve
+      } = req.body;
+
+      if (!name || !symbol || !description || !image || !userAddress) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Validate symbol length
+      if (symbol.length < 2 || symbol.length > 10) {
+        return res.status(400).json({ error: "Symbol must be 2-10 characters" });
+      }
+
+      // Simulate bonding curve contract deployment
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const contractAddress = `0x${SecurityUtils.generateRandomHex(40)}`;
+      const txHash = SecurityUtils.generateTxHash();
+      const createdAt = Date.now();
+
+      // Save memecoin info to database
+      const memeCoinData = {
+        name,
+        symbol,
+        description,
+        image,
+        website: website || '',
+        twitter: twitter || '',
+        telegram: telegram || '',
+        category: category || 'meme',
+        contractAddress,
+        creator: userAddress,
+        totalSupply: bondingCurve.totalSupply || 1000000000,
+        currentPrice: bondingCurve.initialPrice || 0.000001,
+        marketCap: 0,
+        liquidityThreshold: bondingCurve.liquidityThreshold || 69000,
+        progress: 0,
+        holders: 1,
+        volume24h: 0,
+        trades24h: 0,
+        replies: 0,
+        hearts: 0,
+        createdAt,
+        txHash,
+        isListed: false
+      };
+
+      console.log(`MemeCoin ${name} (${symbol}) launched:`, memeCoinData);
+
+      res.json({
+        success: true,
+        contractAddress,
+        txHash,
+        message: `${name} (${symbol}) launched successfully with bonding curve!`,
+        data: memeCoinData
+      });
+
+    } catch (error) {
+      console.error("Error launching memecoin:", error);
+      res.status(500).json({ error: "Failed to launch MemeCoin" });
+    }
+  });
+
+  // Get trending MemeCoin list
+  app.get("/api/memecoin/trending", async (req, res) => {
+    try {
+      // Mock trending memecoins data
+      const trendingCoins = [
+        {
+          id: 1,
+          name: "PEPE XPS",
+          symbol: "PEPEXPS",
+          image: "🐸",
+          contractAddress: "0x742d35Cc6634C0532925a3b8d5a8c2c5c6b7b2f",
+          marketCap: 45000,
+          currentPrice: 0.000045,
+          progress: 65.2,
+          change24h: 156.7,
+          volume24h: 12500,
+          trades24h: 89,
+          holders: 234,
+          replies: 234,
+          hearts: 1200,
+          timeLeft: "2h 45m",
+          creator: "0x742d...7b2f",
+          createdAt: Date.now() - 14400000, // 4 hours ago
+          isListed: false
+        },
+        {
+          id: 2,
+          name: "Doge Xphere",
+          symbol: "DOGEXPS",
+          image: "🐕",
+          contractAddress: "0x123a45678901234567890123456789012345678b",
+          marketCap: 32000,
+          currentPrice: 0.000032,
+          progress: 46.4,
+          change24h: 89.3,
+          volume24h: 8900,
+          trades24h: 67,
+          holders: 189,
+          replies: 189,
+          hearts: 800,
+          timeLeft: "4h 12m",
+          creator: "0x123a...456b",
+          createdAt: Date.now() - 18000000, // 5 hours ago
+          isListed: false
+        },
+        {
+          id: 3,
+          name: "Shiba XPS",
+          symbol: "SHIBXPS",
+          image: "🦊",
+          contractAddress: "0x789cdef0123456789abcdef0123456789abcdef0",
+          marketCap: 28000,
+          currentPrice: 0.000028,
+          progress: 40.6,
+          change24h: 67.2,
+          volume24h: 6700,
+          trades24h: 45,
+          holders: 156,
+          replies: 156,
+          hearts: 600,
+          timeLeft: "5h 33m",
+          creator: "0x789c...def0",
+          createdAt: Date.now() - 21600000, // 6 hours ago
+          isListed: false
+        }
+      ];
+
+      res.json({
+        success: true,
+        coins: trendingCoins,
+        total: trendingCoins.length
+      });
+
+    } catch (error) {
+      console.error("Error fetching trending memecoins:", error);
+      res.status(500).json({ error: "Failed to fetch trending coins" });
+    }
+  });
+
+  // Get MemeCoin details by contract address
+  app.get("/api/memecoin/:contractAddress", async (req, res) => {
+    try {
+      const { contractAddress } = req.params;
+
+      // Mock coin data - in real implementation, fetch from database
+      const coinData = {
+        name: "PEPE XPS",
+        symbol: "PEPEXPS",
+        image: "🐸",
+        description: "The ultimate Pepe token on Xphere Network! 🚀",
+        contractAddress,
+        creator: "0x742d35Cc6634C0532925a3b8d5a8c2c5c6b7b2f",
+        totalSupply: 1000000000,
+        currentPrice: 0.000045,
+        marketCap: 45000,
+        liquidityThreshold: 69000,
+        progress: 65.2,
+        holders: 234,
+        volume24h: 12500,
+        trades24h: 89,
+        replies: 234,
+        hearts: 1200,
+        website: "https://pepexps.com",
+        twitter: "@pepexps",
+        telegram: "@pepexps_community",
+        createdAt: Date.now() - 14400000,
+        isListed: false,
+        bondingCurve: {
+          initialPrice: 0.000001,
+          currentPrice: 0.000045,
+          liquidityThreshold: 69000,
+          progress: 65.2,
+          totalSupply: 1000000000,
+          circulatingSupply: 650000000
+        }
+      };
+
+      res.json({
+        success: true,
+        data: coinData
+      });
+
+    } catch (error) {
+      console.error("Error fetching memecoin details:", error);
+      res.status(500).json({ error: "Failed to fetch coin details" });
+    }
+  });
+
+  // Trade meme coin (buy/sell)
+  app.post("/api/memecoin/trade", async (req, res) => {
+    try {
+      const {
+        contractAddress,
+        amount,
+        type, // 'buy' or 'sell'
+        userAddress
+      } = req.body;
+
+      if (!contractAddress || !amount || !type || !userAddress) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const tradeAmount = parseFloat(amount);
+      if (tradeAmount <= 0) {
+        return res.status(400).json({ error: "Invalid trade amount" });
+      }
+
+      // Simulate trade processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Calculate price impact and new price (simplified bonding curve math)
+      const currentPrice = 0.000156;
+      const priceImpact = Math.min(tradeAmount * 0.05, 15); // Max 15% impact
+      const newPrice = type === 'buy' 
+        ? currentPrice * (1 + priceImpact / 100)
+        : currentPrice * (1 - priceImpact / 100);
+
+      const txHash = SecurityUtils.generateTxHash();
+      const fee = tradeAmount * 0.01; // 1% trading fee
+
+      res.json({
+        success: true,
+        txHash,
+        type,
+        amount: tradeAmount,
+        price: currentPrice,
+        newPrice,
+        priceImpact,
+        fee,
+        total: type === 'buy' ? tradeAmount + fee : tradeAmount - fee,
+        timestamp: Date.now()
+      });
+
+    } catch (error) {
+      console.error("Error trading meme coin:", error);
+      res.status(500).json({ error: "Failed to execute trade" });
     }
   });
 

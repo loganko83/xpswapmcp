@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
-import { Moon, Sun, Menu, Wallet, Activity, X, ChevronDown, TrendingUp, BarChart3, Coins, Droplets, ArrowRightLeft, Target, Award, ShoppingCart, Shield } from "lucide-react";
+import { Moon, Sun, Menu, Wallet, Activity, X, ChevronDown, TrendingUp, BarChart3, Coins, Droplets, ArrowRightLeft, ArrowUpDown, Target, Award, ShoppingCart, Shield, Vote, Flame, Users, Twitter, MessageSquare, Send, Github, Hexagon, Zap, BookOpen, LifeBuoy, ChevronRight } from "lucide-react";
 import { WalletConnect } from "@/components/WalletConnect";
 import { useTheme } from "@/components/ThemeProvider";
 import { useWeb3 } from "@/hooks/useWeb3";
@@ -80,7 +80,8 @@ export function Layout({ children }: LayoutProps) {
                       </div>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuLabel>Basic Trading</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
                       <Link href="/swap" className="flex items-center gap-2 w-full">
                         <ArrowRightLeft className="w-4 h-4" />
@@ -91,6 +92,34 @@ export function Layout({ children }: LayoutProps) {
                       <Link href="/trading" className="flex items-center gap-2 w-full">
                         <BarChart3 className="w-4 h-4" />
                         Advanced Trading
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Options and Futures</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href="/options" className="flex items-center gap-2 w-full">
+                        <Target className="w-4 h-4" />
+                        Options Trading
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/futures" className="flex items-center gap-2 w-full">
+                        <BarChart3 className="w-4 h-4" />
+                        Perpetual Futures
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Cross-Chain</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href="/bridge" className="flex items-center gap-2 w-full">
+                        <ArrowRightLeft className="w-4 h-4" />
+                        Bridge Assets
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/atomic-swap" className="flex items-center gap-2 w-full">
+                        <ArrowUpDown className="w-4 h-4" />
+                        Atomic Swap
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -108,7 +137,6 @@ export function Layout({ children }: LayoutProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuLabel>Liquidity & Farming</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
                       <Link href="/pool" className="flex items-center gap-2 w-full">
                         <Droplets className="w-4 h-4" />
@@ -121,32 +149,10 @@ export function Layout({ children }: LayoutProps) {
                         Yield Farming
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Advanced Trading</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link href="/options" className="flex items-center gap-2 w-full">
-                        <Target className="w-4 h-4" />
-                        Options Trading
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/futures" className="flex items-center gap-2 w-full">
-                        <BarChart3 className="w-4 h-4" />
-                        Perpetual Futures
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/flashloans" className="flex items-center gap-2 w-full">
                         <Activity className="w-4 h-4" />
                         Flash Loans
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Cross-Chain</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link href="/bridge" className="flex items-center gap-2 w-full">
-                        <ArrowRightLeft className="w-4 h-4" />
-                        Bridge Assets
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -165,12 +171,6 @@ export function Layout({ children }: LayoutProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
                     <DropdownMenuItem asChild>
-                      <Link href="/minting" className="flex items-center gap-2 w-full">
-                        <Coins className="w-4 h-4" />
-                        Token Minting
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link href="/xps-purchase" className="flex items-center gap-2 w-full">
                         <ShoppingCart className="w-4 h-4" />
                         Buy XPS Token
@@ -182,20 +182,68 @@ export function Layout({ children }: LayoutProps) {
                         Stake XPS
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/governance" className="flex items-center gap-2 w-full">
+                        <Vote className="w-4 h-4" />
+                        Governance
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Analytics */}
-                <Link href="/analytics" className={`text-sm font-medium transition-colors ${
-                  isActivePage("/analytics") 
-                    ? "text-primary" 
-                    : "text-muted-foreground hover:text-primary"
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    Analytics
-                  </div>
-                </Link>
+                {/* Minting Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary p-0 h-auto">
+                      <div className="flex items-center gap-1">
+                        <Coins className="w-4 h-4" />
+                        Minting
+                        <ChevronDown className="w-3 h-3" />
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link href="/minting" className="flex items-center gap-2 w-full">
+                        <Coins className="w-4 h-4" />
+                        XIP-20 Mint
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/memecoin" className="flex items-center gap-2 w-full">
+                        <Flame className="w-4 h-4" />
+                        MemeCoin
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Analytics Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary p-0 h-auto">
+                      <div className="flex items-center gap-1">
+                        <BarChart3 className="w-4 h-4" />
+                        Analytics
+                        <ChevronDown className="w-3 h-3" />
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link href="/analytics" className="flex items-center gap-2 w-full">
+                        <BarChart3 className="w-4 h-4" />
+                        Analytics
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/multichain-portfolio" className="flex items-center gap-2 w-full">
+                        <Wallet className="w-4 h-4" />
+                        Portfolio
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Security */}
                 <Link href="/security" className={`text-sm font-medium transition-colors ${
@@ -206,18 +254,6 @@ export function Layout({ children }: LayoutProps) {
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     Security
-                  </div>
-                </Link>
-
-                {/* Portfolio */}
-                <Link href="/multichain-portfolio" className={`text-sm font-medium transition-colors ${
-                  isActivePage("/multichain-portfolio") 
-                    ? "text-primary" 
-                    : "text-muted-foreground hover:text-primary"
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <Wallet className="w-4 h-4" />
-                    Portfolio
                   </div>
                 </Link>
               </nav>
@@ -304,142 +340,208 @@ export function Layout({ children }: LayoutProps) {
               </div>
 
               {/* Navigation Links */}
-              <nav className="space-y-3">
-                <Link href="/swap" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/swap") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Simple Swap
+              <nav className="space-y-4">
+                {/* Swap Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">Swap</h3>
+                  <div className="space-y-1">
+                    <Link href="/swap" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/swap") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Simple Swap
+                      </div>
+                    </Link>
+                    <Link href="/trading" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/trading") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Advanced Trading
+                      </div>
+                    </Link>
+                    <Link href="/bridge" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/bridge") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Bridge Assets
+                      </div>
+                    </Link>
+                    <Link href="/atomic-swap" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/atomic-swap") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Atomic Swap
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/trading" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/trading") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Advanced Trading
+                </div>
+
+                {/* Options and Futures Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">Options and Futures</h3>
+                  <div className="space-y-1">
+                    <Link href="/options" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/options") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Options Trading
+                      </div>
+                    </Link>
+                    <Link href="/futures" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/futures") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Perpetual Futures
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/pool" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/pool") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Pool
+                </div>
+
+                {/* DeFi Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">DeFi</h3>
+                  <div className="space-y-1">
+                    <Link href="/pool" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/pool") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Liquidity Pools
+                      </div>
+                    </Link>
+                    <Link href="/farm" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/farm") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Yield Farming
+                      </div>
+                    </Link>
+                    <Link href="/flashloans" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/flashloans") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Flash Loans
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/farm" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/farm") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Farm
+                </div>
+
+                {/* XPS Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">XPS</h3>
+                  <div className="space-y-1">
+                    <Link href="/xps-purchase" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/xps-purchase") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Buy XPS Token
+                      </div>
+                    </Link>
+                    <Link href="/xps-staking" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/xps-staking") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Stake XPS
+                      </div>
+                    </Link>
+                    <Link href="/governance" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/governance") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Governance
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/bridge" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/bridge") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Bridge
+                </div>
+
+                {/* Minting Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">Minting</h3>
+                  <div className="space-y-1">
+                    <Link href="/minting" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/minting") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        XIP-20 Mint
+                      </div>
+                    </Link>
+                    <Link href="/memecoin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/memecoin") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        MemeCoin
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/options" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/options") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Options Trading
+                </div>
+
+                {/* Analytics Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">Analytics</h3>
+                  <div className="space-y-1">
+                    <Link href="/analytics" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/analytics") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Analytics
+                      </div>
+                    </Link>
+                    <Link href="/multichain-portfolio" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/multichain-portfolio") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Portfolio
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/futures" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/futures") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Perpetual Futures
+                </div>
+
+                {/* Security */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">Security</h3>
+                  <div className="space-y-1">
+                    <Link href="/security" onClick={() => setIsMobileMenuOpen(false)}>
+                      <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActivePage("/security") 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-primary hover:bg-muted"
+                      }`}>
+                        Security
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <Link href="/flashloans" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/flashloans") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Flash Loans
-                  </div>
-                </Link>
-                <Link href="/governance" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/governance") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Governance
-                  </div>
-                </Link>
-                <Link href="/analytics" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/analytics") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Analytics
-                  </div>
-                </Link>
-                <Link href="/security" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/security") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Security
-                  </div>
-                </Link>
-                <Link href="/multichain-portfolio" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/multichain-portfolio") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Portfolio
-                  </div>
-                </Link>
-                <Link href="/minting" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/minting") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Minting
-                  </div>
-                </Link>
-                <Link href="/xps-staking" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/xps-staking") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    XPS Staking
-                  </div>
-                </Link>
-                <Link href="/xps-purchase" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActivePage("/xps-purchase") 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}>
-                    Buy XPS
-                  </div>
-                </Link>
+                </div>
               </nav>
 
               {/* Mobile Actions */}
@@ -464,206 +566,87 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="mt-8 bg-muted/30 border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <div className="flex items-center space-x-3 mb-3">
-                <img 
-                  src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2" 
-                  alt="XPS" 
-                  className="w-8 h-8 rounded-lg"
-                />
-                <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  XpSwap
-                </span>
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-16">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            {/* Brand */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Hexagon className="w-8 h-8 text-purple-600" />
+                <span className="text-xl font-semibold">XpSwap</span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Production-ready DEX with XPS token ecosystem, advanced AMM, 
-                cross-chain bridge, and comprehensive DeFi features.
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Production-ready DEX with XPS token ecosystem, advanced AMM, cross-chain bridge, and comprehensive DeFi features.
               </p>
             </div>
 
+            {/* Products */}
             <div>
-              <h4 className="font-semibold mb-3 text-sm">Products</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/swap">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Swap
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/trading">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Trading
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/pool">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Pool
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/farm">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Farm
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/bridge">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Bridge
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/minting">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Minting
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/xps-staking">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Staking
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/xps-purchase">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      XPS
-                    </a>
-                  </Link>
-                </li>
+              <h3 className="font-semibold mb-4">Products</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><Link href="/swap"><a className="hover:text-purple-600">Swap</a></Link></li>
+                <li><Link href="/trading"><a className="hover:text-purple-600">Trading</a></Link></li>
+                <li><Link href="/pool"><a className="hover:text-purple-600">Pool</a></Link></li>
+                <li><Link href="/farm"><a className="hover:text-purple-600">Farm</a></Link></li>
+                <li><Link href="/bridge"><a className="hover:text-purple-600">Bridge</a></Link></li>
+                <li><Link href="/minting"><a className="hover:text-purple-600">Minting</a></Link></li>
+                <li><Link href="/xps-staking"><a className="hover:text-purple-600">XPS Staking</a></Link></li>
+                <li><Link href="/xps-purchase"><a className="hover:text-purple-600">Buy XPS</a></Link></li>
               </ul>
             </div>
 
+            {/* Advanced Trading */}
             <div>
-              <h4 className="font-semibold mb-3 text-sm">Developers</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/documentation">
-                    <a className="text-muted-foreground hover:text-primary transition-colors">
-                      Documentation
-                    </a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/documentation">
-                    <a 
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                      onClick={() => {
-                        setTimeout(() => {
-                          if (window.location.pathname === '/documentation') {
-                            const event = new CustomEvent('navigate-to-api');
-                            window.dispatchEvent(event);
-                          }
-                        }, 100);
-                      }}
-                    >
-                      API
-                    </a>
-                  </Link>
-                </li>
-              </ul>
-              <h4 className="font-semibold mb-3 text-sm mt-6">Support</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a
-                    href="https://trendy.storydot.kr"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Help Center
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:myid998877@gmail.com"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Contact
-                  </a>
-                </li>
-                <li>
-                  <Link href="/bug-bounty" className="text-muted-foreground hover:text-primary transition-colors">
-                    Bug Bounty
-                  </Link>
-                </li>
+              <h3 className="font-semibold mb-4">Advanced Trading</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><Link href="/options"><a className="hover:text-purple-600">Options</a></Link></li>
+                <li><Link href="/futures"><a className="hover:text-purple-600">Futures</a></Link></li>
+                <li><Link href="/flashloans"><a className="hover:text-purple-600">Flash Loans</a></Link></li>
+                <li><Link href="/multichain-portfolio"><a className="hover:text-purple-600">Portfolio</a></Link></li>
+                <li><Link href="/analytics"><a className="hover:text-purple-600">Analytics</a></Link></li>
+                <li><Link href="/security"><a className="hover:text-purple-600">Security</a></Link></li>
+                <li><Link href="/governance"><a className="hover:text-purple-600">Governance</a></Link></li>
               </ul>
             </div>
 
+            {/* Resources & Support */}
             <div>
-              <h4 className="font-semibold mb-3 text-sm">Social</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a
-                    href="https://xpsproject.blogspot.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://t.me/xpscommunity"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Telegram
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://x.com/xpsproject"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    X (Twitter)
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://trendy.storydot.kr"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    News
-                  </a>
-                </li>
+              <h3 className="font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <li><a href="/DEVELOPERS_GUIDE.md" className="hover:text-purple-600">Documentation</a></li>
+                <li><a href="/API_REFERENCE.md" className="hover:text-purple-600">API Reference</a></li>
+                <li><a href="https://github.com/xpswap" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">GitHub</a></li>
+              </ul>
+
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="https://trendy.storydot.kr" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">Help Center</a></li>
+                <li><a href="mailto:myid998877@gmail.com" className="hover:text-purple-600">Contact</a></li>
+                <li><Link href="/bug-bounty"><a className="hover:text-purple-600">Bug Bounty</a></Link></li>
+              </ul>
+            </div>
+
+            {/* Social */}
+            <div>
+              <h3 className="font-semibold mb-4">Community</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="https://x.com/xpsproject" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">X (Twitter)</a></li>
+                <li><a href="https://t.me/xpscommunity" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">Telegram</a></li>
+                <li><a href="https://xpsproject.blogspot.com/" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">Blog</a></li>
+                <li><a href="https://trendy.storydot.kr" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">News</a></li>
+                <li><Link href="/memecoin"><a className="hover:text-purple-600">MemeCoin</a></Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-border mt-6 pt-4 flex flex-col md:flex-row items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          {/* Bottom */}
+          <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               © 2025 XpSwap. All rights reserved.
             </p>
-            <div className="flex items-center space-x-6 mt-3 md:mt-0">
-              <Link href="/privacy-policy">
-                <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Privacy Policy
-                </a>
-              </Link>
-              <Link href="/terms-of-service">
-                <a className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Terms of Service
-                </a>
-              </Link>
+            <div className="flex gap-6 text-sm text-gray-600 dark:text-gray-400">
+              <Link href="/privacy-policy"><a className="hover:text-purple-600">Privacy Policy</a></Link>
+              <Link href="/terms-of-service"><a className="hover:text-purple-600">Terms of Service</a></Link>
             </div>
           </div>
         </div>

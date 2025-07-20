@@ -712,6 +712,377 @@ ws.onmessage = (event) => {
 
 ---
 
+## 🎯 Advanced Trading APIs
+
+### 20. Get Options Contracts
+
+**Endpoint**: `GET /api/options/contracts`
+
+**Description**: Get available options contracts with pricing
+
+**Query Parameters**:
+- `underlying` (optional): Filter by underlying asset (XP, XPS)
+- `expiry` (optional): Filter by expiry date
+
+**Response**:
+```json
+{
+  "contracts": [
+    {
+      "id": "XP-CALL-0.02-20250930",
+      "underlying": "XP",
+      "type": "call",
+      "strike": 0.02,
+      "expiry": "2025-09-30T08:00:00Z",
+      "premium": 0.0008,
+      "impliedVolatility": 0.85,
+      "delta": 0.42,
+      "gamma": 0.15,
+      "theta": -0.0012,
+      "vega": 0.0023,
+      "volume24h": 1250,
+      "openInterest": 15000
+    }
+  ]
+}
+```
+
+### 21. Execute Options Trade
+
+**Endpoint**: `POST /api/options/trade`
+
+**Description**: Execute options buy/sell orders
+
+**Request Body**:
+```json
+{
+  "contractId": "XP-CALL-0.02-20250930",
+  "action": "buy",
+  "quantity": 10,
+  "userAddress": "0x123...",
+  "slippage": 0.05
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "txHash": "0xabc123...",
+  "premium": 0.008,
+  "quantity": 10,
+  "totalCost": 0.08,
+  "gasUsed": "125000"
+}
+```
+
+### 22. Get Perpetual Futures Contracts
+
+**Endpoint**: `GET /api/perpetuals/contracts`
+
+**Description**: Get available perpetual futures contracts
+
+**Response**:
+```json
+{
+  "contracts": [
+    {
+      "symbol": "XP-PERP",
+      "underlying": "XP",
+      "markPrice": 0.014594,
+      "indexPrice": 0.014601,
+      "fundingRate": 0.0001,
+      "maxLeverage": 125,
+      "volume24h": 45000,
+      "openInterest": 125000,
+      "longShortRatio": 1.25
+    }
+  ]
+}
+```
+
+### 23. Execute Futures Trade
+
+**Endpoint**: `POST /api/perpetuals/trade`
+
+**Description**: Open/close perpetual futures positions
+
+**Request Body**:
+```json
+{
+  "symbol": "XP-PERP",
+  "side": "long",
+  "size": 1000,
+  "leverage": 10,
+  "orderType": "market",
+  "userAddress": "0x123..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "positionId": "pos_12345",
+  "entryPrice": 0.014594,
+  "size": 1000,
+  "leverage": 10,
+  "margin": 1.4594,
+  "liquidationPrice": 0.01315
+}
+```
+
+### 24. Get Flash Loan Pools
+
+**Endpoint**: `GET /api/flashloans/pools`
+
+**Description**: Get available flash loan pools and rates
+
+**Response**:
+```json
+{
+  "pools": [
+    {
+      "token": "XP",
+      "totalLiquidity": 1000000,
+      "availableLiquidity": 850000,
+      "utilizationRate": 0.15,
+      "feeRate": 0.0009,
+      "maxLoan": 850000
+    },
+    {
+      "token": "XPS", 
+      "totalLiquidity": 500000,
+      "availableLiquidity": 425000,
+      "utilizationRate": 0.15,
+      "feeRate": 0.0009,
+      "maxLoan": 425000
+    }
+  ]
+}
+```
+
+### 25. Execute Flash Loan
+
+**Endpoint**: `POST /api/flashloans/execute`
+
+**Description**: Execute flash loan with custom strategy
+
+**Request Body**:
+```json
+{
+  "token": "XP",
+  "amount": 10000,
+  "strategy": "arbitrage",
+  "params": {
+    "targetToken": "XPS",
+    "targetDex": "PancakeSwap",
+    "minProfit": 50
+  },
+  "userAddress": "0x123..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "txHash": "0xdef456...",
+  "loanAmount": 10000,
+  "repayAmount": 10009,
+  "profit": 67.5,
+  "gasUsed": "380000",
+  "executionTime": "12.3s"
+}
+```
+
+## 🪙 Token Services APIs
+
+### 26. Deploy XIP-20 Token
+
+**Endpoint**: `POST /api/minting/deploy`
+
+**Description**: Deploy new XIP-20 token on Xphere network
+
+**Request Body**:
+```json
+{
+  "name": "My Token",
+  "symbol": "MTK",
+  "totalSupply": "1000000",
+  "decimals": 18,
+  "description": "A revolutionary token",
+  "website": "https://mytoken.com",
+  "userAddress": "0x123...",
+  "paymentToken": "XPS"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "txHash": "0x789abc...",
+  "contractAddress": "0xdef123...",
+  "deploymentFee": 50,
+  "gasUsed": "2100000",
+  "tokenId": "token_12345"
+}
+```
+
+### 27. Launch MemeCoin
+
+**Endpoint**: `POST /api/memecoin/launch`
+
+**Description**: Launch memecoin with bonding curve mechanism
+
+**Request Body**:
+```json
+{
+  "name": "Doge Xphere",
+  "symbol": "DOGEX",
+  "description": "Much wow, such DEX",
+  "imageUrl": "https://imgur.com/dogex.jpg",
+  "website": "https://dogexphere.com",
+  "twitter": "https://twitter.com/dogexphere",
+  "telegram": "https://t.me/dogexphere",
+  "userAddress": "0x123..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "tokenAddress": "0xmeme123...",
+  "bondingCurveAddress": "0xcurve456...",
+  "initialPrice": 0.000001,
+  "marketCap": 1000,
+  "liquidityThreshold": 69000,
+  "createdAt": "2025-07-20T15:30:00Z"
+}
+```
+
+### 28. Get Trending MemeCoins
+
+**Endpoint**: `GET /api/memecoin/trending`
+
+**Description**: Get trending memecoins by volume and activity
+
+**Query Parameters**:
+- `limit` (optional): Number of results (default: 10)
+- `sortBy` (optional): Sort by 'volume', 'marketCap', 'holders' (default: volume)
+
+**Response**:
+```json
+{
+  "trending": [
+    {
+      "name": "PEPE XPS",
+      "symbol": "PEPEXPS",
+      "address": "0xpepe123...",
+      "currentPrice": 0.000847,
+      "marketCap": 45230,
+      "progress": 0.655,
+      "volume24h": 12450,
+      "holders": 1247,
+      "created": "2025-07-18T10:15:00Z",
+      "isGraduated": false
+    }
+  ]
+}
+```
+
+### 29. Trade MemeCoin
+
+**Endpoint**: `POST /api/memecoin/trade`
+
+**Description**: Buy/sell memecoins on bonding curve
+
+**Request Body**:
+```json
+{
+  "tokenAddress": "0xpepe123...",
+  "action": "buy",
+  "amount": 100,
+  "slippage": 0.05,
+  "userAddress": "0x123..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "txHash": "0xmeme789...",
+  "tokensReceived": 118203.45,
+  "averagePrice": 0.000847,
+  "priceImpact": 0.023,
+  "newMarketCap": 45780
+}
+```
+
+## 🔄 Atomic Swaps APIs
+
+### 30. Initiate Atomic Swap
+
+**Endpoint**: `POST /api/atomic-swap/initiate`
+
+**Description**: Initiate cross-chain atomic swap using HTLC
+
+**Request Body**:
+```json
+{
+  "fromChain": "ethereum",
+  "toChain": "xphere", 
+  "fromToken": "ETH",
+  "toToken": "XP",
+  "fromAmount": "1.0",
+  "counterparty": "0xabc123...",
+  "timelock": 86400,
+  "userAddress": "0x123..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "swapId": "swap_12345",
+  "htlcAddress": "0xhtlc456...",
+  "secretHash": "0x789def...",
+  "timelock": 1722556800,
+  "txHash": "0xinit123..."
+}
+```
+
+### 31. Complete Atomic Swap
+
+**Endpoint**: `POST /api/atomic-swap/complete`
+
+**Description**: Complete atomic swap by revealing secret
+
+**Request Body**:
+```json
+{
+  "swapId": "swap_12345",
+  "secret": "0xsecret123...",
+  "userAddress": "0xabc123..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "txHash": "0xcomplete456...",
+  "tokensReceived": "1456.789",
+  "completedAt": "2025-07-20T16:45:00Z"
+}
+```
+
+---
+
 ## 🔐 Security Considerations
 
 ### API Security

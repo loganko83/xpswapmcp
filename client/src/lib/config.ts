@@ -1,7 +1,5 @@
 // API configuration
-export const API_BASE_URL = import.meta.env.MODE === 'production' 
-  ? '/xpswap/api' 
-  : '/api';
+export const API_BASE_URL = '/xpswap/api';
 
 export const getApiUrl = (path: string) => {
   if (path.startsWith('http')) {

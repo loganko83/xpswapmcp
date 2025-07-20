@@ -1,118 +1,118 @@
-import { pgTable, text, serial, integer, boolean, decimal, timestamp } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
-export const tokens = pgTable("tokens", {
-  id: serial("id").primaryKey(),
+export const tokens = sqliteTable("tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   symbol: text("symbol").notNull().unique(),
   name: text("name").notNull(),
   address: text("address").notNull().unique(),
   decimals: integer("decimals").notNull().default(18),
   logoUrl: text("logo_url"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const tradingPairs = pgTable("trading_pairs", {
-  id: serial("id").primaryKey(),
+export const tradingPairs = sqliteTable("trading_pairs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   tokenAId: integer("token_a_id").notNull(),
   tokenBId: integer("token_b_id").notNull(),
-  liquidityTokenA: decimal("liquidity_token_a", { precision: 36, scale: 18 }).notNull().default("0"),
-  liquidityTokenB: decimal("liquidity_token_b", { precision: 36, scale: 18 }).notNull().default("0"),
-  volume24h: decimal("volume_24h", { precision: 36, scale: 18 }).notNull().default("0"),
-  price: decimal("price", { precision: 36, scale: 18 }).notNull().default("0"),
-  priceChange24h: decimal("price_change_24h", { precision: 10, scale: 4 }).notNull().default("0"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  liquidityTokenA: text("liquidity_token_a").notNull().default("0"),
+  liquidityTokenB: text("liquidity_token_b").notNull().default("0"),
+  volume24h: text("volume_24h").notNull().default("0"),
+  price: text("price").notNull().default("0"),
+  priceChange24h: text("price_change_24h").notNull().default("0"),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const transactions = pgTable("transactions", {
-  id: serial("id").primaryKey(),
+export const transactions = sqliteTable("transactions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   userAddress: text("user_address").notNull(),
   transactionHash: text("transaction_hash").notNull().unique(),
   type: text("type").notNull(), // 'swap', 'add_liquidity', 'remove_liquidity'
   tokenIn: text("token_in").notNull(),
   tokenOut: text("token_out").notNull(),
-  amountIn: decimal("amount_in", { precision: 36, scale: 18 }).notNull(),
-  amountOut: decimal("amount_out", { precision: 36, scale: 18 }).notNull(),
+  amountIn: text("amount_in").notNull(),
+  amountOut: text("amount_out").notNull(),
   status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'failed'
   blockNumber: integer("block_number"),
-  gasUsed: decimal("gas_used", { precision: 20, scale: 0 }),
-  gasPrice: decimal("gas_price", { precision: 20, scale: 0 }),
-  createdAt: timestamp("created_at").defaultNow(),
+  gasUsed: text("gas_used"),
+  gasPrice: text("gas_price"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
-export const liquidityPools = pgTable("liquidity_pools", {
-  id: serial("id").primaryKey(),
+export const liquidityPools = sqliteTable("liquidity_pools", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   pairId: integer("pair_id").notNull(),
-  totalLiquidity: decimal("total_liquidity", { precision: 36, scale: 18 }).notNull().default("0"),
-  apr: decimal("apr", { precision: 10, scale: 4 }).notNull().default("0"),
-  rewardTokens: text("reward_tokens").array(),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  totalLiquidity: text("total_liquidity").notNull().default("0"),
+  apr: text("apr").notNull().default("0"),
+  rewardTokens: text("reward_tokens"), // JSON string instead of array
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 // LP Tokens table - represents liquidity provider tokens
-export const lpTokens = pgTable("lp_tokens", {
-  id: serial("id").primaryKey(),
+export const lpTokens = sqliteTable("lp_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   symbol: text("symbol").notNull().unique(), // e.g., "XP-USDT-LP"
   name: text("name").notNull(), // e.g., "XP-USDT LP Token"
   address: text("address").notNull().unique(), // Smart contract address
   pairId: integer("pair_id").notNull(), // References trading_pairs
-  totalSupply: decimal("total_supply", { precision: 36, scale: 18 }).notNull().default("0"),
+  totalSupply: text("total_supply").notNull().default("0"),
   decimals: integer("decimals").notNull().default(18),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 // LP Token Holdings - tracks user LP token balances
-export const lpTokenHoldings = pgTable("lp_token_holdings", {
-  id: serial("id").primaryKey(),
+export const lpTokenHoldings = sqliteTable("lp_token_holdings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   userAddress: text("user_address").notNull(),
   lpTokenId: integer("lp_token_id").notNull(),
-  balance: decimal("balance", { precision: 36, scale: 18 }).notNull().default("0"),
-  stakedBalance: decimal("staked_balance", { precision: 36, scale: 18 }).notNull().default("0"),
-  totalRewardsClaimed: decimal("total_rewards_claimed", { precision: 36, scale: 18 }).notNull().default("0"),
-  lastRewardClaim: timestamp("last_reward_claim"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  balance: text("balance").notNull().default("0"),
+  stakedBalance: text("staked_balance").notNull().default("0"),
+  totalRewardsClaimed: text("total_rewards_claimed").notNull().default("0"),
+  lastRewardClaim: text("last_reward_claim"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
 
 // LP Rewards - XPS rewards for LP token holders
-export const lpRewards = pgTable("lp_rewards", {
-  id: serial("id").primaryKey(),
+export const lpRewards = sqliteTable("lp_rewards", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   lpTokenId: integer("lp_token_id").notNull(),
   userAddress: text("user_address").notNull(),
-  rewardAmount: decimal("reward_amount", { precision: 36, scale: 18 }).notNull(),
+  rewardAmount: text("reward_amount").notNull(),
   rewardType: text("reward_type").notNull().default("XPS"), // "XPS", "trading_fees"
-  distributionDate: timestamp("distribution_date").defaultNow(),
-  claimed: boolean("claimed").notNull().default(false),
-  claimDate: timestamp("claim_date"),
+  distributionDate: text("distribution_date").default("CURRENT_TIMESTAMP"),
+  claimed: integer("claimed", { mode: "boolean" }).notNull().default(false),
+  claimDate: text("claim_date"),
   transactionHash: text("transaction_hash"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 // LP Staking Pools - for staking LP tokens to earn additional rewards
-export const lpStakingPools = pgTable("lp_staking_pools", {
-  id: serial("id").primaryKey(),
+export const lpStakingPools = sqliteTable("lp_staking_pools", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   lpTokenId: integer("lp_token_id").notNull(),
   name: text("name").notNull(), // e.g., "XP-USDT LP Staking Pool"
   description: text("description"),
   rewardTokenAddress: text("reward_token_address").notNull(), // XPS token address
-  rewardRate: decimal("reward_rate", { precision: 36, scale: 18 }).notNull(), // XPS per second
-  totalStaked: decimal("total_staked", { precision: 36, scale: 18 }).notNull().default("0"),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time"),
-  minStakeAmount: decimal("min_stake_amount", { precision: 36, scale: 18 }).notNull().default("0"),
+  rewardRate: text("reward_rate").notNull(), // XPS per second
+  totalStaked: text("total_staked").notNull().default("0"),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time"),
+  minStakeAmount: text("min_stake_amount").notNull().default("0"),
   lockPeriod: integer("lock_period").notNull().default(0), // in seconds
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

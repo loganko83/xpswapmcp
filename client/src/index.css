@@ -374,3 +374,31 @@
 .animate-status-bounce {
   animation: status-bounce 1s ease-in-out infinite;
 }
+
+/* Crypto Ticker Animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+/* Enhanced Crypto Ticker Animation */
+@keyframes scroll-ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-ticker {
+  animation: scroll-ticker 60s linear infinite;
+}
