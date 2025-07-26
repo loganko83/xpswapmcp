@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { SecurityUtils, stakingRecords, farmStakingRecords } from "./common.js";
+import { farmingService } from '../services/farmingService.js';
 
 const router = Router();
 
@@ -133,6 +134,16 @@ router.get("/pools", async (req, res) => {
 // Yield farming endpoints
 router.get("/farms", async (req, res) => {
   try {
+    // First try to get real blockchain data
+    const blockchainFarms = await farmingService.getAllFarms();
+    
+    // If we have blockchain data, use it
+    if (blockchainFarms && blockchainFarms.length > 0) {
+      res.json(blockchainFarms);
+      return;
+    }
+    
+    // Otherwise, return enhanced mock data for development
     const farms = [
       {
         id: 1,
