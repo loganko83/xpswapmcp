@@ -27,3 +27,16 @@
 - 작업 진행 시 State Transition Diagram을 먼저 그려서 로직 확인
 - 로컬 개발환경은 Windows PowerShell 사용 (&&를 ; 로 변경)
 - 프로젝트 경로: C:\Users\vincent\Downloads\XPswap\XPswap
+
+## Git 저장소 정보
+- GitHub 저장소: https://github.com/loganko83/xpswapmcp.git
+- 현재 브랜치: main
+- 최신 커밋: 4a85db5 (2025-01-27)
+- 상태: 로컬-GitHub 동기화 완료
+
+## 최근 작업 현황 (2025-01-27)
+✅ Git 저장소 설정 및 GitHub 연결 완료
+✅ 133개 파일 커밋 (25,653 추가, 16,367 삭제)
+✅ 모듈화된 컴포넌트 아키텍처 구축
+✅ 보안 강화 컨트랙트 추가
+✅ 개발 가이드 문서화 완료
