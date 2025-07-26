@@ -131,7 +131,7 @@ router.get("/pools", async (req, res) => {
 });
 
 // Yield farming endpoints
-router.get("/api/farms", async (req, res) => {
+router.get("/farms", async (req, res) => {
   try {
     const farms = [
       {
@@ -189,7 +189,7 @@ router.get("/api/farms", async (req, res) => {
 });
 
 // Staking info for specific farm
-router.get("/api/farms/:farmId/staking-info", async (req, res) => {
+router.get("/farms/:farmId/staking-info", async (req, res) => {
   try {
     const { farmId } = req.params;
     const userAddress = req.query.userAddress as string;
@@ -228,7 +228,7 @@ router.get("/api/farms/:farmId/staking-info", async (req, res) => {
 });
 
 // Farm Staking APIs
-router.post("/api/stake-tokens", async (req, res) => {
+router.post("/stake-tokens", async (req, res) => {
   try {
     const { farmId, amount, lockPeriod, userAddress } = req.body;
     
@@ -262,7 +262,7 @@ router.post("/api/stake-tokens", async (req, res) => {
   }
 });
 
-router.post("/api/unstake-tokens", async (req, res) => {
+router.post("/unstake-tokens", async (req, res) => {
   try {
     const { farmId, amount, userAddress } = req.body;
     
@@ -314,7 +314,7 @@ router.post("/api/unstake-tokens", async (req, res) => {
 });
 
 // XPS Staking endpoints
-router.post("/api/stake", async (req, res) => {
+router.post("/stake", async (req, res) => {
   try {
     const { amount, duration, userAddress } = req.body;
     
@@ -355,7 +355,7 @@ router.post("/api/stake", async (req, res) => {
   }
 });
 
-router.post("/api/unstake", async (req, res) => {
+router.post("/unstake", async (req, res) => {
   try {
     const { stakeId, userAddress } = req.body;
     
