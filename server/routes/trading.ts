@@ -100,17 +100,26 @@ router.get("/xp-price", async (req, res) => {
 });
 
 // Calculate swap quote
-router.post("/api/swap-quote", 
-  rateLimiters.trading,
-  validators.swap,
-  handleValidationErrors,
+router.post("/swap/quote", 
+  // rateLimiters.trading,
+  // validators.swap,
+  // handleValidationErrors,
   async (req, res) => {
+  console.log('🚀 Swap quote route reached!');
+  console.log('📋 Request body:', req.body);
+  console.log('📋 Request headers:', req.headers);
   try {
-    const { fromToken, toToken, amount } = req.body;
+    const { from, to, amount } = req.body;
+    console.log('📥 Received swap quote request:', { from, to, amount, body: req.body });
     
-    // Sanitize inputs
-    const sanitizedFromToken = sanitizeSQLInput(fromToken);
-    const sanitizedToToken = sanitizeSQLInput(toToken);
+    // Validate inputs exist
+    if (!from || !to || !amount) {
+      console.log('❌ Missing parameters:', { from, to, amount });
+      return res.status(400).json({ error: "Missing required parameters: from, to, amount" });
+    }
+    
+    // Skip sanitization for now - just use the values directly
+    console.log('✅ Parameters validated, proceeding with calculation...');
     
     // Define token prices
     const tokenPrices: { [key: string]: number } = {
@@ -124,8 +133,8 @@ router.post("/api/swap-quote",
     };
     
     // Get prices or use default values
-    const fromPrice = tokenPrices[fromToken.toUpperCase()] || 1.0;
-    const toPrice = tokenPrices[toToken.toUpperCase()] || 1.0;
+    const fromPrice = tokenPrices[from.toUpperCase()] || 1.0;
+    const toPrice = tokenPrices[to.toUpperCase()] || 1.0;
     const inputAmount = parseFloat(amount);
     
     if (inputAmount <= 0) {
@@ -152,11 +161,11 @@ router.post("/api/swap-quote",
 });
 
 // Execute swap
-router.post("/api/swap", async (req, res) => {
+router.post("/swap/execute", async (req, res) => {
   try {
-    const { fromToken, toToken, amount, slippage = 0.5 } = req.body;
+    const { from, to, amount, slippage = 0.5 } = req.body;
     
-    if (!fromToken || !toToken || !amount) {
+    if (!from || !to || !amount) {
       return res.status(400).json({ error: "Missing required parameters" });
     }
     

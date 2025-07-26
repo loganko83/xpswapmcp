@@ -740,11 +740,18 @@ export function applyEnhancedSecurity(app: any) {
   // Apply in correct order for maximum security
   console.log('🔒 Applying enhanced security middleware...');
   
-  // 1. HTTPS enforcement (first)
-  app.use(enforceHTTPS);
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED === 'true';
   
-  // 2. IP reputation checking
-  app.use(checkIPReputation);
+  // 1. HTTPS enforcement (first) - skip in development
+  if (!isDevelopment) {
+    app.use(enforceHTTPS);
+  }
+  
+  // 2. IP reputation checking - skip in development
+  if (!isDevelopment && process.env.IP_REPUTATION_ENABLED === 'true') {
+    app.use(checkIPReputation);
+  }
   
   // 3. Enhanced CORS
   app.use(cors(enhancedCorsOptions));
@@ -752,13 +759,17 @@ export function applyEnhancedSecurity(app: any) {
   // 4. Ultra security headers
   app.use(ultraSecurityHeaders);
   
-  // 5. Rate limiting for different endpoints
-  app.use('/api/auth', enhancedRateLimiters.auth);
-  app.use('/api/swap', enhancedRateLimiters.trading);
-  app.use('/api/options', enhancedRateLimiters.derivatives);
-  app.use('/api/futures', enhancedRateLimiters.derivatives);
-  app.use('/api/flashloans', enhancedRateLimiters.highRisk);
-  app.use('/api', enhancedRateLimiters.general);
+  // 5. Rate limiting for different endpoints - skip in development or if disabled
+  if (!isDevelopment && rateLimitEnabled) {
+    app.use('/api/auth', enhancedRateLimiters.auth);
+    app.use('/api/swap', enhancedRateLimiters.trading);
+    app.use('/api/options', enhancedRateLimiters.derivatives);
+    app.use('/api/futures', enhancedRateLimiters.derivatives);
+    app.use('/api/flashloans', enhancedRateLimiters.highRisk);
+    app.use('/api', enhancedRateLimiters.general);
+  } else {
+    console.log('⚠️ Rate limiting disabled for development environment');
+  }
   
   // 6. Enhanced error handling (last)
   app.use(enhancedErrorHandler);

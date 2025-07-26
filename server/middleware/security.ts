@@ -697,6 +697,11 @@ setInterval(cleanupSecurityMemory, 5 * 60 * 1000); // Every 5 minutes
 
 // 📤 Export all security utilities
 export function sanitizeSQLInput(input: string): string {
+  // Check for null/undefined
+  if (!input || typeof input !== 'string') {
+    return '';
+  }
+  
   // Remove common SQL injection patterns
   return input
     .replace(/'/g, "''") // Escape single quotes
