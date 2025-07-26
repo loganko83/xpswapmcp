@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import https from 'https';
+import http from 'http';
 import fs from 'fs';
 import { setupRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -92,17 +93,25 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "development") {
+    // Create the server first
+    let httpServer;
     if (useHTTPS && server !== app) {
-      const httpsServer = server.listen(port, host, () => {
-        log(`🔒 HTTPS server running on https://${host}:${port}`);
-      });
-      await setupVite(app, httpsServer);
+      httpServer = server;
     } else {
-      const httpServer = app.listen(port, host, () => {
-        log(`🌐 HTTP server running on http://${host}:${port}`);
-      });
-      await setupVite(app, httpServer);
+      httpServer = http.createServer(app);
     }
+    
+    // Setup Vite before starting the server
+    await setupVite(app, httpServer);
+    
+    // Now start listening
+    httpServer.listen(port, host, () => {
+      if (useHTTPS && server !== app) {
+        log(`🔒 HTTPS server running on https://${host}:${port}`);
+      } else {
+        log(`🌐 HTTP server running on http://${host}:${port}`);
+      }
+    });
   } else {
     serveStatic(app);
     

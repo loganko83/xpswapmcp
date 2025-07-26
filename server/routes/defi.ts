@@ -4,7 +4,7 @@ import { SecurityUtils, stakingRecords, farmStakingRecords } from "./common.js";
 const router = Router();
 
 // Liquidity pools routes
-router.get("/api/pools", async (req, res) => {
+router.get("/pools", async (req, res) => {
   try {
     // Return mock pool data for now to avoid database errors
     const mockPools = [
