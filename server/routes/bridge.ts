@@ -14,7 +14,7 @@ const BridgeUtils = {
 };
 
 // Cross-Chain Bridge APIs
-router.get('/api/bridge/networks', checkRateLimit, (req, res) => {
+router.get('/bridge/networks', checkRateLimit, (req, res) => {
   try {
     const networks = [
       {
@@ -109,7 +109,7 @@ router.get('/api/bridge/networks', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/bridge/tokens', checkRateLimit, (req, res) => {
+router.get('/bridge/tokens', checkRateLimit, (req, res) => {
   try {
     const bridgeTokens = [
       {
@@ -183,7 +183,7 @@ router.get('/api/bridge/tokens', checkRateLimit, (req, res) => {
   }
 });
 
-router.post('/api/bridge/estimate', checkRateLimit, (req, res) => {
+router.post('/bridge/estimate', checkRateLimit, (req, res) => {
   try {
     const { fromNetwork, toNetwork, token, amount, userAddress } = req.body;
     
@@ -266,7 +266,7 @@ router.post('/api/bridge/estimate', checkRateLimit, (req, res) => {
   }
 });
 
-router.post('/api/bridge/execute', checkRateLimit, (req, res) => {
+router.post('/bridge/execute', checkRateLimit, (req, res) => {
   try {
     const { fromNetwork, toNetwork, token, amount, userAddress, maxSlippage } = req.body;
     
@@ -313,7 +313,7 @@ router.post('/api/bridge/execute', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/bridge/status/:transactionId', checkRateLimit, (req, res) => {
+router.get('/bridge/status/:transactionId', checkRateLimit, (req, res) => {
   try {
     const { transactionId } = req.params;
     
@@ -342,7 +342,7 @@ router.get('/api/bridge/status/:transactionId', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/bridge/history/:address', checkRateLimit, (req, res) => {
+router.get('/bridge/history/:address', checkRateLimit, (req, res) => {
   try {
     const { address } = req.params;
     const { page = 1, limit = 20 } = req.query;
@@ -414,7 +414,7 @@ router.get('/api/bridge/history/:address', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/bridge/supported-routes', checkRateLimit, (req, res) => {
+router.get('/bridge/supported-routes', checkRateLimit, (req, res) => {
   try {
     const supportedRoutes = [
       {
