@@ -22,7 +22,7 @@ import {
   Shield,
   Target
 } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
 
 // 보안 강화된 유틸리티 함수
@@ -64,7 +64,7 @@ interface MintingStep {
 }
 
 export default function MintingPage() {
-  const { wallet, connectWallet } = useWeb3();
+  const { wallet, connectWallet } = useWeb3Context();
   const { toast } = useToast();
   
   const [tokenInfo, setTokenInfo] = useState<TokenInfo>({

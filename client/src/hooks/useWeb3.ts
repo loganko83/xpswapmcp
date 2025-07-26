@@ -4,6 +4,14 @@ import { web3Service } from "@/lib/web3";
 import { zigapWalletService } from "@/lib/zigapWallet";
 import { XPHERE_NETWORK } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  connectMetaMask, 
+  isMetaMaskInstalled, 
+  onAccountsChanged, 
+  onChainChanged, 
+  removeMetaMaskListeners,
+  getCurrentChainId
+} from '@/lib/metamask';
 
 export function useWeb3() {
   const { toast } = useToast();
@@ -35,7 +43,7 @@ export function useWeb3() {
         balance = await web3Service.getBalance(address);
         chainId = await web3Service.getChainId();
       } else if (walletType === 'zigap') {
-        balance = await zigapWalletService.getZigapBalance(address);
+        balance = await zigapWalletService.getXPBalance(address);
         chainId = await zigapWalletService.getZigapChainId();
       }
       
@@ -46,6 +54,13 @@ export function useWeb3() {
         chainId,
         walletType,
       });
+      
+      // Store connection info for restoration
+      localStorage.setItem('xpswap_wallet_connection', JSON.stringify({
+        walletType,
+        address,
+        timestamp: Date.now()
+      }));
       
       console.log(`✅ ${walletType} wallet info updated:`, { 
         address: address.substring(0, 6) + "...", 
@@ -69,11 +84,36 @@ export function useWeb3() {
       let address = "";
       
       if (walletType === 'metamask') {
-        // Special handling for mobile devices
-        if (isMobile() && !window.ethereum?.isMetaMask) {
-          throw new Error("모바일에서는 MetaMask 앱을 통해 연결해주세요.");
+        // Check if MetaMask is installed
+        if (!isMetaMaskInstalled()) {
+          if (isMobile()) {
+            // 모바일에서 MetaMask 앱으로 이동
+            window.open('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname);
+            throw new Error("MetaMask 앱으로 이동합니다. MetaMask 앱에서 다시 연결해주세요.");
+          } else {
+            // 데스크톱에서 MetaMask 설치 페이지로 이동
+            window.open('https://metamask.io/download/', '_blank');
+            throw new Error("MetaMask가 설치되지 않았습니다. MetaMask를 설치해주세요.");
+          }
         }
-        address = await web3Service.connectWallet();
+        
+        // Use the new metamask.ts connection function
+        const result = await connectMetaMask();
+        address = result.account;
+        
+        // Listen for MetaMask events
+        onAccountsChanged((accounts: string[]) => {
+          if (accounts.length === 0) {
+            disconnectWallet();
+          } else if (accounts[0] !== wallet.address) {
+            updateWalletInfo(accounts[0], 'metamask');
+          }
+        });
+        
+        onChainChanged((chainId: string) => {
+          window.location.reload(); // Recommended by MetaMask
+        });
+        
       } else if (walletType === 'zigap') {
         address = await zigapWalletService.connectZigap();
       }
@@ -149,11 +189,16 @@ export function useWeb3() {
   const disconnectWallet = useCallback(() => {
     console.log("🔌 Disconnecting wallet...");
     
+    // Clear stored connection
+    localStorage.removeItem('xpswap_wallet_connection');
+    
     // Smooth transition
     setWallet(prev => ({ ...prev, isConnected: false }));
     
     setTimeout(() => {
       if (wallet.walletType === 'metamask') {
+        // Remove MetaMask event listeners
+        removeMetaMaskListeners();
         web3Service.disconnect();
       } else if (wallet.walletType === 'zigap') {
         zigapWalletService.disconnectZigap();
@@ -288,35 +333,52 @@ export function useWeb3() {
     };
   }, [wallet.address, wallet.walletType, wallet.isConnected, updateWalletInfo, disconnectWallet, toast]);
 
-  // Check if already connected on mount
+  // Check if already connected on mount - DISABLED automatic connection
   useEffect(() => {
     const checkConnection = async () => {
       try {
+        // Only check if wallet was previously connected (stored in localStorage)
+        const previousConnection = localStorage.getItem('xpswap_wallet_connection');
+        if (!previousConnection) {
+          console.log("📌 No previous wallet connection found. User must connect manually.");
+          return;
+        }
+
+        const { walletType, address } = JSON.parse(previousConnection);
+        console.log("🔍 Found previous connection:", { walletType, address: address.substring(0, 6) + "..." });
+
         // Check MetaMask connection
-        if (typeof window.ethereum !== "undefined") {
+        if (walletType === 'metamask' && typeof window.ethereum !== "undefined") {
           const accounts = await window.ethereum.request({
             method: "eth_accounts",
           });
           
-          if (accounts.length > 0) {
+          if (accounts.length > 0 && accounts[0].toLowerCase() === address.toLowerCase()) {
             console.log("🔄 Restoring MetaMask connection...");
             await updateWalletInfo(accounts[0], 'metamask');
             console.log("✅ MetaMask connection restored");
             return;
+          } else {
+            console.log("👤 MetaMask account changed or disconnected. Clearing stored connection.");
+            localStorage.removeItem('xpswap_wallet_connection');
           }
         }
         
         // Check ZIGAP connection
-        if (await zigapWalletService.isZigapInstalled()) {
+        if (walletType === 'zigap' && await zigapWalletService.isZigapInstalled()) {
           const zigapAccounts = await zigapWalletService.getZigapAccounts();
-          if (zigapAccounts.length > 0) {
+          if (zigapAccounts.length > 0 && zigapAccounts[0].toLowerCase() === address.toLowerCase()) {
             console.log("🔄 Restoring ZIGAP connection...");
             await updateWalletInfo(zigapAccounts[0], 'zigap');
             console.log("✅ ZIGAP connection restored");
+          } else {
+            console.log("👤 ZIGAP account changed or disconnected. Clearing stored connection.");
+            localStorage.removeItem('xpswap_wallet_connection');
           }
         }
       } catch (err) {
         console.error("❌ Failed to check existing connection:", err);
+        localStorage.removeItem('xpswap_wallet_connection');
       }
     };
 

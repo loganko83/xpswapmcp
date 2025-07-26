@@ -3,10 +3,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, BarChart, PieChart, Activity, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 
 export function GovernanceAnalytics() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
 
   const { data: analytics } = useQuery({
     queryKey: ["/api/governance/analytics"],

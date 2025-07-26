@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { TrendingUp, TrendingDown, Clock, DollarSign, AlertTriangle, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -43,7 +43,7 @@ interface OptionPosition {
 }
 
 export function OptionsInterface() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const [activeTab, setActiveTab] = useState("trade");
   const [selectedUnderlying, setSelectedUnderlying] = useState("XP");
   const [optionType, setOptionType] = useState<'call' | 'put'>('call');

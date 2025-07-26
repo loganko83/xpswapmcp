@@ -1,12 +1,12 @@
 # XPSwap DEX 자동 보안 스캔 결과
 
 ## 📊 스캔 요약
-- **스캔 일시**: 2025. 7. 20. 오후 7:02:56
-- **총 발견 이슈**: 410개
+- **스캔 일시**: 2025. 7. 22. 오후 10:28:23
+- **총 발견 이슈**: 361개
 - **Critical**: 1개 🔴
-- **High**: 12개 🟡  
-- **Medium**: 101개 🟠
-- **Low**: 296개 🟢
+- **High**: 11개 🟡  
+- **Medium**: 96개 🟠
+- **Low**: 253개 🟢
 - **Info**: 0개 ℹ️
 
 ## 🚨 Critical 이슈 (1개)
@@ -17,7 +17,7 @@
 - **코드**: `description: 'eval() 사용 - 코드 인젝션 위험',`
 - **CWE**: CWE-95
 
-## 🔴 High 이슈 (12개)
+## 🔴 High 이슈 (11개)
 
 ### 1. 개인키 하드코딩 의심
 - **파일**: \client\src\pages\terms-of-service.tsx
@@ -44,9 +44,9 @@
 - **라인**: 55
 - **CWE**: CWE-338
 
-... 그리고 7개 더
+... 그리고 6개 더
 
-## 🟠 Medium 이슈 (101개)
+## 🟠 Medium 이슈 (96개)
 
 ### 1. Options 가격 계산 - 외부 가격 의존성 확인 필요
 - **파일**: \client\src\components\OptionsTrading\OptionsInterface.tsx
@@ -60,7 +60,7 @@
 - **파일**: \client\src\lib\apiUrl.ts
 - **CWE**: CWE-319
 
-... 그리고 98개 더
+... 그리고 93개 더
 
 ## 📊 보안 점수: 0.0/10
 

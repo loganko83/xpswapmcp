@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   Info
 } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { createChart, ColorType } from 'lightweight-charts';
@@ -60,7 +60,7 @@ interface OrderBook {
 }
 
 export default function TradingPage() {
-  const { wallet, connectWallet } = useWeb3();
+  const { wallet, connectWallet } = useWeb3Context();
   const { toast } = useToast();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chart, setChart] = useState<any>(null);

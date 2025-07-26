@@ -17,7 +17,7 @@ import {
   Plus,
   CheckCircle
 } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { SUPPORTED_NETWORKS, lifiService, BridgeQuote } from "@/lib/lifiService";
 import { switchToNetwork, addNetworkToMetaMask, getNetworkByChainId, checkNetworkStatus } from "@/lib/networkUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -32,7 +32,7 @@ interface NetworkOption {
 }
 
 export function MultiNetworkSwapInterface() {
-  const { wallet, switchToXphere } = useWeb3();
+  const { wallet, switchToXphere } = useWeb3Context();
   const { toast } = useToast();
   const [selectedFromNetwork, setSelectedFromNetwork] = useState<number>(wallet.chainId || 20250217);
   const [selectedToNetwork, setSelectedToNetwork] = useState<number>(1); // Ethereum

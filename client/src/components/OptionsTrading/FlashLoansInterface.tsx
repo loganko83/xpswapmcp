@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { Zap, Code, DollarSign, Clock, AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -42,7 +42,7 @@ interface FlashLoanTransaction {
 }
 
 export function FlashLoansInterface() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const [activeTab, setActiveTab] = useState("execute");
   const [selectedToken, setSelectedToken] = useState("XP");
   const [loanAmount, setLoanAmount] = useState("");

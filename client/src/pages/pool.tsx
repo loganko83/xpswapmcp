@@ -7,16 +7,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Minus, TrendingUp, Search, Sparkles, ArrowRight, ChevronDown, Trophy, Gift } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AdvancedLiquidityPoolManager } from "@/components/LiquidityPoolManager";
+import LiquidityPoolManager from "@/components/LiquidityPoolManager";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { web3Service } from "@/lib/web3";
 import { lpTokenService } from "@/lib/lpTokenService";
 import { useToast } from "@/hooks/use-toast";
 
 export default function PoolPage() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,7 +41,7 @@ export default function PoolPage() {
         const data = await response.json();
         console.log("Pool data received:", data);
         
-        // Transform API data to match AdvancedLiquidityPoolManager interface
+        // Transform API data to match LiquidityPoolManager interface
         return data.map((pool: any) => ({
           id: pool.id,
           tokenA: pool.pair?.tokenA || { symbol: "XP", name: "Xphere", address: "0x0" },
@@ -466,7 +466,7 @@ export default function PoolPage() {
           {poolsLoading ? (
             <div className="text-center py-8">Loading pools...</div>
           ) : (
-            <AdvancedLiquidityPoolManager pools={filteredPools} />
+            <LiquidityPoolManager pools={filteredPools} />
           )}
         </TabsContent>
 

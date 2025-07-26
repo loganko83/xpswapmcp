@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Token } from "@/types";
 import { dexAggregator, AggregatedQuote, EXTERNAL_DEXES } from "@/lib/aggregator";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 
 interface AggregatorSwapInterfaceProps {
   fromToken: Token | null;
@@ -30,7 +30,7 @@ export function AggregatorSwapInterface({
   toToken, 
   fromAmount 
 }: AggregatorSwapInterfaceProps) {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const [aggregatedQuote, setAggregatedQuote] = useState<AggregatedQuote | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

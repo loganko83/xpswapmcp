@@ -28,7 +28,7 @@ import {
   Zap,
   Target
 } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { QuickShareButton } from "./SocialSharing";
@@ -69,7 +69,7 @@ interface VoteDialogProps {
 }
 
 function VoteDialog({ proposal, isOpen, onClose }: VoteDialogProps) {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedVote, setSelectedVote] = useState<'for' | 'against'>('for');
@@ -186,7 +186,7 @@ interface CreateProposalDialogProps {
 }
 
 function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [proposalType, setProposalType] = useState<'parameter' | 'upgrade' | 'treasury' | 'general'>('general');
@@ -333,7 +333,7 @@ function CreateProposalDialog({ isOpen, onClose }: CreateProposalDialogProps) {
 }
 
 export function GovernanceVoting() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedFilter, setSelectedFilter] = useState<string>("all");

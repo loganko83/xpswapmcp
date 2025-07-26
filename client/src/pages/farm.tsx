@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Sprout, TrendingUp, Search, Lock, Unlock, Zap, Sparkles, ArrowRight } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { YieldFarmingManager } from "@/components/YieldFarmingManager";
 
 export default function FarmPage() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch real farm data from API

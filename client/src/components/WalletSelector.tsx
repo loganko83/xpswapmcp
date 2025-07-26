@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Wallet, ExternalLink } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
+import { isMetaMaskInstalled } from '@/lib/metamask';
+import { zigapWalletService } from '@/lib/zigapWallet';
 
 interface WalletSelectorProps {
   isOpen: boolean;
@@ -21,7 +23,7 @@ interface WalletOption {
 }
 
 export function WalletSelector({ isOpen, onClose }: WalletSelectorProps) {
-  const { connectWallet, isConnecting } = useWeb3();
+  const { connectWallet, isConnecting } = useWeb3Context();
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
 
   // 지갑 설치 상태 확인
@@ -32,7 +34,7 @@ export function WalletSelector({ isOpen, onClose }: WalletSelectorProps) {
       icon: '🦊',
       description: '가장 인기 있는 이더리움 지갑',
       downloadUrl: 'https://metamask.io/download/',
-      isInstalled: typeof window !== 'undefined' && !!window.ethereum?.isMetaMask,
+      isInstalled: isMetaMaskInstalled(),
     },
     {
       id: 'zigap',

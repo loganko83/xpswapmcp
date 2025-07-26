@@ -18,7 +18,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -48,7 +48,7 @@ interface OptimizationStrategy {
 }
 
 export function YieldOptimization() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [autoOptimize, setAutoOptimize] = useState(false);

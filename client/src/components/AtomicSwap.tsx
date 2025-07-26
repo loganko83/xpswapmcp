@@ -23,7 +23,7 @@ import {
   Hash
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 
 interface AtomicSwapContract {
   id: string;
@@ -102,7 +102,7 @@ export function AtomicSwap() {
   const [selectedContract, setSelectedContract] = useState<AtomicSwapContract | null>(null);
 
   const { toast } = useToast();
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
 
   // Generate random secret
   const generateSecret = () => {

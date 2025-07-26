@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { TrendingUp, TrendingDown, Target, Zap, DollarSign, Shield, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -42,7 +42,7 @@ interface PerpetualPosition {
 }
 
 export function PerpetualFuturesInterface() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const [activeTab, setActiveTab] = useState("trade");
   const [selectedContract, setSelectedContract] = useState("XP-PERP");
   const [orderSide, setOrderSide] = useState<'long' | 'short'>('long');

@@ -21,7 +21,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -55,7 +55,7 @@ interface SecurityMetric {
 }
 
 export function RiskManagement() {
-  const { wallet } = useWeb3();
+  const { wallet } = useWeb3Context();
   const { toast } = useToast();
   const [selectedTimeframe, setSelectedTimeframe] = useState("7d");
   const [activeTab, setActiveTab] = useState("portfolio");

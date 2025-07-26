@@ -1,12 +1,19 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import https from 'https';
+import fs from 'fs';
+import { setupRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { applyEnhancedSecurity } from "./middleware/enhanced-security";
 import path from "path";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// 🛡️ Apply Enhanced Security Middleware First (Before any other middleware)
+applyEnhancedSecurity(app);
+
+app.use(express.json({ limit: '10mb' })); // Limit request size
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Serve markdown files as static content
 app.use('/DEVELOPERS_GUIDE.md', express.static(path.join(process.cwd(), 'DEVELOPERS_GUIDE.md')));
@@ -44,7 +51,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  // Setup modular routes
+  setupRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -54,22 +62,70 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // HTTPS/HTTP Server Setup
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+  const useHTTPS = process.env.HTTPS === 'true' && fs.existsSync(process.env.SSL_CERT || '');
+
+  // Create server instance
+  let server;
+  
+  if (useHTTPS) {
+    try {
+      const options = {
+        key: fs.readFileSync(process.env.SSL_KEY || './certs/server.key'),
+        cert: fs.readFileSync(process.env.SSL_CERT || './certs/server.crt')
+      };
+      
+      server = https.createServer(options, app);
+      log(`🔒 HTTPS Server starting on https://${host}:${port}`);
+    } catch (error) {
+      log(`⚠️ HTTPS setup failed: ${error.message}. Falling back to HTTP.`);
+      server = app;
+    }
+  } else {
+    server = app;
+    log(`🌐 HTTP Server starting on http://${host}:${port}`);
+  }
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
+  if (process.env.NODE_ENV === "development") {
+    if (useHTTPS && server !== app) {
+      const httpsServer = server.listen(port, host, () => {
+        log(`🔒 HTTPS server running on https://${host}:${port}`);
+      });
+      await setupVite(app, httpsServer);
+    } else {
+      const httpServer = app.listen(port, host, () => {
+        log(`🌐 HTTP server running on http://${host}:${port}`);
+      });
+      await setupVite(app, httpServer);
+    }
   } else {
     serveStatic(app);
+    
+    if (useHTTPS && server !== app) {
+      server.listen(port, host, () => {
+        log(`🔒 Production HTTPS server running on https://${host}:${port}`);
+      });
+    } else {
+      app.listen(port, host, () => {
+        log(`🌐 Production HTTP server running on http://${host}:${port}`);
+      });
+    }
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  const host = process.env.NODE_ENV === 'development' ? 'localhost' : '0.0.0.0';
-  
-  server.listen(port, host, () => {
-    log(`serving on http://${host}:${port}`);
-  });
+  // Log security status on startup
+  setTimeout(() => {
+    console.log('🛡️ Enhanced security features activated:');
+    console.log('  ✅ Rate limiting enabled');
+    console.log('  ✅ IP reputation tracking');
+    console.log('  ✅ Advanced crypto security');
+    console.log('  ✅ Error leak prevention');
+    console.log(`  ${useHTTPS ? '✅' : '⚠️'} HTTPS ${useHTTPS ? 'enabled' : 'disabled (HTTP only)'}`);
+    console.log('  ✅ Enhanced CORS protection');
+    console.log('  ✅ Security headers enforced');
+  }, 1000);
 })();

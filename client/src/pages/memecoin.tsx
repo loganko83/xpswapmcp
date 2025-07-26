@@ -29,7 +29,7 @@ import {
   Upload,
   Image as ImageIcon
 } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
@@ -72,7 +72,7 @@ const generateSecureTxHash = (): string => {
 };
 
 export default function MemeCoinPage() {
-  const { wallet, connectWallet } = useWeb3();
+  const { wallet, connectWallet } = useWeb3Context();
   const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState<"create" | "explore">("create");

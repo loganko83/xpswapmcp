@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Web3Provider } from "@/contexts/Web3Context";
 import { Layout } from "@/components/Layout";
 import HomePage from "@/pages/home";
 import SwapPage from "@/pages/swap";
@@ -68,8 +69,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="xpswap-ui-theme">
         <TooltipProvider>
-          <Toaster />
-          <RouterComponent />
+          <Web3Provider>
+            <RouterComponent />
+            <Toaster />
+          </Web3Provider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

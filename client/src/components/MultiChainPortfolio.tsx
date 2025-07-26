@@ -21,7 +21,7 @@ import {
   Filter,
   Globe
 } from "lucide-react";
-import { useWeb3 } from "@/hooks/useWeb3";
+import { useWeb3Context } from "@/contexts/Web3Context";
 import { WalletSelector } from "./WalletSelector";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useQuery } from "@tanstack/react-query";
@@ -107,7 +107,7 @@ export function MultiChainPortfolio() {
   const [showTransactions, setShowTransactions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   
-  const { wallet, isConnected } = useWeb3();
+  const { wallet, isConnected } = useWeb3Context();
   const { toast } = useToast();
   const { prices, loading: pricesLoading } = useTokenPrices();
 
