@@ -26,24 +26,44 @@ export function SecurityDashboard() {
   // Fetch security status
   const { data: securityStatus } = useQuery<SecurityStatus>({
     queryKey: ["/api/security/status"],
+    queryFn: async () => {
+      const response = await fetch("/api/security/status");
+      if (!response.ok) throw new Error("Failed to fetch security status");
+      return response.json();
+    },
     refetchInterval: 10000, // Update every 10 seconds
   });
 
   // Fetch security alerts
   const { data: securityAlerts } = useQuery<SecurityAlert[]>({
     queryKey: ["/api/security/alerts"],
+    queryFn: async () => {
+      const response = await fetch("/api/security/alerts");
+      if (!response.ok) throw new Error("Failed to fetch security alerts");
+      return response.json();
+    },
     refetchInterval: 15000, // Update every 15 seconds
   });
 
   // Fetch security metrics
   const { data: securityMetrics } = useQuery<SecurityMetric[]>({
     queryKey: ["/api/security/metrics", selectedTimeframe],
+    queryFn: async () => {
+      const response = await fetch(`/api/security/metrics?timeframe=${selectedTimeframe}`);
+      if (!response.ok) throw new Error("Failed to fetch security metrics");
+      return response.json();
+    },
     refetchInterval: 30000, // Update every 30 seconds
   });
 
   // Fetch threat intelligence
   const { data: threatIntel } = useQuery<ThreatData[]>({
     queryKey: ["/api/security/threats", selectedTimeframe],
+    queryFn: async () => {
+      const response = await fetch(`/api/security/threats?timeframe=${selectedTimeframe}`);
+      if (!response.ok) throw new Error("Failed to fetch threat intelligence");
+      return response.json();
+    },
     refetchInterval: 15000, // Update every 15 seconds
   });
 

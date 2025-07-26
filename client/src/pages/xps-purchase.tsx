@@ -31,6 +31,11 @@ export default function XPSPurchase() {
   // Fetch XP price data
   const { data: xpPriceData } = useQuery<XPPrice>({
     queryKey: ['/api/xp-price'],
+    queryFn: async () => {
+      const response = await fetch('/api/xp-price');
+      if (!response.ok) throw new Error('Failed to fetch XP price');
+      return response.json();
+    },
     refetchInterval: 5000,
   });
 

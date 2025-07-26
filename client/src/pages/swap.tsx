@@ -27,12 +27,22 @@ export default function SwapPage() {
   // Fetch market stats
   const { data: marketStats } = useQuery({
     queryKey: ["/api/market-stats"],
+    queryFn: async () => {
+      const response = await fetch("/api/market-stats");
+      if (!response.ok) throw new Error("Failed to fetch market stats");
+      return response.json();
+    },
     refetchInterval: 30000,
   });
 
   // Fetch XP price data
   const { data: xpData } = useQuery({
     queryKey: ["/api/xp-price"],
+    queryFn: async () => {
+      const response = await fetch("/api/xp-price");
+      if (!response.ok) throw new Error("Failed to fetch XP price");
+      return response.json();
+    },
     refetchInterval: 30000,
   });
 

@@ -7,23 +7,22 @@ import {
   sanitizeSQLInput 
 } from "../middleware/security.js";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache.js";
+import { cacheMiddleware, cacheMedium, cacheShort, invalidateCache } from "../middleware/cache.js";
 
 const router = Router();
 
-// Market data
-router.get("/market-stats", async (req, res) => {
-  try {
-    // Check cache first
-    const cachedStats = cache.get(CACHE_KEYS.MARKET_STATS);
-    if (cachedStats) {
-      console.log("🚀 Market stats served from cache");
-      return res.json(cachedStats);
-    }
-    
-    console.log("📡 Fetching market stats");
-    
-    // Get real-time XP price from CoinMarketCap
-    const response = await fetch(
+// Market data with cache middleware
+router.get("/market-stats", 
+  cacheMiddleware({ 
+    ttl: CACHE_TTL.MARKET_STATS,
+    key: 'market:stats:overview'
+  }),
+  async (req, res) => {
+    try {
+      console.log("📡 Fetching market stats");
+      
+      // Get real-time XP price from CoinMarketCap
+      const response = await fetch(
       'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056',
       {
         headers: {
@@ -68,9 +67,7 @@ router.get("/market-stats", async (req, res) => {
       ]
     };
     
-    // Cache the result for 1 minute
-    cache.set(CACHE_KEYS.MARKET_STATS, marketStats, CACHE_TTL.MARKET_STATS);
-    
+    // Middleware will handle caching automatically
     res.json(marketStats);
   } catch (error) {
     console.error("Failed to fetch market stats:", error);
@@ -374,6 +371,164 @@ router.get("/trading-pairs", async (req, res) => {
   } catch (error) {
     console.error("Failed to fetch trading pairs:", error);
     res.status(500).json({ error: "Failed to fetch trading pairs" });
+  }
+});
+
+// Get tokens for different networks
+router.get("/xphere-tokens", async (req, res) => {
+  try {
+    const tokens = [
+      {
+        id: 1,
+        symbol: "XP",
+        name: "Xphere",
+        address: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/36056.png",
+        balance: "0",
+        price: 0.016641808997191483,
+        isActive: true
+      },
+      {
+        id: 2,
+        symbol: "XPS",
+        name: "XPSwap Token",
+        address: "0x1234567890123456789012345678901234567890",
+        decimals: 18,
+        logoUrl: "/xps-logo.png",
+        balance: "0",
+        price: 1.0,
+        isActive: true
+      },
+      {
+        id: 3,
+        symbol: "USDT",
+        name: "Tether USD",
+        address: "0x6485cc42b36b4c982d3f1b6ec42b92007fb0b596",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+        balance: "0",
+        price: 1.0,
+        isActive: true
+      },
+      {
+        id: 4,
+        symbol: "XCR",
+        name: "XCrypto",
+        address: "0x2345678901234567890123456789012345678901",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+        balance: "0",
+        price: 0.05,
+        isActive: true
+      },
+      {
+        id: 5,
+        symbol: "XEF",
+        name: "XEfficient",
+        address: "0x3456789012345678901234567890123456789012",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+        balance: "0",
+        price: 0.02,
+        isActive: true
+      }
+    ];
+    
+    res.json(tokens);
+  } catch (error) {
+    console.error("Failed to fetch Xphere tokens:", error);
+    res.status(500).json({ error: "Failed to fetch tokens" });
+  }
+});
+
+router.get("/ethereum-tokens", async (req, res) => {
+  try {
+    const tokens = [
+      {
+        id: 1,
+        symbol: "ETH",
+        name: "Ethereum",
+        address: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+        balance: "0",
+        price: 2251.45,
+        isActive: true
+      },
+      {
+        id: 2,
+        symbol: "USDT",
+        name: "Tether USD",
+        address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        decimals: 6,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+        balance: "0",
+        price: 1.0,
+        isActive: true
+      },
+      {
+        id: 3,
+        symbol: "USDC",
+        name: "USD Coin",
+        address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        decimals: 6,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
+        balance: "0",
+        price: 1.0,
+        isActive: true
+      }
+    ];
+    
+    res.json(tokens);
+  } catch (error) {
+    console.error("Failed to fetch Ethereum tokens:", error);
+    res.status(500).json({ error: "Failed to fetch tokens" });
+  }
+});
+
+router.get("/bsc-tokens", async (req, res) => {
+  try {
+    const tokens = [
+      {
+        id: 1,
+        symbol: "BNB",
+        name: "Binance Coin",
+        address: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
+        balance: "0",
+        price: 312.87,
+        isActive: true
+      },
+      {
+        id: 2,
+        symbol: "USDT",
+        name: "Tether USD",
+        address: "0x55d398326f99059ff775485246999027b3197955",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+        balance: "0",
+        price: 1.0,
+        isActive: true
+      },
+      {
+        id: 3,
+        symbol: "BUSD",
+        name: "Binance USD",
+        address: "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+        decimals: 18,
+        logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/4687.png",
+        balance: "0",
+        price: 1.0,
+        isActive: true
+      }
+    ];
+    
+    res.json(tokens);
+  } catch (error) {
+    console.error("Failed to fetch BSC tokens:", error);
+    res.status(500).json({ error: "Failed to fetch tokens" });
   }
 });
 

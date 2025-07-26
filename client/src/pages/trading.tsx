@@ -78,24 +78,44 @@ export default function TradingPage() {
   // Fetch trading pairs
   const { data: tradingPairs, isLoading: pairsLoading } = useQuery({
     queryKey: ["/api/trading/pairs"],
+    queryFn: async () => {
+      const response = await fetch("/api/trading/pairs");
+      if (!response.ok) throw new Error("Failed to fetch trading pairs");
+      return response.json();
+    },
     refetchInterval: 5000
   });
 
   // Fetch chart data
   const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ["/api/trading/chart", selectedPair, timeFrame],
+    queryFn: async () => {
+      const response = await fetch(`/api/trading/chart?pair=${selectedPair}&timeframe=${timeFrame}`);
+      if (!response.ok) throw new Error("Failed to fetch chart data");
+      return response.json();
+    },
     refetchInterval: 2000
   });
 
   // Fetch order book
   const { data: orderBook, isLoading: orderBookLoading } = useQuery({
     queryKey: ["/api/trading/orderbook", selectedPair],
+    queryFn: async () => {
+      const response = await fetch(`/api/trading/orderbook?pair=${selectedPair}`);
+      if (!response.ok) throw new Error("Failed to fetch order book");
+      return response.json();
+    },
     refetchInterval: 1000
   });
 
   // Fetch recent trades
   const { data: recentTrades, isLoading: tradesLoading } = useQuery({
     queryKey: ["/api/trading/trades", selectedPair],
+    queryFn: async () => {
+      const response = await fetch(`/api/trading/trades?pair=${selectedPair}`);
+      if (!response.ok) throw new Error("Failed to fetch recent trades");
+      return response.json();
+    },
     refetchInterval: 2000
   });
 
