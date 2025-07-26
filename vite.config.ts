@@ -40,6 +40,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/xpswap/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace('/xpswap', ''),
+      },
     },
     fs: {
       strict: true,
