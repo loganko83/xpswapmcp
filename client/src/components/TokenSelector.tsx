@@ -38,43 +38,87 @@ export function TokenSelector({
   const [switchingNetwork, setSwitchingNetwork] = useState(false);
 
   // Fetch tokens from different networks
-  const { data: xphereTokensData, isLoading: xphereLoading, refetch: refetchXphere } = useQuery({
-    queryKey: ["/api/xphere-tokens"],
+  const { data: xphereTokensData, isLoading: xphereLoading, error: xphereError, refetch: refetchXphere } = useQuery({
+    queryKey: ["xphere-tokens"],
+    queryFn: async () => {
+      console.log('🔥 Fetching Xphere tokens...');
+      const response = await fetch('/api/xphere-tokens');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('✅ Xphere tokens data:', data);
+      return data;
+    },
     refetchInterval: 30000,
   });
 
-  const { data: ethereumTokensData, isLoading: ethereumLoading, refetch: refetchEthereum } = useQuery({
-    queryKey: ["/api/ethereum-tokens"],
+  const { data: ethereumTokensData, isLoading: ethereumLoading, error: ethereumError, refetch: refetchEthereum } = useQuery({
+    queryKey: ["ethereum-tokens"],
+    queryFn: async () => {
+      console.log('🔥 Fetching Ethereum tokens...');
+      const response = await fetch('/api/ethereum-tokens');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('✅ Ethereum tokens data:', data);
+      return data;
+    },
     refetchInterval: 60000,
     enabled: activeTab === "ethereum",
   });
 
-  const { data: bscTokensData, isLoading: bscLoading, refetch: refetchBSC } = useQuery({
-    queryKey: ["/api/bsc-tokens"],
+  const { data: bscTokensData, isLoading: bscLoading, error: bscError, refetch: refetchBSC } = useQuery({
+    queryKey: ["bsc-tokens"],
+    queryFn: async () => {
+      console.log('🔥 Fetching BSC tokens...');
+      const response = await fetch('/api/bsc-tokens');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('✅ BSC tokens data:', data);
+      return data;
+    },
     refetchInterval: 60000,
     enabled: activeTab === "bsc",
   });
 
   // Get current network tokens based on active tab
   const getCurrentNetworkTokens = () => {
+    console.log('🔍 Getting tokens for tab:', activeTab);
+    console.log('📊 Data states:', {
+      xphere: { loading: xphereLoading, error: xphereError, dataLength: Array.isArray(xphereTokensData) ? xphereTokensData.length : 'Not array' },
+      ethereum: { loading: ethereumLoading, error: ethereumError, dataLength: Array.isArray(ethereumTokensData) ? ethereumTokensData.length : 'Not array' },
+      bsc: { loading: bscLoading, error: bscError, dataLength: Array.isArray(bscTokensData) ? bscTokensData.length : 'Not array' }
+    });
+    
     switch (activeTab) {
       case "ethereum":
-        return ethereumTokensData || [];
+        const ethTokens = Array.isArray(ethereumTokensData) ? ethereumTokensData : [];
+        console.log('📍 Returning Ethereum tokens:', ethTokens);
+        return ethTokens;
       case "bsc":
-        return bscTokensData || [];
+        const bscTokens = Array.isArray(bscTokensData) ? bscTokensData : [];
+        console.log('📍 Returning BSC tokens:', bscTokens);
+        return bscTokens;
       default:
-        return xphereTokensData || [];
+        const xphereTokens = Array.isArray(xphereTokensData) ? xphereTokensData : [];
+        console.log('📍 Returning Xphere tokens:', xphereTokens);
+        return xphereTokens;
     }
   };
 
   const currentNetworkTokens = getCurrentNetworkTokens();
   const isLoading = xphereLoading || ethereumLoading || bscLoading;
 
-  const filteredTokens = currentNetworkTokens.filter(
+  // Ensure currentNetworkTokens is always an array before filtering
+  const filteredTokens = Array.isArray(currentNetworkTokens) ? currentNetworkTokens.filter(
     (token) =>
       token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
       token.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
 
   const handleSelectToken = async (token: Token) => {
     const tokenNetwork = (token as any).network || "Xphere";
