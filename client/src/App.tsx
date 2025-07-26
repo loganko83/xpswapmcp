@@ -28,6 +28,7 @@ import OptionsPage from "@/pages/options";
 import FuturesPage from "@/pages/futures";
 import FlashLoansPage from "@/pages/flashloans";
 import MemeCoinPage from "@/pages/memecoin";
+import TestPage from "@/pages/test";
 import NotFound from "@/pages/not-found";
 
 function RouterComponent() {
@@ -54,6 +55,7 @@ function RouterComponent() {
           <Route path="/memecoin" component={MemeCoinPage} />
           <Route path="/xps-staking" component={XPSStakingPage} />
           <Route path="/xps-purchase" component={XPSPurchasePage} />
+          <Route path="/test" component={TestPage} />
           <Route path="/options" component={OptionsPage} />
           <Route path="/futures" component={FuturesPage} />
           <Route path="/flashloans" component={FlashLoansPage} />
