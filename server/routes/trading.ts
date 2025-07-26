@@ -6,12 +6,22 @@ import {
   handleValidationErrors,
   sanitizeSQLInput 
 } from "../middleware/security.js";
+import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache.js";
 
 const router = Router();
 
 // Market data
 router.get("/market-stats", async (req, res) => {
   try {
+    // Check cache first
+    const cachedStats = cache.get(CACHE_KEYS.MARKET_STATS);
+    if (cachedStats) {
+      console.log("🚀 Market stats served from cache");
+      return res.json(cachedStats);
+    }
+    
+    console.log("📡 Fetching market stats");
+    
     // Get real-time XP price from CoinMarketCap
     const response = await fetch(
       'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056',
@@ -29,7 +39,7 @@ router.get("/market-stats", async (req, res) => {
       xpPrice = data.data?.['36056']?.quote?.USD?.price || xpPrice;
     }
 
-    res.json({
+    const marketStats = {
       totalValueLocked: "32.5K",
       volume24h: "8.75K", 
       totalTrades: 47,
@@ -56,7 +66,12 @@ router.get("/market-stats", async (req, res) => {
           change: "0.00%"
         }
       ]
-    });
+    };
+    
+    // Cache the result for 1 minute
+    cache.set(CACHE_KEYS.MARKET_STATS, marketStats, CACHE_TTL.MARKET_STATS);
+    
+    res.json(marketStats);
   } catch (error) {
     console.error("Failed to fetch market stats:", error);
     res.status(500).json({ error: "Failed to fetch market statistics" });
@@ -66,6 +81,14 @@ router.get("/market-stats", async (req, res) => {
 // XP token price
 router.get("/xp-price", async (req, res) => {
   try {
+    // Check cache first
+    const cachedPrice = cache.get(CACHE_KEYS.XP_PRICE);
+    if (cachedPrice) {
+      console.log("🚀 XP Price served from cache");
+      return res.json(cachedPrice);
+    }
+    
+    console.log("📡 Fetching XP Price from CoinMarketCap API");
     const response = await fetch(
       'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056',
       {
@@ -81,21 +104,31 @@ router.get("/xp-price", async (req, res) => {
       const price = data.data?.['36056']?.quote?.USD?.price || 0.016571759599689175;
       const change24h = data.data?.['36056']?.quote?.USD?.percent_change_24h || 0;
       
-      res.json({
+      const priceData = {
         price,
         change24h,
         timestamp: new Date().toISOString()
-      });
+      };
+      
+      // Cache the result
+      cache.set(CACHE_KEYS.XP_PRICE, priceData, CACHE_TTL.XP_PRICE);
+      
+      res.json(priceData);
     } else {
       throw new Error("CoinMarketCap API error");
     }
   } catch (error) {
     console.error("Failed to fetch XP price:", error);
-    res.json({
+    const fallbackData = {
       price: 0.016571759599689175,
       change24h: 0,
       timestamp: new Date().toISOString()
-    });
+    };
+    
+    // Cache even the fallback data to prevent hammering the API
+    cache.set(CACHE_KEYS.XP_PRICE, fallbackData, CACHE_TTL.XP_PRICE);
+    
+    res.json(fallbackData);
   }
 });
 
