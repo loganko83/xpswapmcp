@@ -218,12 +218,11 @@ export default function XPSPurchase() {
               >
                 {loading ? "Processing..." : "Buy XPS Tokens"}
               </Button>
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-      </div>
 
-      <div>
         {/* Price Information */}
         <Card>
           <CardHeader>
