@@ -6,17 +6,12 @@ import {
   handleValidationErrors,
   sanitizeSQLInput 
 } from "../middleware/security.js";
-import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache.js";
-import { cacheMiddleware, cacheMedium, cacheShort, invalidateCache } from "../middleware/cache.js";
+import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
 
 const router = Router();
 
-// Market data with cache middleware
+// Market data with cache
 router.get("/market-stats", 
-  cacheMiddleware({ 
-    ttl: CACHE_TTL.MARKET_STATS,
-    key: 'market:stats:overview'
-  }),
   async (req, res) => {
     try {
       console.log("📡 Fetching market stats");
