@@ -124,6 +124,44 @@ router.get("/xp-price", async (req, res) => {
   }
 });
 
+// XPS price endpoint
+router.get("/xps/price", async (req, res) => {
+  try {
+    // Check cache first
+    const cachedData = cache.get('xps_price');
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
+    // XPS is pegged to $1 USD in the current implementation
+    const priceData = {
+      price: 1.0,
+      change24h: 0,
+      symbol: "XPS",
+      name: "XPSwap Token",
+      marketCap: 10000000, // $10M market cap
+      volume24h: 500000,   // $500K daily volume
+      circulatingSupply: 10000000,
+      totalSupply: 100000000,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Cache the result
+    cache.set('xps_price', priceData, 60); // 60 seconds TTL
+    
+    res.json(priceData);
+  } catch (error) {
+    console.error("Failed to fetch XPS price:", error);
+    res.json({
+      price: 1.0,
+      change24h: 0,
+      symbol: "XPS",
+      name: "XPSwap Token",
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Calculate swap quote
 router.post("/swap/quote", 
   // rateLimiters.trading,
@@ -524,6 +562,70 @@ router.get("/bsc-tokens", async (req, res) => {
   } catch (error) {
     console.error("Failed to fetch BSC tokens:", error);
     res.status(500).json({ error: "Failed to fetch tokens" });
+  }
+});
+
+// XPS Token purchase endpoints
+router.post("/xps/purchase", 
+  async (req, res) => {
+  try {
+    const { amount, paymentToken } = req.body;
+    
+    // Simulate purchase transaction
+    const txHash = `0x${SecurityUtils.generateId()}`;
+    const timestamp = new Date().toISOString();
+    
+    res.json({
+      success: true,
+      transactionHash: txHash,
+      amount: amount,
+      paymentToken: paymentToken,
+      xpsReceived: amount, // 1:1 ratio for now
+      timestamp
+    });
+  } catch (error) {
+    console.error("XPS purchase error:", error);
+    res.status(500).json({ error: "Failed to purchase XPS" });
+  }
+});
+
+// XPS Staking info
+router.get("/xps/staking", async (req, res) => {
+  try {
+    const stakingOptions = [
+      {
+        id: 1,
+        period: 90,
+        apy: 150,
+        minStake: 100,
+        maxStake: 100000,
+        totalStaked: 2500000,
+        available: true
+      },
+      {
+        id: 2,
+        period: 180,
+        apy: 250,
+        minStake: 500,
+        maxStake: 500000,
+        totalStaked: 5000000,
+        available: true
+      },
+      {
+        id: 3,
+        period: 365,
+        apy: 400,
+        minStake: 1000,
+        maxStake: 1000000,
+        totalStaked: 10000000,
+        available: true
+      }
+    ];
+    
+    res.json(stakingOptions);
+  } catch (error) {
+    console.error("Failed to fetch staking options:", error);
+    res.status(500).json({ error: "Failed to fetch staking options" });
   }
 });
 
