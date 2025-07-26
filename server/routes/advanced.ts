@@ -4,7 +4,7 @@ import { validateInput, checkRateLimit, handleError } from './common';
 const router = Router();
 
 // Options Trading APIs
-router.get('/api/options/pools', checkRateLimit, (req, res) => {
+router.get('/options/pools', checkRateLimit, (req, res) => {
   try {
     const mockOptionsPools = [
       {
@@ -52,7 +52,7 @@ router.get('/api/options/pools', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/options/positions/:address', checkRateLimit, (req, res) => {
+router.get('/options/positions/:address', checkRateLimit, (req, res) => {
   try {
     const { address } = req.params;
     
@@ -99,7 +99,7 @@ router.get('/api/options/positions/:address', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/options/greeks/:optionId', checkRateLimit, (req, res) => {
+router.get('/options/greeks/:optionId', checkRateLimit, (req, res) => {
   try {
     const { optionId } = req.params;
     
@@ -126,7 +126,7 @@ router.get('/api/options/greeks/:optionId', checkRateLimit, (req, res) => {
 });
 
 // Perpetual Futures APIs
-router.get('/api/perpetual/markets', checkRateLimit, (req, res) => {
+router.get('/perpetual/markets', checkRateLimit, (req, res) => {
   try {
     const mockPerpetualMarkets = [
       {
@@ -180,7 +180,7 @@ router.get('/api/perpetual/markets', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/perpetual/positions/:address', checkRateLimit, (req, res) => {
+router.get('/perpetual/positions/:address', checkRateLimit, (req, res) => {
   try {
     const { address } = req.params;
     
@@ -232,7 +232,7 @@ router.get('/api/perpetual/positions/:address', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/perpetual/funding-history/:symbol', checkRateLimit, (req, res) => {
+router.get('/perpetual/funding-history/:symbol', checkRateLimit, (req, res) => {
   try {
     const { symbol } = req.params;
     const { days = 7 } = req.query;
@@ -263,7 +263,7 @@ router.get('/api/perpetual/funding-history/:symbol', checkRateLimit, (req, res) 
 });
 
 // Flash Loans APIs
-router.get('/api/flashloan/pools', checkRateLimit, (req, res) => {
+router.get('/flashloan/pools', checkRateLimit, (req, res) => {
   try {
     const mockFlashLoanPools = [
       {
@@ -334,7 +334,7 @@ router.get('/api/flashloan/pools', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/flashloan/history/:address', checkRateLimit, (req, res) => {
+router.get('/flashloan/history/:address', checkRateLimit, (req, res) => {
   try {
     const { address } = req.params;
     const { page = 1, limit = 20 } = req.query;
@@ -402,7 +402,7 @@ router.get('/api/flashloan/history/:address', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/flashloan/simulate', checkRateLimit, (req, res) => {
+router.get('/flashloan/simulate', checkRateLimit, (req, res) => {
   try {
     const { asset, amount, strategy } = req.query;
     
@@ -447,7 +447,7 @@ router.get('/api/flashloan/simulate', checkRateLimit, (req, res) => {
   }
 });
 
-router.get('/api/flashloan/available-amount/:asset', checkRateLimit, (req, res) => {
+router.get('/flashloan/available-amount/:asset', checkRateLimit, (req, res) => {
   try {
     const { asset } = req.params;
     
