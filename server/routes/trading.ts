@@ -103,7 +103,8 @@ router.get("/xp-price", async (req, res) => {
 router.post("/swap/quote", 
   // rateLimiters.trading,
   // validators.swap,
-  // handleValidationErrors,
+  validators.swap,
+  handleValidationErrors,
   async (req, res) => {
   console.log('🚀 Swap quote route reached!');
   console.log('📋 Request body:', req.body);
@@ -151,7 +152,7 @@ router.post("/swap/quote",
       outputAmount: outputAmount.toFixed(6),
       priceImpact,
       minimumReceived: minimumReceived.toFixed(6),
-      route: [fromToken, toToken],
+      route: [from, to],
       gasEstimate: "0.002"
     });
   } catch (error) {
