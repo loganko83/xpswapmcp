@@ -31,8 +31,8 @@
 ## Git 저장소 정보
 - GitHub 저장소: https://github.com/loganko83/xpswapmcp.git
 - 현재 브랜치: main
-- 최신 커밋: 4a85db5 (2025-01-27)
-- 상태: 로컬-GitHub 동기화 완료
+- 최신 커밋: b5c7930 (2025-01-27)
+- 상태: 로컬-GitHub 동기화 진행 중
 
 ## 최근 작업 현황 (2025-01-27)
 ✅ Git 저장소 설정 및 GitHub 연결 완료
@@ -40,3 +40,15 @@
 ✅ 모듈화된 컴포넌트 아키텍처 구축
 ✅ 보안 강화 컨트랙트 추가
 ✅ 개발 가이드 문서화 완료
+
+### 오늘 작업 내용 (2025-01-27 오후)
+✅ API 엔드포인트 테스트 및 디버깅
+✅ 모든 라우트에서 /api prefix 제거 (중복 제거)
+✅ Swap, Pool, Farm, Bridge API 정상 작동 확인
+✅ 서버 설정 최적화 (Vite 미들웨어 순서 조정)
+✅ 보안 함수 개선 (sanitizeSQLInput null 처리)
+
+### 진행 중인 작업
+- 고급 DeFi 기능 API 테스트 (Options, Futures, Flash Loans)
+- 프론트엔드 통합 테스트
+- 성능 최적화 작업
