@@ -1,0 +1,16 @@
+{
+  "network": "Xphere",
+  "chainId": 20250217,
+  "rpcUrl": "https://en-bkk.x-phere.com",
+  "deployedAt": "2025-07-27T10:01:03.873Z",
+  "deployer": "0x48fF197fB7D09967aBF1AF0cE46038549eb2F2D0",
+  "contracts": {
+    "XpSwapToken": "0x17E0Cd7AaC2f1096F753649D605e45dA39DE7F68",
+    "XpSwapDEX": "0x1f20c338bF5004a081f7B1335D73f4BC03948CE7",
+    "XPSwapFlashLoanSecurity": "0x02195Fa532845B9d743B180f15dF5580964B1aB9",
+    "XPSwapMEVProtection": "0x5fcF495bec38b587ab3eAdf6a928f399f69288FF",
+    "XPSwapOptionsSecurity": "0x40Ba1d3B27cF6471169eC0b5F04B5bAa86FBE9a5",
+    "MultiSigWallet": "0x43Ca4Da324d9794a63b05B643A6fB7fC08BC660F"
+  },
+  "totalContracts": 6
+}

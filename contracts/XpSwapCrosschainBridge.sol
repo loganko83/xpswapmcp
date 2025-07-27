@@ -1,514 +1,423 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @title XpSwapCrosschainBridge
- * @dev Cross-chain bridge contract for transferring tokens between networks
- * Implements lock-mint and burn-unlock mechanisms with multi-signature validation
+ * @dev 크로스체인 브리지 컨트랙트
  */
-contract XpSwapCrosschainBridge is ReentrancyGuard, Pausable, AccessControl {
-    using SafeERC20 for IERC20;
+contract XpSwapCrosschainBridge is ReentrancyGuard, Ownable, Pausable {
     using ECDSA for bytes32;
     
-    // Roles
-    bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
-    bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR_ROLE");
-    bytes32 public constant PAUSE_ROLE = keccak256("PAUSE_ROLE");
-    
-    // Bridge configuration
-    struct BridgeConfig {
-        uint256 chainId;
-        uint256 minAmount;
-        uint256 maxAmount;
-        uint256 dailyLimit;
-        uint256 fee; // In basis points (10000 = 100%)
-        bool isActive;
-    }
-    
-    // Transaction types
-    enum TransactionType { LOCK, UNLOCK, MINT, BURN }
-    
-    // Bridge transaction
     struct BridgeTransaction {
         bytes32 txHash;
-        address token;
+        address fromToken;
+        address toToken;
+        uint256 amount;
         address sender;
         address recipient;
-        uint256 amount;
-        uint256 sourceChainId;
-        uint256 targetChainId;
+        uint256 fromChainId;
+        uint256 toChainId;
         uint256 timestamp;
-        TransactionType txType;
-        bool completed;
-        bool refunded;
+        BridgeStatus status;
+        uint256 fee;
+        bytes32 proof;
     }
     
-    // Supported networks and tokens
-    mapping(uint256 => BridgeConfig) public supportedChains;
-    mapping(address => bool) public supportedTokens;
-    mapping(address => mapping(uint256 => address)) public tokenMappings; // token => chainId => mappedToken
+    enum BridgeStatus {
+        Pending,
+        Confirmed,
+        Completed,
+        Failed,
+        Refunded
+    }
     
-    // Bridge transactions
     mapping(bytes32 => BridgeTransaction) public bridgeTransactions;
-    mapping(bytes32 => bool) public processedTransactions;
-    mapping(bytes32 => mapping(address => bool)) public validatorSignatures;
-    mapping(bytes32 => uint256) public validatorCount;
+    mapping(address => bool) public supportedTokens;
+    mapping(uint256 => bool) public supportedChains;
+    mapping(address => bool) public validators;
+    mapping(bytes32 => bool) public processedTxs;
+    mapping(bytes32 => mapping(address => bool)) public validatorConfirmations;
+    mapping(bytes32 => uint256) public confirmationCount;
     
-    // Daily limits tracking
-    mapping(uint256 => mapping(address => uint256)) public dailyTransferred; // chainId => token => amount
-    mapping(uint256 => mapping(address => uint256)) public lastResetTime; // chainId => token => timestamp
+    uint256 public bridgeFee = 10; // 0.1% in basis points
+    uint256 public minBridgeAmount = 1 * 10**18; // 1 token minimum
+    uint256 public maxBridgeAmount = 1000000 * 10**18; // 1M token maximum
+    uint256 public requiredConfirmations = 3;
+    uint256 public validatorCount;
     
-    // Bridge statistics
-    mapping(address => uint256) public totalLocked;
-    mapping(address => uint256) public totalBurned;
-    mapping(uint256 => uint256) public chainVolume;
+    address public feeRecipient;
     
-    // Required validator signatures
-    uint256 public requiredValidators = 3;
-    uint256 public constant MAX_VALIDATORS = 10;
-    
-    // Events
-    event TokenLocked(
+    event BridgeInitiated(
         bytes32 indexed txHash,
-        address indexed token,
         address indexed sender,
-        address recipient,
-        uint256 amount,
-        uint256 targetChainId
-    );
-    
-    event TokenUnlocked(
-        bytes32 indexed txHash,
-        address indexed token,
         address indexed recipient,
+        address fromToken,
+        address toToken,
         uint256 amount,
-        uint256 sourceChainId
+        uint256 fromChainId,
+        uint256 toChainId,
+        uint256 fee
     );
     
-    event TokenBurned(
+    event BridgeConfirmed(
         bytes32 indexed txHash,
-        address indexed token,
+        address indexed validator,
+        uint256 confirmations
+    );
+    
+    event BridgeCompleted(
+        bytes32 indexed txHash,
+        address indexed recipient,
+        uint256 amount
+    );
+    
+    event BridgeFailed(
+        bytes32 indexed txHash,
+        string reason
+    );
+    
+    event BridgeRefunded(
+        bytes32 indexed txHash,
         address indexed sender,
-        address recipient,
-        uint256 amount,
-        uint256 targetChainId
+        uint256 amount
     );
     
-    event TokenMinted(
-        bytes32 indexed txHash,
-        address indexed token,
-        address indexed recipient,
-        uint256 amount,
-        uint256 sourceChainId
-    );
+    event TokenSupported(address indexed token, bool supported);
+    event ChainSupported(uint256 indexed chainId, bool supported);
+    event ValidatorAdded(address indexed validator);
+    event ValidatorRemoved(address indexed validator);
     
-    event ValidatorSigned(bytes32 indexed txHash, address indexed validator);
-    event TransactionRefunded(bytes32 indexed txHash, address indexed recipient, uint256 amount);
-    event ChainConfigUpdated(uint256 indexed chainId, bool isActive);
-    event TokenMappingUpdated(address indexed sourceToken, uint256 indexed chainId, address targetToken);
-    
-    modifier onlyValidChain(uint256 chainId) {
-        require(supportedChains[chainId].isActive, "Chain not supported");
-        _;
-    }
-    
-    modifier onlyValidToken(address token) {
-        require(supportedTokens[token], "Token not supported");
-        _;
-    }
-    
-    constructor() {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(RELAYER_ROLE, msg.sender);
-        _grantRole(VALIDATOR_ROLE, msg.sender);
-        _grantRole(PAUSE_ROLE, msg.sender);
+    constructor(
+        address _feeRecipient,
+        uint256 _currentChainId
+    ) Ownable(msg.sender) {
+        require(_feeRecipient != address(0), "Invalid fee recipient");
+        feeRecipient = _feeRecipient;
+        supportedChains[_currentChainId] = true;
     }
     
     /**
-     * @dev Lock tokens to bridge to another chain
-     * @param token Token address to lock
-     * @param amount Amount to lock
-     * @param targetChainId Target chain ID
-     * @param recipient Recipient address on target chain
+     * @dev 브리지 전송 시작
      */
-    function lockTokens(
-        address token,
-        uint256 amount,
-        uint256 targetChainId,
-        address recipient
-    ) external nonReentrant whenNotPaused onlyValidToken(token) onlyValidChain(targetChainId) {
-        require(amount > 0, "Amount must be positive");
-        require(recipient != address(0), "Invalid recipient");
-        
-        BridgeConfig memory config = supportedChains[targetChainId];
-        require(amount >= config.minAmount && amount <= config.maxAmount, "Amount out of limits");
-        
-        // Check daily limits
-        _checkDailyLimit(targetChainId, token, amount);
+    function initiateBridge(
+        address _fromToken,
+        address _toToken,
+        uint256 _amount,
+        address _recipient,
+        uint256 _toChainId
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
+        require(supportedTokens[_fromToken], "Token not supported");
+        require(supportedChains[_toChainId], "Chain not supported");
+        require(_amount >= minBridgeAmount, "Amount below minimum");
+        require(_amount <= maxBridgeAmount, "Amount exceeds maximum");
+        require(_recipient != address(0), "Invalid recipient");
+        require(_toChainId != block.chainid, "Cannot bridge to same chain");
         
         // Calculate fee
-        uint256 fee = (amount * config.fee) / 10000;
-        uint256 netAmount = amount - fee;
+        uint256 fee = (_amount * bridgeFee) / 10000;
+        uint256 bridgeAmount = _amount - fee;
         
-        // Generate transaction hash
-        bytes32 txHash = keccak256(abi.encodePacked(
-            token,
-            msg.sender,
-            recipient,
-            amount,
-            block.chainid,
-            targetChainId,
-            block.timestamp,
-            block.number
-        ));
+        // Transfer tokens from sender
+        IERC20(_fromToken).transferFrom(msg.sender, address(this), _amount);
         
-        require(!processedTransactions[txHash], "Transaction already processed");
+        // Transfer fee to fee recipient
+        if (fee > 0) {
+            IERC20(_fromToken).transfer(feeRecipient, fee);
+        }
         
-        // Store transaction
+        // Generate unique transaction hash
+        bytes32 txHash = keccak256(
+            abi.encodePacked(
+                msg.sender,
+                _recipient,
+                _fromToken,
+                _toToken,
+                _amount,
+                block.chainid,
+                _toChainId,
+                block.timestamp,
+                block.number
+            )
+        );
+        
+        // Store bridge transaction
         bridgeTransactions[txHash] = BridgeTransaction({
             txHash: txHash,
-            token: token,
+            fromToken: _fromToken,
+            toToken: _toToken,
+            amount: bridgeAmount,
             sender: msg.sender,
-            recipient: recipient,
-            amount: netAmount,
-            sourceChainId: block.chainid,
-            targetChainId: targetChainId,
+            recipient: _recipient,
+            fromChainId: block.chainid,
+            toChainId: _toChainId,
             timestamp: block.timestamp,
-            txType: TransactionType.LOCK,
-            completed: false,
-            refunded: false
+            status: BridgeStatus.Pending,
+            fee: fee,
+            proof: bytes32(0)
         });
         
-        processedTransactions[txHash] = true;
-        totalLocked[token] += netAmount;
-        chainVolume[targetChainId] += netAmount;
-        
-        // Update daily limit
-        _updateDailyLimit(targetChainId, token, amount);
-        
-        // Transfer tokens to contract
-        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        
-        // Transfer fee to admin (if any)
-        if (fee > 0) {
-            IERC20(token).safeTransfer(owner(), fee);
-        }
-        
-        emit TokenLocked(txHash, token, msg.sender, recipient, netAmount, targetChainId);
-    }
-    
-    /**
-     * @dev Unlock tokens from another chain (validator only)
-     * @param txHash Transaction hash from source chain
-     * @param token Token address to unlock
-     * @param recipient Recipient address
-     * @param amount Amount to unlock
-     * @param sourceChainId Source chain ID
-     */
-    function unlockTokens(
-        bytes32 txHash,
-        address token,
-        address recipient,
-        uint256 amount,
-        uint256 sourceChainId
-    ) external onlyRole(VALIDATOR_ROLE) nonReentrant whenNotPaused {
-        require(!processedTransactions[txHash], "Transaction already processed");
-        require(recipient != address(0), "Invalid recipient");
-        require(amount > 0, "Invalid amount");
-        
-        // Record validator signature
-        if (!validatorSignatures[txHash][msg.sender]) {
-            validatorSignatures[txHash][msg.sender] = true;
-            validatorCount[txHash]++;
-            emit ValidatorSigned(txHash, msg.sender);
-        }
-        
-        // Check if enough validators have signed
-        if (validatorCount[txHash] >= requiredValidators) {
-            require(totalLocked[token] >= amount, "Insufficient locked tokens");
-            
-            // Store transaction
-            bridgeTransactions[txHash] = BridgeTransaction({
-                txHash: txHash,
-                token: token,
-                sender: address(0),
-                recipient: recipient,
-                amount: amount,
-                sourceChainId: sourceChainId,
-                targetChainId: block.chainid,
-                timestamp: block.timestamp,
-                txType: TransactionType.UNLOCK,
-                completed: true,
-                refunded: false
-            });
-            
-            processedTransactions[txHash] = true;
-            totalLocked[token] -= amount;
-            
-            // Transfer tokens to recipient
-            IERC20(token).safeTransfer(recipient, amount);
-            
-            emit TokenUnlocked(txHash, token, recipient, amount, sourceChainId);
-        }
-    }
-    
-    /**
-     * @dev Burn tokens to bridge to another chain (for wrapped tokens)
-     * @param token Token address to burn
-     * @param amount Amount to burn
-     * @param targetChainId Target chain ID
-     * @param recipient Recipient address on target chain
-     */
-    function burnTokens(
-        address token,
-        uint256 amount,
-        uint256 targetChainId,
-        address recipient
-    ) external nonReentrant whenNotPaused onlyValidToken(token) onlyValidChain(targetChainId) {
-        require(amount > 0, "Amount must be positive");
-        require(recipient != address(0), "Invalid recipient");
-        
-        BridgeConfig memory config = supportedChains[targetChainId];
-        require(amount >= config.minAmount && amount <= config.maxAmount, "Amount out of limits");
-        
-        // Check daily limits
-        _checkDailyLimit(targetChainId, token, amount);
-        
-        // Calculate fee
-        uint256 fee = (amount * config.fee) / 10000;
-        uint256 netAmount = amount - fee;
-        
-        // Generate transaction hash
-        bytes32 txHash = keccak256(abi.encodePacked(
-            token,
+        emit BridgeInitiated(
+            txHash,
             msg.sender,
-            recipient,
-            amount,
+            _recipient,
+            _fromToken,
+            _toToken,
+            bridgeAmount,
             block.chainid,
-            targetChainId,
-            block.timestamp,
-            block.number
-        ));
+            _toChainId,
+            fee
+        );
         
-        require(!processedTransactions[txHash], "Transaction already processed");
-        
-        // Store transaction
-        bridgeTransactions[txHash] = BridgeTransaction({
-            txHash: txHash,
-            token: token,
-            sender: msg.sender,
-            recipient: recipient,
-            amount: netAmount,
-            sourceChainId: block.chainid,
-            targetChainId: targetChainId,
-            timestamp: block.timestamp,
-            txType: TransactionType.BURN,
-            completed: false,
-            refunded: false
-        });
-        
-        processedTransactions[txHash] = true;
-        totalBurned[token] += netAmount;
-        chainVolume[targetChainId] += netAmount;
-        
-        // Update daily limit
-        _updateDailyLimit(targetChainId, token, amount);
-        
-        // Transfer tokens to contract and burn
-        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        
-        // Transfer fee to admin (if any)
-        if (fee > 0) {
-            IERC20(token).safeTransfer(owner(), fee);
-        }
-        
-        emit TokenBurned(txHash, token, msg.sender, recipient, netAmount, targetChainId);
+        return txHash;
     }
     
     /**
-     * @dev Mint tokens from another chain (validator only)
-     * @param txHash Transaction hash from source chain
-     * @param token Token address to mint
-     * @param recipient Recipient address
-     * @param amount Amount to mint
-     * @param sourceChainId Source chain ID
+     * @dev 브리지 전송 완료 (대상 체인에서)
      */
-    function mintTokens(
-        bytes32 txHash,
-        address token,
-        address recipient,
+    function completeBridge(
+        bytes32 _txHash,
+        address _toToken,
+        uint256 _amount,
+        address _recipient,
+        bytes32 _proof
+    ) external nonReentrant whenNotPaused {
+        require(validators[msg.sender], "Not a validator");
+        require(!processedTxs[_txHash], "Transaction already processed");
+        require(!validatorConfirmations[_txHash][msg.sender], "Already confirmed by this validator");
+        
+        // Record validator confirmation
+        validatorConfirmations[_txHash][msg.sender] = true;
+        confirmationCount[_txHash]++;
+        
+        emit BridgeConfirmed(_txHash, msg.sender, confirmationCount[_txHash]);
+        
+        // Check if enough confirmations
+        if (confirmationCount[_txHash] >= requiredConfirmations) {
+            processedTxs[_txHash] = true;
+            
+            // Mint or transfer tokens to recipient
+            try IERC20(_toToken).transfer(_recipient, _amount) {
+                emit BridgeCompleted(_txHash, _recipient, _amount);
+            } catch {
+                emit BridgeFailed(_txHash, "Token transfer failed");
+            }
+        }
+    }
+    
+    /**
+     * @dev 브리지 전송 실패 처리
+     */
+    function failBridge(
+        bytes32 _txHash,
+        string memory _reason
+    ) external {
+        require(validators[msg.sender], "Not a validator");
+        
+        BridgeTransaction storage bridgeTx = bridgeTransactions[_txHash];
+        require(bridgeTx.status == BridgeStatus.Pending, "Invalid status");
+        
+        bridgeTx.status = BridgeStatus.Failed;
+        
+        emit BridgeFailed(_txHash, _reason);
+    }
+    
+    /**
+     * @dev 브리지 전송 환불
+     */
+    function refundBridge(bytes32 _txHash) external nonReentrant {
+        BridgeTransaction storage bridgeTx = bridgeTransactions[_txHash];
+        require(bridgeTx.status == BridgeStatus.Failed, "Bridge not failed");
+        require(msg.sender == bridgeTx.sender || validators[msg.sender], "Not authorized");
+        
+        bridgeTx.status = BridgeStatus.Refunded;
+        
+        // Refund tokens to sender
+        IERC20(bridgeTx.fromToken).transfer(bridgeTx.sender, bridgeTx.amount);
+        
+        emit BridgeRefunded(_txHash, bridgeTx.sender, bridgeTx.amount);
+    }
+    
+    /**
+     * @dev 브리지 전송 상태 확인
+     */
+    function getBridgeStatus(bytes32 _txHash) external view returns (
+        BridgeStatus status,
+        uint256 confirmations,
+        uint256 required
+    ) {
+        BridgeTransaction storage bridgeTx = bridgeTransactions[_txHash];
+        status = bridgeTx.status;
+        confirmations = confirmationCount[_txHash];
+        required = requiredConfirmations;
+    }
+    
+    /**
+     * @dev 브리지 전송 정보 조회
+     */
+    function getBridgeTransaction(bytes32 _txHash) external view returns (
+        address fromToken,
+        address toToken,
         uint256 amount,
-        uint256 sourceChainId
-    ) external onlyRole(VALIDATOR_ROLE) nonReentrant whenNotPaused {
-        require(!processedTransactions[txHash], "Transaction already processed");
-        require(recipient != address(0), "Invalid recipient");
-        require(amount > 0, "Invalid amount");
+        address sender,
+        address recipient,
+        uint256 fromChainId,
+        uint256 toChainId,
+        uint256 timestamp,
+        BridgeStatus status,
+        uint256 fee
+    ) {
+        BridgeTransaction storage bridgeTx = bridgeTransactions[_txHash];
+        return (
+            bridgeTx.fromToken,
+            bridgeTx.toToken,
+            bridgeTx.amount,
+            bridgeTx.sender,
+            bridgeTx.recipient,
+            bridgeTx.fromChainId,
+            bridgeTx.toChainId,
+            bridgeTx.timestamp,
+            bridgeTx.status,
+            bridgeTx.fee
+        );
+    }
+    
+    /**
+     * @dev 예상 브리지 수수료 계산
+     */
+    function calculateBridgeFee(uint256 _amount) external view returns (uint256) {
+        return (_amount * bridgeFee) / 10000;
+    }
+    
+    /**
+     * @dev 지원되는 토큰 추가/제거 (Owner only)
+     */
+    function setSupportedToken(address _token, bool _supported) external onlyOwner {
+        require(_token != address(0), "Invalid token address");
+        supportedTokens[_token] = _supported;
+        emit TokenSupported(_token, _supported);
+    }
+    
+    /**
+     * @dev 지원되는 체인 추가/제거 (Owner only)
+     */
+    function setSupportedChain(uint256 _chainId, bool _supported) external onlyOwner {
+        require(_chainId > 0, "Invalid chain ID");
+        supportedChains[_chainId] = _supported;
+        emit ChainSupported(_chainId, _supported);
+    }
+    
+    /**
+     * @dev 검증자 추가 (Owner only)
+     */
+    function addValidator(address _validator) external onlyOwner {
+        require(_validator != address(0), "Invalid validator address");
+        require(!validators[_validator], "Validator already exists");
         
-        // Record validator signature
-        if (!validatorSignatures[txHash][msg.sender]) {
-            validatorSignatures[txHash][msg.sender] = true;
-            validatorCount[txHash]++;
-            emit ValidatorSigned(txHash, msg.sender);
-        }
+        validators[_validator] = true;
+        validatorCount++;
         
-        // Check if enough validators have signed
-        if (validatorCount[txHash] >= requiredValidators) {
-            // Store transaction
-            bridgeTransactions[txHash] = BridgeTransaction({
-                txHash: txHash,
-                token: token,
-                sender: address(0),
-                recipient: recipient,
-                amount: amount,
-                sourceChainId: sourceChainId,
-                targetChainId: block.chainid,
-                timestamp: block.timestamp,
-                txType: TransactionType.MINT,
-                completed: true,
-                refunded: false
-            });
-            
-            processedTransactions[txHash] = true;
-            
-            // Mint tokens to recipient (requires mintable token contract)
-            // This would need to be implemented in the token contract
-            // IERC20Mintable(token).mint(recipient, amount);
-            
-            emit TokenMinted(txHash, token, recipient, amount, sourceChainId);
-        }
+        emit ValidatorAdded(_validator);
     }
     
     /**
-     * @dev Get bridge transaction details
-     * @param txHash Transaction hash
+     * @dev 검증자 제거 (Owner only)
      */
-    function getBridgeTransaction(bytes32 txHash) external view returns (BridgeTransaction memory) {
-        return bridgeTransactions[txHash];
-    }
-    
-    /**
-     * @dev Get validator signature count for transaction
-     * @param txHash Transaction hash
-     */
-    function getValidatorCount(bytes32 txHash) external view returns (uint256) {
-        return validatorCount[txHash];
-    }
-    
-    /**
-     * @dev Check if validator has signed transaction
-     * @param txHash Transaction hash
-     * @param validator Validator address
-     */
-    function hasValidatorSigned(bytes32 txHash, address validator) external view returns (bool) {
-        return validatorSignatures[txHash][validator];
-    }
-    
-    // Internal functions
-    
-    function _checkDailyLimit(uint256 chainId, address token, uint256 amount) internal view {
-        uint256 today = block.timestamp / 86400;
-        uint256 lastReset = lastResetTime[chainId][token] / 86400;
+    function removeValidator(address _validator) external onlyOwner {
+        require(validators[_validator], "Validator does not exist");
         
-        if (today == lastReset) {
-            uint256 todayTransferred = dailyTransferred[chainId][token];
-            require(todayTransferred + amount <= supportedChains[chainId].dailyLimit, "Daily limit exceeded");
-        }
-    }
-    
-    function _updateDailyLimit(uint256 chainId, address token, uint256 amount) internal {
-        uint256 today = block.timestamp / 86400;
-        uint256 lastReset = lastResetTime[chainId][token] / 86400;
+        validators[_validator] = false;
+        validatorCount--;
         
-        if (today > lastReset) {
-            dailyTransferred[chainId][token] = amount;
-            lastResetTime[chainId][token] = block.timestamp;
-        } else {
-            dailyTransferred[chainId][token] += amount;
-        }
-    }
-    
-    // Admin functions
-    
-    /**
-     * @dev Configure supported chain
-     * @param chainId Chain ID
-     * @param config Bridge configuration
-     */
-    function configureChain(uint256 chainId, BridgeConfig memory config) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(chainId != block.chainid, "Cannot configure current chain");
-        supportedChains[chainId] = config;
-        emit ChainConfigUpdated(chainId, config.isActive);
+        emit ValidatorRemoved(_validator);
     }
     
     /**
-     * @dev Add supported token
-     * @param token Token address
+     * @dev 브리지 수수료 설정 (Owner only)
      */
-    function addSupportedToken(address token) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(token != address(0), "Invalid token address");
-        supportedTokens[token] = true;
+    function setBridgeFee(uint256 _newFee) external onlyOwner {
+        require(_newFee <= 1000, "Fee cannot exceed 10%");
+        bridgeFee = _newFee;
     }
     
     /**
-     * @dev Remove supported token
-     * @param token Token address
+     * @dev 최소/최대 브리지 금액 설정 (Owner only)
      */
-    function removeSupportedToken(address token) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        supportedTokens[token] = false;
+    function setBridgeAmountLimits(
+        uint256 _minAmount,
+        uint256 _maxAmount
+    ) external onlyOwner {
+        require(_minAmount > 0, "Min amount must be greater than 0");
+        require(_maxAmount > _minAmount, "Max amount must be greater than min");
+        
+        minBridgeAmount = _minAmount;
+        maxBridgeAmount = _maxAmount;
     }
     
     /**
-     * @dev Set token mapping for cross-chain transfers
-     * @param sourceToken Source token address
-     * @param chainId Target chain ID
-     * @param targetToken Target token address
+     * @dev 필요 확인 수 설정 (Owner only)
      */
-    function setTokenMapping(address sourceToken, uint256 chainId, address targetToken) 
-        external onlyRole(DEFAULT_ADMIN_ROLE) {
-        tokenMappings[sourceToken][chainId] = targetToken;
-        emit TokenMappingUpdated(sourceToken, chainId, targetToken);
+    function setRequiredConfirmations(uint256 _confirmations) external onlyOwner {
+        require(_confirmations > 0, "Confirmations must be greater than 0");
+        require(_confirmations <= validatorCount, "Cannot exceed validator count");
+        
+        requiredConfirmations = _confirmations;
     }
     
     /**
-     * @dev Set required validator count
-     * @param _requiredValidators Number of required validators
+     * @dev 수수료 수령 주소 설정 (Owner only)
      */
-    function setRequiredValidators(uint256 _requiredValidators) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_requiredValidators > 0 && _requiredValidators <= MAX_VALIDATORS, "Invalid validator count");
-        requiredValidators = _requiredValidators;
+    function setFeeRecipient(address _newRecipient) external onlyOwner {
+        require(_newRecipient != address(0), "Invalid recipient address");
+        feeRecipient = _newRecipient;
     }
     
     /**
-     * @dev Emergency pause
+     * @dev 일시 정지/재개
      */
-    function pause() external onlyRole(PAUSE_ROLE) {
+    function pause() external onlyOwner {
         _pause();
     }
     
-    /**
-     * @dev Unpause
-     */
-    function unpause() external onlyRole(PAUSE_ROLE) {
+    function unpause() external onlyOwner {
         _unpause();
     }
     
     /**
-     * @dev Emergency withdraw (admin only)
-     * @param token Token address
-     * @param amount Amount to withdraw
+     * @dev 긴급 토큰 회수 (Owner only)
      */
-    function emergencyWithdraw(address token, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        IERC20(token).safeTransfer(msg.sender, amount);
+    function emergencyWithdraw(
+        address _token,
+        uint256 _amount,
+        address _to
+    ) external onlyOwner {
+        require(_to != address(0), "Invalid recipient");
+        IERC20(_token).transfer(_to, _amount);
     }
     
-    function owner() public view returns (address) {
-        return getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+    /**
+     * @dev 검증자 여부 확인
+     */
+    function isValidator(address _validator) external view returns (bool) {
+        return validators[_validator];
+    }
+    
+    /**
+     * @dev 토큰 지원 여부 확인
+     */
+    function isTokenSupported(address _token) external view returns (bool) {
+        return supportedTokens[_token];
+    }
+    
+    /**
+     * @dev 체인 지원 여부 확인
+     */
+    function isChainSupported(uint256 _chainId) external view returns (bool) {
+        return supportedChains[_chainId];
     }
 }

@@ -1,16 +1,20 @@
 {
   "network": "Xphere",
   "chainId": 20250217,
-  "deployedAt": "2025-07-12T13:40:46.290Z",
+  "deployedAt": "2025-07-27T08:02:45.366Z",
+  "deployer": "0x48fF197fB7D09967aBF1AF0cE46038549eb2F2D0",
   "contracts": {
-    "XpSwapToken": "0x748031ccc6e1d",
-    "XpSwapDEX": "0x5b0bcfa1490d",
-    "XpSwapLiquidityPool": "0xe909098d05c06",
-    "XpSwapAdvancedAMM": "0x123c1d407d04a",
-    "XpSwapStaking": "0xdcbe5c4f166a3",
-    "XpSwapFarmingRewards": "0xb99484ee2d452",
-    "XpSwapGovernanceToken": "0xa62a2b8601833",
-    "XpSwapRevenueManager": "0xb3cde158e6838",
-    "XpSwapCrosschainBridge": "0x1301bc0dccf81"
+    "XPSwapToken": "0x390904e9229BAD2A5CA1b0bfa512b003E3aa5864",
+    "XPSwapDEX": "0x57cbe87F51C472Bf683635F67f35b09D24d8FA50",
+    "XPSwapLiquidityPool": "0x063611C5583d4Ae26E74Eefe8AC5a55E16f20ca9",
+    "XPSwapAdvancedAMM": "0x88AdB7Dba4B72C84abA90b361e44E11558B78FAD",
+    "XPSwapStaking": "0xBA0d10956d9E603Cc926bc2552B3cf9fE017eb26",
+    "XPSwapFarmingRewards": "0xee568b5b8421bFDeD902c00e3Aa44aE693AFbA46",
+    "XPSwapGovernanceToken": "0xBF2a6705243AF5B8df40Ff25E94DA715d8c8a9D2",
+    "XPSwapRevenueManager": "0x9BdaeEDab86C64c8F4F95B7B9a549D8e4b034186",
+    "XPSwapCrosschainBridge": "0xCa72daF41172e4cc8FBd91cdea333a4DbdDdCcBf",
+    "XPSwapFlashLoanSecurity": "0x8A89E915e6723b6363568ae0b9804dEdDf7A92dd",
+    "XPSwapMEVProtection": "0x0FdB93adE916db6A3A37F08741d74462C2c84218",
+    "MultiSigWallet": "0x1296cB1815260Da7160e2Be116a558FE09B07ac0"
   }
 }

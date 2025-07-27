@@ -426,24 +426,21 @@ export class BlockchainService {
       console.log(`Deploying from address: ${wallet.address}`);
       console.log(`Balance: ${ethers.formatEther(balance)} XP`);
 
-      // Contract deployment would happen here
-      // For now, return mock deployment result
+      // Import deployment script
+      const { deployToXphere } = await import('../../scripts/deploy-xphere.js');
+      
+      // Deploy contracts
+      const deployedContracts = await deployToXphere(privateKey);
+      
+      // Update contract addresses in the service
+      this.contractAddresses = {
+        ...this.contractAddresses,
+        ...deployedContracts
+      };
+      
       return {
         success: true,
-        contracts: {
-          XPSwapToken: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapDEX: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapLiquidityPool: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapAdvancedAMM: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapStaking: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapFarmingRewards: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapGovernanceToken: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapRevenueManager: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapCrosschainBridge: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapFlashLoanSecurity: "0x" + ethers.randomBytes(20).toString("hex"),
-          XPSwapMEVProtection: "0x" + ethers.randomBytes(20).toString("hex"),
-          MultiSigWallet: "0x" + ethers.randomBytes(20).toString("hex")
-        },
+        contracts: deployedContracts,
         deployer: wallet.address,
         timestamp: new Date().toISOString()
       };

@@ -1,366 +1,372 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title XpSwapFarmingRewards
- * @dev Yield farming contract for LP token staking with governance token rewards
- * Implements time-weighted reward distribution with boosting mechanisms
+ * @dev 유동성 풀 토큰 파밍 보상 시스템
  */
-contract XpSwapFarmingRewards is ReentrancyGuard, Ownable {
-    using SafeERC20 for IERC20;
-    using Math for uint256;
+contract XpSwapFarmingRewards is ReentrancyGuard, Ownable, Pausable {
+    IERC20 public immutable rewardToken;
     
-    // Tokens
-    IERC20 public immutable stakingToken; // LP token
-    IERC20 public immutable rewardsToken; // Governance token
-    
-    // Reward configuration
-    uint256 public rewardRate; // Rewards per second
-    uint256 public lastUpdateTime;
-    uint256 public rewardPerTokenStored;
-    uint256 public periodFinish = 0;
-    uint256 public rewardsDuration = 7 days;
-    
-    // Boosting mechanism
-    uint256 public constant MAX_BOOST = 250; // 2.5x max boost
-    uint256 public constant BASE_BOOST = 100; // 1x base boost
-    uint256 public constant BOOST_DENOMINATOR = 100;
-    
-    // Staking data
-    mapping(address => uint256) public userRewardPerTokenPaid;
-    mapping(address => uint256) public rewards;
-    mapping(address => uint256) public stakedBalance;
-    mapping(address => uint256) public stakingStartTime;
-    mapping(address => uint256) public lastStakeTime;
-    
-    // Boost calculation
-    mapping(address => uint256) public governanceTokenBalance;
-    uint256 public totalGovernanceStaked;
-    
-    // Pool statistics
-    uint256 public totalStaked;
-    uint256 public totalRewardsPaid;
-    
-    // Time-based multipliers
-    struct TimeMultiplier {
-        uint256 duration;
-        uint256 multiplier; // In basis points (10000 = 100%)
+    struct PoolInfo {
+        IERC20 lpToken;
+        uint256 allocPoint;
+        uint256 lastRewardTime;
+        uint256 accRewardPerShare;
+        uint256 totalStaked;
+        uint256 minStakeAmount;
+        uint256 lockPeriod; // in seconds
+        bool active;
     }
     
-    TimeMultiplier[] public timeMultipliers;
-    
-    // Events
-    event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
-    event RewardAdded(uint256 reward);
-    event RewardsDurationUpdated(uint256 newDuration);
-    event GovernanceTokenStaked(address indexed user, uint256 amount);
-    event GovernanceTokenWithdrawn(address indexed user, uint256 amount);
-    
-    modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
-        }
-        _;
+    struct UserInfo {
+        uint256 amount;
+        uint256 rewardDebt;
+        uint256 lastStakeTime;
+        uint256 totalRewardsClaimed;
     }
+    
+    PoolInfo[] public poolInfo;
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+    
+    uint256 public rewardPerSecond;
+    uint256 public totalAllocPoint;
+    uint256 public startTime;
+    uint256 public constant REWARD_PRECISION = 1e12;
+    
+    // Bonus multipliers
+    mapping(uint256 => uint256) public poolMultipliers;
+    
+    event PoolAdded(uint256 indexed pid, address lpToken, uint256 allocPoint);
+    event PoolUpdated(uint256 indexed pid, uint256 allocPoint);
+    event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event RewardClaimed(address indexed user, uint256 indexed pid, uint256 amount);
     
     constructor(
-        address _stakingToken,
-        address _rewardsToken
-    ) {
-        require(_stakingToken != address(0) && _rewardsToken != address(0), "Invalid token addresses");
-        stakingToken = IERC20(_stakingToken);
-        rewardsToken = IERC20(_rewardsToken);
-        
-        // Initialize time multipliers
-        timeMultipliers.push(TimeMultiplier(30 days, 11000));   // 1.1x after 30 days
-        timeMultipliers.push(TimeMultiplier(90 days, 12500));   // 1.25x after 90 days
-        timeMultipliers.push(TimeMultiplier(180 days, 15000));  // 1.5x after 180 days
-        timeMultipliers.push(TimeMultiplier(365 days, 20000));  // 2x after 365 days
+        address _rewardToken,
+        uint256 _rewardPerSecond,
+        uint256 _startTime
+    ) Ownable(msg.sender) {
+        rewardToken = IERC20(_rewardToken);
+        rewardPerSecond = _rewardPerSecond;
+        startTime = _startTime == 0 ? block.timestamp : _startTime;
     }
     
     /**
-     * @dev Stake LP tokens
-     * @param amount Amount to stake
+     * @dev 풀 개수 반환
      */
-    function stake(uint256 amount) external nonReentrant updateReward(msg.sender) {
-        require(amount > 0, "Cannot stake 0");
-        
-        totalStaked += amount;
-        stakedBalance[msg.sender] += amount;
-        
-        if (stakedBalance[msg.sender] == amount) {
-            stakingStartTime[msg.sender] = block.timestamp;
-        }
-        lastStakeTime[msg.sender] = block.timestamp;
-        
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
-        
-        emit Staked(msg.sender, amount);
+    function poolLength() external view returns (uint256) {
+        return poolInfo.length;
     }
     
     /**
-     * @dev Withdraw staked LP tokens
-     * @param amount Amount to withdraw
+     * @dev 새 풀 추가 (Owner only)
      */
-    function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
-        require(amount > 0, "Cannot withdraw 0");
-        require(stakedBalance[msg.sender] >= amount, "Insufficient balance");
+    function addPool(
+        address _lpToken,
+        uint256 _allocPoint,
+        uint256 _minStakeAmount,
+        uint256 _lockPeriod,
+        bool _withUpdate
+    ) external onlyOwner {
+        require(_lpToken != address(0), "Invalid LP token address");
         
-        totalStaked -= amount;
-        stakedBalance[msg.sender] -= amount;
-        
-        if (stakedBalance[msg.sender] == 0) {
-            stakingStartTime[msg.sender] = 0;
+        if (_withUpdate) {
+            massUpdatePools();
         }
         
-        stakingToken.safeTransfer(msg.sender, amount);
+        uint256 lastRewardTime = block.timestamp > startTime ? block.timestamp : startTime;
+        totalAllocPoint += _allocPoint;
         
-        emit Withdrawn(msg.sender, amount);
+        poolInfo.push(PoolInfo({
+            lpToken: IERC20(_lpToken),
+            allocPoint: _allocPoint,
+            lastRewardTime: lastRewardTime,
+            accRewardPerShare: 0,
+            totalStaked: 0,
+            minStakeAmount: _minStakeAmount,
+            lockPeriod: _lockPeriod,
+            active: true
+        }));
+        
+        uint256 pid = poolInfo.length - 1;
+        poolMultipliers[pid] = 100; // 100% base multiplier
+        
+        emit PoolAdded(pid, _lpToken, _allocPoint);
     }
     
     /**
-     * @dev Claim accumulated rewards
+     * @dev 풀 정보 업데이트 (Owner only)
      */
-    function getReward() public nonReentrant updateReward(msg.sender) {
-        uint256 reward = rewards[msg.sender];
-        if (reward > 0) {
-            rewards[msg.sender] = 0;
-            totalRewardsPaid += reward;
-            rewardsToken.safeTransfer(msg.sender, reward);
-            emit RewardPaid(msg.sender, reward);
+    function updatePool(
+        uint256 _pid,
+        uint256 _allocPoint,
+        uint256 _minStakeAmount,
+        uint256 _lockPeriod,
+        bool _active
+    ) external onlyOwner {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        
+        massUpdatePools();
+        
+        totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
+        poolInfo[_pid].allocPoint = _allocPoint;
+        poolInfo[_pid].minStakeAmount = _minStakeAmount;
+        poolInfo[_pid].lockPeriod = _lockPeriod;
+        poolInfo[_pid].active = _active;
+        
+        emit PoolUpdated(_pid, _allocPoint);
+    }
+    
+    /**
+     * @dev 풀 보상 업데이트
+     */
+    function updatePoolReward(uint256 _pid) public {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        
+        PoolInfo storage pool = poolInfo[_pid];
+        
+        if (block.timestamp <= pool.lastRewardTime) {
+            return;
+        }
+        
+        if (pool.totalStaked == 0 || pool.allocPoint == 0) {
+            pool.lastRewardTime = block.timestamp;
+            return;
+        }
+        
+        uint256 multiplier = block.timestamp - pool.lastRewardTime;
+        uint256 reward = multiplier * rewardPerSecond * pool.allocPoint / totalAllocPoint;
+        
+        // Apply pool multiplier
+        reward = reward * poolMultipliers[_pid] / 100;
+        
+        pool.accRewardPerShare += (reward * REWARD_PRECISION) / pool.totalStaked;
+        pool.lastRewardTime = block.timestamp;
+    }
+    
+    /**
+     * @dev 모든 풀 보상 업데이트
+     */
+    function massUpdatePools() public {
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; pid++) {
+            updatePoolReward(pid);
         }
     }
     
     /**
-     * @dev Withdraw all staked tokens and claim rewards
+     * @dev LP 토큰 예치
      */
-    function exit() external {
-        withdraw(stakedBalance[msg.sender]);
-        getReward();
-    }
-    
-    /**
-     * @dev Stake governance tokens for boosting rewards
-     * @param amount Amount of governance tokens to stake
-     */
-    function stakeGovernanceToken(uint256 amount) external nonReentrant {
-        require(amount > 0, "Cannot stake 0");
-        require(stakedBalance[msg.sender] > 0, "Must have LP tokens staked");
+    function deposit(uint256 _pid, uint256 _amount) external nonReentrant whenNotPaused {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        require(_amount > 0, "Amount must be greater than 0");
         
-        governanceTokenBalance[msg.sender] += amount;
-        totalGovernanceStaked += amount;
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
         
-        rewardsToken.safeTransferFrom(msg.sender, address(this), amount);
+        require(pool.active, "Pool is not active");
+        require(_amount >= pool.minStakeAmount, "Amount below minimum stake");
         
-        emit GovernanceTokenStaked(msg.sender, amount);
-    }
-    
-    /**
-     * @dev Withdraw governance tokens
-     * @param amount Amount to withdraw
-     */
-    function withdrawGovernanceToken(uint256 amount) external nonReentrant {
-        require(amount > 0, "Cannot withdraw 0");
-        require(governanceTokenBalance[msg.sender] >= amount, "Insufficient balance");
+        updatePoolReward(_pid);
         
-        governanceTokenBalance[msg.sender] -= amount;
-        totalGovernanceStaked -= amount;
-        
-        rewardsToken.safeTransfer(msg.sender, amount);
-        
-        emit GovernanceTokenWithdrawn(msg.sender, amount);
-    }
-    
-    /**
-     * @dev Calculate current reward rate per token
-     */
-    function rewardPerToken() public view returns (uint256) {
-        if (totalStaked == 0) {
-            return rewardPerTokenStored;
-        }
-        return
-            rewardPerTokenStored +
-            (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18) / totalStaked);
-    }
-    
-    /**
-     * @dev Calculate earned rewards for user
-     * @param account User address
-     */
-    function earned(address account) public view returns (uint256) {
-        uint256 baseReward = (stakedBalance[account] * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18 + rewards[account];
-        
-        // Apply boost and time multipliers
-        uint256 boost = getBoostMultiplier(account);
-        uint256 timeMultiplier = getTimeMultiplier(account);
-        
-        return (baseReward * boost * timeMultiplier) / (BOOST_DENOMINATOR * 10000);
-    }
-    
-    /**
-     * @dev Get boost multiplier for user based on governance token staking
-     * @param account User address
-     */
-    function getBoostMultiplier(address account) public view returns (uint256) {
-        if (stakedBalance[account] == 0 || totalGovernanceStaked == 0) {
-            return BASE_BOOST;
-        }
-        
-        // Calculate boost based on governance token ratio
-        uint256 governanceRatio = (governanceTokenBalance[account] * 1e18) / stakedBalance[account];
-        uint256 maxGovernanceRatio = 1e18; // 1:1 ratio for max boost
-        
-        if (governanceRatio >= maxGovernanceRatio) {
-            return MAX_BOOST;
-        }
-        
-        // Linear interpolation between base and max boost
-        uint256 boostIncrease = ((MAX_BOOST - BASE_BOOST) * governanceRatio) / maxGovernanceRatio;
-        return BASE_BOOST + boostIncrease;
-    }
-    
-    /**
-     * @dev Get time-based multiplier for user
-     * @param account User address
-     */
-    function getTimeMultiplier(address account) public view returns (uint256) {
-        if (stakingStartTime[account] == 0) {
-            return 10000; // 1x multiplier
-        }
-        
-        uint256 stakingDuration = block.timestamp - stakingStartTime[account];
-        
-        for (uint256 i = timeMultipliers.length; i > 0; i--) {
-            if (stakingDuration >= timeMultipliers[i - 1].duration) {
-                return timeMultipliers[i - 1].multiplier;
+        // Claim pending rewards
+        if (user.amount > 0) {
+            uint256 pending = (user.amount * pool.accRewardPerShare / REWARD_PRECISION) - user.rewardDebt;
+            if (pending > 0) {
+                safeRewardTransfer(msg.sender, pending);
+                user.totalRewardsClaimed += pending;
+                emit RewardClaimed(msg.sender, _pid, pending);
             }
         }
         
-        return 10000; // 1x multiplier
+        // Transfer LP tokens
+        pool.lpToken.transferFrom(msg.sender, address(this), _amount);
+        
+        // Update user info
+        user.amount += _amount;
+        user.lastStakeTime = block.timestamp;
+        user.rewardDebt = user.amount * pool.accRewardPerShare / REWARD_PRECISION;
+        
+        // Update pool info
+        pool.totalStaked += _amount;
+        
+        emit Deposit(msg.sender, _pid, _amount);
     }
     
     /**
-     * @dev Get user's staking information
-     * @param account User address
+     * @dev LP 토큰 출금
      */
-    function getUserInfo(address account) external view returns (
-        uint256 staked,
-        uint256 earned_,
-        uint256 boost,
-        uint256 timeMultiplier,
-        uint256 stakingDuration,
-        uint256 governanceStaked
+    function withdraw(uint256 _pid, uint256 _amount) external nonReentrant {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        
+        require(user.amount >= _amount, "Insufficient balance");
+        
+        // Check lock period
+        if (pool.lockPeriod > 0) {
+            require(
+                block.timestamp >= user.lastStakeTime + pool.lockPeriod,
+                "Tokens are still locked"
+            );
+        }
+        
+        updatePoolReward(_pid);
+        
+        // Claim pending rewards
+        uint256 pending = (user.amount * pool.accRewardPerShare / REWARD_PRECISION) - user.rewardDebt;
+        if (pending > 0) {
+            safeRewardTransfer(msg.sender, pending);
+            user.totalRewardsClaimed += pending;
+            emit RewardClaimed(msg.sender, _pid, pending);
+        }
+        
+        // Update user info
+        user.amount -= _amount;
+        user.rewardDebt = user.amount * pool.accRewardPerShare / REWARD_PRECISION;
+        
+        // Update pool info
+        pool.totalStaked -= _amount;
+        
+        // Transfer LP tokens
+        pool.lpToken.transfer(msg.sender, _amount);
+        
+        emit Withdraw(msg.sender, _pid, _amount);
+    }
+    
+    /**
+     * @dev 보상만 청구
+     */
+    function claimReward(uint256 _pid) external nonReentrant {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        
+        updatePoolReward(_pid);
+        
+        uint256 pending = (user.amount * pool.accRewardPerShare / REWARD_PRECISION) - user.rewardDebt;
+        require(pending > 0, "No reward to claim");
+        
+        user.rewardDebt = user.amount * pool.accRewardPerShare / REWARD_PRECISION;
+        user.totalRewardsClaimed += pending;
+        
+        safeRewardTransfer(msg.sender, pending);
+        emit RewardClaimed(msg.sender, _pid, pending);
+    }
+    
+    /**
+     * @dev 긴급 출금 (보상 없이)
+     */
+    function emergencyWithdraw(uint256 _pid) external nonReentrant {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        
+        uint256 amount = user.amount;
+        require(amount > 0, "No balance to withdraw");
+        
+        user.amount = 0;
+        user.rewardDebt = 0;
+        pool.totalStaked -= amount;
+        
+        pool.lpToken.transfer(msg.sender, amount);
+        emit EmergencyWithdraw(msg.sender, _pid, amount);
+    }
+    
+    /**
+     * @dev 펜딩 보상 확인
+     */
+    function pendingReward(uint256 _pid, address _user) external view returns (uint256) {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        
+        PoolInfo memory pool = poolInfo[_pid];
+        UserInfo memory user = userInfo[_pid][_user];
+        
+        uint256 accRewardPerShare = pool.accRewardPerShare;
+        
+        if (block.timestamp > pool.lastRewardTime && pool.totalStaked != 0 && pool.allocPoint > 0) {
+            uint256 multiplier = block.timestamp - pool.lastRewardTime;
+            uint256 reward = multiplier * rewardPerSecond * pool.allocPoint / totalAllocPoint;
+            reward = reward * poolMultipliers[_pid] / 100;
+            accRewardPerShare += (reward * REWARD_PRECISION) / pool.totalStaked;
+        }
+        
+        return (user.amount * accRewardPerShare / REWARD_PRECISION) - user.rewardDebt;
+    }
+    
+    /**
+     * @dev 사용자 정보 조회
+     */
+    function getUserInfo(uint256 _pid, address _user) external view returns (
+        uint256 amount,
+        uint256 rewardDebt,
+        uint256 lastStakeTime,
+        uint256 totalRewardsClaimed,
+        uint256 pendingRewards
     ) {
-        staked = stakedBalance[account];
-        earned_ = earned(account);
-        boost = getBoostMultiplier(account);
-        timeMultiplier = getTimeMultiplier(account);
-        stakingDuration = stakingStartTime[account] > 0 ? block.timestamp - stakingStartTime[account] : 0;
-        governanceStaked = governanceTokenBalance[account];
+        UserInfo memory user = userInfo[_pid][_user];
+        amount = user.amount;
+        rewardDebt = user.rewardDebt;
+        lastStakeTime = user.lastStakeTime;
+        totalRewardsClaimed = user.totalRewardsClaimed;
+        
+        // Calculate pending rewards
+        PoolInfo memory pool = poolInfo[_pid];
+        uint256 accRewardPerShare = pool.accRewardPerShare;
+        
+        if (block.timestamp > pool.lastRewardTime && pool.totalStaked != 0 && pool.allocPoint > 0) {
+            uint256 multiplier = block.timestamp - pool.lastRewardTime;
+            uint256 reward = multiplier * rewardPerSecond * pool.allocPoint / totalAllocPoint;
+            reward = reward * poolMultipliers[_pid] / 100;
+            accRewardPerShare += (reward * REWARD_PRECISION) / pool.totalStaked;
+        }
+        
+        pendingRewards = (user.amount * accRewardPerShare / REWARD_PRECISION) - user.rewardDebt;
     }
     
     /**
-     * @dev Get pool information
+     * @dev 안전한 보상 전송
      */
-    function getPoolInfo() external view returns (
-        uint256 totalStaked_,
-        uint256 rewardRate_,
-        uint256 periodFinish_,
-        uint256 lastUpdateTime_,
-        uint256 rewardPerToken_,
-        uint256 totalRewardsPaid_
-    ) {
-        totalStaked_ = totalStaked;
-        rewardRate_ = rewardRate;
-        periodFinish_ = periodFinish;
-        lastUpdateTime_ = lastUpdateTime;
-        rewardPerToken_ = rewardPerToken();
-        totalRewardsPaid_ = totalRewardsPaid;
-    }
-    
-    function lastTimeRewardApplicable() public view returns (uint256) {
-        return Math.min(block.timestamp, periodFinish);
-    }
-    
-    // Admin functions
-    
-    /**
-     * @dev Add rewards to the pool
-     * @param reward Amount of rewards to add
-     */
-    function notifyRewardAmount(uint256 reward) external onlyOwner updateReward(address(0)) {
-        if (block.timestamp >= periodFinish) {
-            rewardRate = reward / rewardsDuration;
+    function safeRewardTransfer(address _to, uint256 _amount) internal {
+        uint256 rewardBal = rewardToken.balanceOf(address(this));
+        if (_amount > rewardBal) {
+            rewardToken.transfer(_to, rewardBal);
         } else {
-            uint256 remaining = periodFinish - block.timestamp;
-            uint256 leftover = remaining * rewardRate;
-            rewardRate = (reward + leftover) / rewardsDuration;
-        }
-        
-        // Ensure the provided reward amount is not more than the balance in the contract
-        uint256 balance = rewardsToken.balanceOf(address(this)) - totalGovernanceStaked;
-        require(rewardRate <= balance / rewardsDuration, "Provided reward too high");
-        
-        lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + rewardsDuration;
-        
-        emit RewardAdded(reward);
-    }
-    
-    /**
-     * @dev Update rewards duration
-     * @param _rewardsDuration New duration in seconds
-     */
-    function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
-        require(
-            block.timestamp > periodFinish,
-            "Previous rewards period must be complete before changing the duration"
-        );
-        rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(rewardsDuration);
-    }
-    
-    /**
-     * @dev Add or update time multiplier
-     * @param duration Duration in seconds
-     * @param multiplier Multiplier in basis points
-     */
-    function setTimeMultiplier(uint256 duration, uint256 multiplier) external onlyOwner {
-        require(multiplier >= 10000 && multiplier <= 30000, "Invalid multiplier"); // 1x to 3x
-        
-        // Find existing multiplier or add new one
-        bool found = false;
-        for (uint256 i = 0; i < timeMultipliers.length; i++) {
-            if (timeMultipliers[i].duration == duration) {
-                timeMultipliers[i].multiplier = multiplier;
-                found = true;
-                break;
-            }
-        }
-        
-        if (!found) {
-            timeMultipliers.push(TimeMultiplier(duration, multiplier));
+            rewardToken.transfer(_to, _amount);
         }
     }
     
-    /**
-     * @dev Emergency withdraw function (owner only)
-     * @param token Token to withdraw
-     * @param amount Amount to withdraw
-     */
-    function emergencyWithdraw(address token, uint256 amount) external onlyOwner {
-        require(token != address(stakingToken), "Cannot withdraw staking token");
-        IERC20(token).safeTransfer(owner(), amount);
+    // Owner functions
+    function setRewardPerSecond(uint256 _rewardPerSecond) external onlyOwner {
+        massUpdatePools();
+        rewardPerSecond = _rewardPerSecond;
+    }
+    
+    function setPoolMultiplier(uint256 _pid, uint256 _multiplier) external onlyOwner {
+        require(_pid < poolInfo.length, "Invalid pool ID");
+        poolMultipliers[_pid] = _multiplier;
+    }
+    
+    function pause() external onlyOwner {
+        _pause();
+    }
+    
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+    
+    function emergencyRewardWithdraw(uint256 _amount) external onlyOwner {
+        rewardToken.transfer(owner(), _amount);
     }
 }

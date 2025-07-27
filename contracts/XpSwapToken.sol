@@ -3,9 +3,9 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title XpSwap Token (XPS)
@@ -61,7 +61,7 @@ contract XpSwapToken is ERC20, ERC20Burnable, Pausable, Ownable, ReentrancyGuard
         address _developmentWallet,
         address _marketingWallet,
         address _bugBountyWallet
-    ) ERC20("XpSwap Token", "XPS") {
+    ) ERC20("XpSwap Token", "XPS") Ownable(msg.sender) {
         require(_teamWallet != address(0), "Invalid team wallet");
         require(_developmentWallet != address(0), "Invalid development wallet");
         require(_marketingWallet != address(0), "Invalid marketing wallet");
@@ -240,14 +240,14 @@ contract XpSwapToken is ERC20, ERC20Burnable, Pausable, Ownable, ReentrancyGuard
     }
     
     /**
-     * @dev Override transfer to include pause functionality
+     * @dev Override _update instead of _beforeTokenTransfer for v5
      */
-    function _beforeTokenTransfer(
+    function _update(
         address from,
         address to,
         uint256 amount
     ) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, amount);
+        super._update(from, to, amount);
     }
     
     /**

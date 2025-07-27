@@ -1,0 +1,217 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "XPSwapMEVProtection",
+  "sourceName": "contracts/XPSwapMEVProtection.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "blockNumber",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "reason",
+          "type": "string"
+        }
+      ],
+      "name": "MEVDetected",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_TXS_PER_BLOCK",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MEV_PROTECTION_BLOCKS",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "checkMEVProtection",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "mevProtection",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lastTxBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "txCountInBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastTxTimestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "flagged",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "updateMEVProtection",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b506001600055338061003c57604051631e4fbdf760e01b81526000600482015260240160405180910390fd5b6100458161004b565b5061009d565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b6103dd806100ac6000396000f3fe608060405234801561001057600080fd5b50600436106100885760003560e01c8063ab17b3bb1161005b578063ab17b3bb146100f0578063ac2dd560146100f8578063dea2772214610154578063f2fde38b1461016757600080fd5b8063715018a61461008d5780637efa18e3146100975780638da5cb5b146100bf578063970a4e63146100da575b600080fd5b61009561017a565b005b6100aa6100a5366004610334565b61018e565b60405190151581526020015b60405180910390f35b6001546040516001600160a01b0390911681526020016100b6565b6100e2600381565b6040519081526020016100b6565b6100e2600281565b61013261010636600461035e565b600260208190526000918252604090912080546001820154928201546003909201549092919060ff1684565b60408051948552602085019390935291830152151560608201526080016100b6565b61009561016236600461035e565b610205565b61009561017536600461035e565b610256565b610182610299565b61018c60006102c6565b565b6001600160a01b03821660009081526002602081815260408084208151608081018352815480825260018301549482019490945293810154918401919091526003015460ff161515606083015243036101f75760038160200151106101f75760009150506101ff565b606001511590505b92915050565b6001600160a01b0381166000908152600260205260409020805443111561023157600181810155610249565b60018101805490600061024383610380565b91905055505b4381554260029091015550565b61025e610299565b6001600160a01b03811661028d57604051631e4fbdf760e01b8152600060048201526024015b60405180910390fd5b610296816102c6565b50565b6001546001600160a01b0316331461018c5760405163118cdaa760e01b8152336004820152602401610284565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80356001600160a01b038116811461032f57600080fd5b919050565b6000806040838503121561034757600080fd5b61035083610318565b946020939093013593505050565b60006020828403121561037057600080fd5b61037982610318565b9392505050565b6000600182016103a057634e487b7160e01b600052601160045260246000fd5b506001019056fea26469706673582212206586d68a0883a8c36caa646e180d57ce774938d77aaafdfdf4dcf9f7b01bdbd464736f6c63430008180033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100885760003560e01c8063ab17b3bb1161005b578063ab17b3bb146100f0578063ac2dd560146100f8578063dea2772214610154578063f2fde38b1461016757600080fd5b8063715018a61461008d5780637efa18e3146100975780638da5cb5b146100bf578063970a4e63146100da575b600080fd5b61009561017a565b005b6100aa6100a5366004610334565b61018e565b60405190151581526020015b60405180910390f35b6001546040516001600160a01b0390911681526020016100b6565b6100e2600381565b6040519081526020016100b6565b6100e2600281565b61013261010636600461035e565b600260208190526000918252604090912080546001820154928201546003909201549092919060ff1684565b60408051948552602085019390935291830152151560608201526080016100b6565b61009561016236600461035e565b610205565b61009561017536600461035e565b610256565b610182610299565b61018c60006102c6565b565b6001600160a01b03821660009081526002602081815260408084208151608081018352815480825260018301549482019490945293810154918401919091526003015460ff161515606083015243036101f75760038160200151106101f75760009150506101ff565b606001511590505b92915050565b6001600160a01b0381166000908152600260205260409020805443111561023157600181810155610249565b60018101805490600061024383610380565b91905055505b4381554260029091015550565b61025e610299565b6001600160a01b03811661028d57604051631e4fbdf760e01b8152600060048201526024015b60405180910390fd5b610296816102c6565b50565b6001546001600160a01b0316331461018c5760405163118cdaa760e01b8152336004820152602401610284565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b80356001600160a01b038116811461032f57600080fd5b919050565b6000806040838503121561034757600080fd5b61035083610318565b946020939093013593505050565b60006020828403121561037057600080fd5b61037982610318565b9392505050565b6000600182016103a057634e487b7160e01b600052601160045260246000fd5b506001019056fea26469706673582212206586d68a0883a8c36caa646e180d57ce774938d77aaafdfdf4dcf9f7b01bdbd464736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

@@ -1,303 +1,369 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title XpSwapGovernanceToken
- * @dev ERC20 governance token with voting power and delegation capabilities
- * Used for protocol governance and yield farming rewards
+ * @dev 거버넌스 투표를 위한 ERC20 토큰
  */
-contract XpSwapGovernanceToken is ERC20, ERC20Permit, ERC20Votes, Ownable, ReentrancyGuard {
+contract XpSwapGovernanceToken is ERC20, ERC20Votes, ERC20Permit, Ownable, Pausable {
     
-    // Token configuration
-    uint256 public constant MAX_SUPPLY = 1000000000 * 10**18; // 1 billion tokens
-    uint256 public constant INITIAL_SUPPLY = 100000000 * 10**18; // 100 million initial supply
-    
-    // Distribution allocations
-    uint256 public constant LIQUIDITY_MINING_ALLOCATION = 400000000 * 10**18; // 40%
-    uint256 public constant TEAM_ALLOCATION = 200000000 * 10**18; // 20%
-    uint256 public constant TREASURY_ALLOCATION = 200000000 * 10**18; // 20%
-    uint256 public constant ECOSYSTEM_ALLOCATION = 100000000 * 10**18; // 10%
-    uint256 public constant ADVISORS_ALLOCATION = 100000000 * 10**18; // 10%
-    
-    // Vesting configuration
-    struct VestingSchedule {
-        uint256 totalAmount;
-        uint256 releasedAmount;
+    struct Proposal {
+        uint256 id;
+        address proposer;
+        string title;
+        string description;
         uint256 startTime;
-        uint256 duration;
-        uint256 cliffDuration;
-        bool revocable;
-        bool revoked;
+        uint256 endTime;
+        uint256 forVotes;
+        uint256 againstVotes;
+        uint256 abstainVotes;
+        bool executed;
+        bool canceled;
+        mapping(address => bool) hasVoted;
+        mapping(address => VoteChoice) votes;
     }
     
-    mapping(address => VestingSchedule) public vestingSchedules;
+    enum VoteChoice { For, Against, Abstain }
     
-    // Liquidity mining
-    mapping(address => bool) public authorizedMinters;
-    uint256 public totalMinted;
+    mapping(uint256 => Proposal) public proposals;
+    uint256 public proposalCount;
     
-    // Events
-    event VestingScheduleCreated(address indexed beneficiary, uint256 amount, uint256 duration);
-    event TokensReleased(address indexed beneficiary, uint256 amount);
-    event VestingRevoked(address indexed beneficiary);
-    event MinterAuthorized(address indexed minter);
-    event MinterRevoked(address indexed minter);
+    uint256 public votingDelay = 1 days;
+    uint256 public votingPeriod = 7 days;
+    uint256 public proposalThreshold = 1000 * 10**18; // 1000 tokens required to propose
+    uint256 public quorumNumerator = 4; // 4% quorum
+    uint256 public quorumDenominator = 100;
     
-    modifier onlyMinter() {
-        require(authorizedMinters[msg.sender], "Not authorized minter");
-        _;
-    }
-    
-    constructor() 
-        ERC20("XpSwap Governance Token", "XPSGOV") 
-        ERC20Permit("XpSwap Governance Token") 
-    {
-        // Mint initial supply to deployer
-        _mint(msg.sender, INITIAL_SUPPLY);
-        totalMinted = INITIAL_SUPPLY;
-        
-        // Self-delegate voting power
-        _delegate(msg.sender, msg.sender);
-    }
-    
-    /**
-     * @dev Authorize address to mint tokens for liquidity mining
-     * @param minter Address to authorize
-     */
-    function authorizeMinter(address minter) external onlyOwner {
-        require(minter != address(0), "Invalid minter address");
-        authorizedMinters[minter] = true;
-        emit MinterAuthorized(minter);
-    }
-    
-    /**
-     * @dev Revoke minter authorization
-     * @param minter Address to revoke
-     */
-    function revokeMinter(address minter) external onlyOwner {
-        authorizedMinters[minter] = false;
-        emit MinterRevoked(minter);
-    }
-    
-    /**
-     * @dev Mint tokens for liquidity mining rewards
-     * @param to Recipient address
-     * @param amount Amount to mint
-     */
-    function mint(address to, uint256 amount) external onlyMinter nonReentrant {
-        require(to != address(0), "Invalid recipient");
-        require(totalMinted + amount <= MAX_SUPPLY, "Exceeds max supply");
-        require(totalMinted + amount <= INITIAL_SUPPLY + LIQUIDITY_MINING_ALLOCATION, "Exceeds mining allocation");
-        
-        _mint(to, amount);
-        totalMinted += amount;
-        
-        // Auto-delegate to self if no delegation exists
-        if (delegates(to) == address(0)) {
-            _delegate(to, to);
-        }
-    }
-    
-    /**
-     * @dev Create vesting schedule for team/advisor tokens
-     * @param beneficiary Address of the beneficiary
-     * @param amount Total amount to vest
-     * @param duration Vesting duration in seconds
-     * @param cliffDuration Cliff period in seconds
-     * @param revocable Whether the vesting can be revoked
-     */
-    function createVestingSchedule(
-        address beneficiary,
-        uint256 amount,
-        uint256 duration,
-        uint256 cliffDuration,
-        bool revocable
-    ) external onlyOwner {
-        require(beneficiary != address(0), "Invalid beneficiary");
-        require(amount > 0, "Amount must be positive");
-        require(duration > 0, "Duration must be positive");
-        require(cliffDuration <= duration, "Cliff longer than duration");
-        require(vestingSchedules[beneficiary].totalAmount == 0, "Vesting already exists");
-        require(totalMinted + amount <= MAX_SUPPLY, "Exceeds max supply");
-        
-        vestingSchedules[beneficiary] = VestingSchedule({
-            totalAmount: amount,
-            releasedAmount: 0,
-            startTime: block.timestamp,
-            duration: duration,
-            cliffDuration: cliffDuration,
-            revocable: revocable,
-            revoked: false
-        });
-        
-        // Mint tokens to contract for vesting
-        _mint(address(this), amount);
-        totalMinted += amount;
-        
-        emit VestingScheduleCreated(beneficiary, amount, duration);
-    }
-    
-    /**
-     * @dev Release vested tokens to beneficiary
-     * @param beneficiary Address to release tokens for
-     */
-    function releaseVestedTokens(address beneficiary) external nonReentrant {
-        VestingSchedule storage vesting = vestingSchedules[beneficiary];
-        require(vesting.totalAmount > 0, "No vesting schedule");
-        require(!vesting.revoked, "Vesting revoked");
-        
-        uint256 releasableAmount = _releasableAmount(beneficiary);
-        require(releasableAmount > 0, "No tokens to release");
-        
-        vesting.releasedAmount += releasableAmount;
-        _transfer(address(this), beneficiary, releasableAmount);
-        
-        // Auto-delegate to self if no delegation exists
-        if (delegates(beneficiary) == address(0)) {
-            _delegate(beneficiary, beneficiary);
-        }
-        
-        emit TokensReleased(beneficiary, releasableAmount);
-    }
-    
-    /**
-     * @dev Revoke vesting schedule (owner only)
-     * @param beneficiary Address whose vesting to revoke
-     */
-    function revokeVesting(address beneficiary) external onlyOwner {
-        VestingSchedule storage vesting = vestingSchedules[beneficiary];
-        require(vesting.totalAmount > 0, "No vesting schedule");
-        require(vesting.revocable, "Vesting not revocable");
-        require(!vesting.revoked, "Already revoked");
-        
-        uint256 releasableAmount = _releasableAmount(beneficiary);
-        if (releasableAmount > 0) {
-            vesting.releasedAmount += releasableAmount;
-            _transfer(address(this), beneficiary, releasableAmount);
-        }
-        
-        uint256 remainingAmount = vesting.totalAmount - vesting.releasedAmount;
-        if (remainingAmount > 0) {
-            _transfer(address(this), owner(), remainingAmount);
-        }
-        
-        vesting.revoked = true;
-        emit VestingRevoked(beneficiary);
-    }
-    
-    /**
-     * @dev Get releasable amount for beneficiary
-     * @param beneficiary Address to check
-     * @return Releasable token amount
-     */
-    function getReleasableAmount(address beneficiary) external view returns (uint256) {
-        return _releasableAmount(beneficiary);
-    }
-    
-    /**
-     * @dev Get vesting schedule information
-     * @param beneficiary Address to check
-     * @return Vesting schedule details
-     */
-    function getVestingSchedule(address beneficiary) external view returns (
-        uint256 totalAmount,
-        uint256 releasedAmount,
+    event ProposalCreated(
+        uint256 indexed proposalId,
+        address indexed proposer,
+        string title,
         uint256 startTime,
-        uint256 duration,
-        uint256 cliffDuration,
-        bool revocable,
-        bool revoked
+        uint256 endTime
+    );
+    
+    event VoteCast(
+        address indexed voter,
+        uint256 indexed proposalId,
+        VoteChoice choice,
+        uint256 votes,
+        string reason
+    );
+    
+    event ProposalExecuted(uint256 indexed proposalId);
+    event ProposalCanceled(uint256 indexed proposalId);
+    
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint256 _initialSupply,
+        address _owner
+    ) 
+        ERC20(_name, _symbol)
+        ERC20Permit(_name)
+        Ownable(_owner)
+    {
+        _mint(_owner, _initialSupply);
+    }
+    
+    /**
+     * @dev 새 제안 생성
+     */
+    function propose(
+        string memory _title,
+        string memory _description
+    ) external whenNotPaused returns (uint256) {
+        require(getVotes(msg.sender) >= proposalThreshold, "Insufficient voting power");
+        require(bytes(_title).length > 0, "Title cannot be empty");
+        require(bytes(_description).length > 0, "Description cannot be empty");
+        
+        uint256 proposalId = ++proposalCount;
+        
+        Proposal storage newProposal = proposals[proposalId];
+        newProposal.id = proposalId;
+        newProposal.proposer = msg.sender;
+        newProposal.title = _title;
+        newProposal.description = _description;
+        newProposal.startTime = block.timestamp + votingDelay;
+        newProposal.endTime = newProposal.startTime + votingPeriod;
+        newProposal.executed = false;
+        newProposal.canceled = false;
+        
+        emit ProposalCreated(
+            proposalId,
+            msg.sender,
+            _title,
+            newProposal.startTime,
+            newProposal.endTime
+        );
+        
+        return proposalId;
+    }
+    
+    /**
+     * @dev 제안에 투표
+     */
+    function castVote(
+        uint256 _proposalId,
+        VoteChoice _choice
+    ) external whenNotPaused {
+        _castVote(_proposalId, msg.sender, _choice, "");
+    }
+    
+    /**
+     * @dev 이유와 함께 투표
+     */
+    function castVoteWithReason(
+        uint256 _proposalId,
+        VoteChoice _choice,
+        string memory _reason
+    ) external whenNotPaused {
+        _castVote(_proposalId, msg.sender, _choice, _reason);
+    }
+    
+    /**
+     * @dev 서명을 통한 투표
+     */
+    function castVoteBySig(
+        uint256 _proposalId,
+        VoteChoice _choice,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external whenNotPaused {
+        bytes32 domainSeparator = _domainSeparatorV4();
+        bytes32 structHash = keccak256(
+            abi.encode(
+                keccak256("Vote(uint256 proposalId,uint8 choice,uint256 nonce,uint256 deadline)"),
+                _proposalId,
+                uint8(_choice),
+                _useNonce(msg.sender),
+                block.timestamp
+            )
+        );
+        
+        bytes32 hash = _hashTypedDataV4(structHash);
+        address signer = ECDSA.recover(hash, _v, _r, _s);
+        
+        _castVote(_proposalId, signer, _choice, "");
+    }
+    
+    /**
+     * @dev 내부 투표 함수
+     */
+    function _castVote(
+        uint256 _proposalId,
+        address _voter,
+        VoteChoice _choice,
+        string memory _reason
+    ) internal {
+        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
+        
+        Proposal storage proposal = proposals[_proposalId];
+        require(block.timestamp >= proposal.startTime, "Voting has not started");
+        require(block.timestamp <= proposal.endTime, "Voting has ended");
+        require(!proposal.executed, "Proposal already executed");
+        require(!proposal.canceled, "Proposal canceled");
+        require(!proposal.hasVoted[_voter], "Already voted");
+        
+        uint256 votes = getVotes(_voter);
+        require(votes > 0, "No voting power");
+        
+        proposal.hasVoted[_voter] = true;
+        proposal.votes[_voter] = _choice;
+        
+        if (_choice == VoteChoice.For) {
+            proposal.forVotes += votes;
+        } else if (_choice == VoteChoice.Against) {
+            proposal.againstVotes += votes;
+        } else {
+            proposal.abstainVotes += votes;
+        }
+        
+        emit VoteCast(_voter, _proposalId, _choice, votes, _reason);
+    }
+    
+    /**
+     * @dev 제안 실행
+     */
+    function executeProposal(uint256 _proposalId) external {
+        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
+        
+        Proposal storage proposal = proposals[_proposalId];
+        require(block.timestamp > proposal.endTime, "Voting period not ended");
+        require(!proposal.executed, "Already executed");
+        require(!proposal.canceled, "Proposal canceled");
+        
+        // Check if proposal passed
+        require(_quorumReached(_proposalId), "Quorum not reached");
+        require(_voteSucceeded(_proposalId), "Proposal did not pass");
+        
+        proposal.executed = true;
+        
+        emit ProposalExecuted(_proposalId);
+    }
+    
+    /**
+     * @dev 제안 취소 (제안자만)
+     */
+    function cancelProposal(uint256 _proposalId) external {
+        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
+        
+        Proposal storage proposal = proposals[_proposalId];
+        require(msg.sender == proposal.proposer || msg.sender == owner(), "Not authorized");
+        require(!proposal.executed, "Already executed");
+        require(!proposal.canceled, "Already canceled");
+        
+        proposal.canceled = true;
+        
+        emit ProposalCanceled(_proposalId);
+    }
+    
+    /**
+     * @dev 쿼럼 달성 여부 확인
+     */
+    function _quorumReached(uint256 _proposalId) internal view returns (bool) {
+        Proposal storage proposal = proposals[_proposalId];
+        uint256 totalVotes = proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
+        uint256 totalSupply = getPastTotalSupply(proposal.startTime);
+        
+        return totalVotes >= (totalSupply * quorumNumerator) / quorumDenominator;
+    }
+    
+    /**
+     * @dev 투표 성공 여부 확인
+     */
+    function _voteSucceeded(uint256 _proposalId) internal view returns (bool) {
+        Proposal storage proposal = proposals[_proposalId];
+        return proposal.forVotes > proposal.againstVotes;
+    }
+    
+    /**
+     * @dev 제안 상태 확인
+     */
+    function getProposalState(uint256 _proposalId) external view returns (string memory) {
+        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
+        
+        Proposal storage proposal = proposals[_proposalId];
+        
+        if (proposal.canceled) {
+            return "Canceled";
+        }
+        
+        if (proposal.executed) {
+            return "Executed";
+        }
+        
+        if (block.timestamp < proposal.startTime) {
+            return "Pending";
+        }
+        
+        if (block.timestamp <= proposal.endTime) {
+            return "Active";
+        }
+        
+        if (_quorumReached(_proposalId) && _voteSucceeded(_proposalId)) {
+            return "Succeeded";
+        }
+        
+        return "Defeated";
+    }
+    
+    /**
+     * @dev 제안 정보 조회
+     */
+    function getProposal(uint256 _proposalId) external view returns (
+        uint256 id,
+        address proposer,
+        string memory title,
+        string memory description,
+        uint256 startTime,
+        uint256 endTime,
+        uint256 forVotes,
+        uint256 againstVotes,
+        uint256 abstainVotes,
+        bool executed,
+        bool canceled
     ) {
-        VestingSchedule storage vesting = vestingSchedules[beneficiary];
+        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
+        
+        Proposal storage proposal = proposals[_proposalId];
+        
         return (
-            vesting.totalAmount,
-            vesting.releasedAmount,
-            vesting.startTime,
-            vesting.duration,
-            vesting.cliffDuration,
-            vesting.revocable,
-            vesting.revoked
+            proposal.id,
+            proposal.proposer,
+            proposal.title,
+            proposal.description,
+            proposal.startTime,
+            proposal.endTime,
+            proposal.forVotes,
+            proposal.againstVotes,
+            proposal.abstainVotes,
+            proposal.executed,
+            proposal.canceled
         );
     }
     
     /**
-     * @dev Batch transfer with automatic delegation
-     * @param recipients Array of recipient addresses
-     * @param amounts Array of amounts to transfer
+     * @dev 사용자 투표 확인
      */
-    function batchTransferWithDelegation(address[] calldata recipients, uint256[] calldata amounts) 
-        external nonReentrant {
-        require(recipients.length == amounts.length, "Array length mismatch");
-        require(recipients.length <= 100, "Too many recipients");
+    function getUserVote(uint256 _proposalId, address _user) external view returns (bool hasVoted, VoteChoice choice) {
+        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
         
-        for (uint256 i = 0; i < recipients.length; i++) {
-            require(recipients[i] != address(0), "Invalid recipient");
-            require(amounts[i] > 0, "Invalid amount");
-            
-            _transfer(msg.sender, recipients[i], amounts[i]);
-            
-            // Auto-delegate to self if no delegation exists
-            if (delegates(recipients[i]) == address(0)) {
-                _delegate(recipients[i], recipients[i]);
-            }
-        }
+        Proposal storage proposal = proposals[_proposalId];
+        hasVoted = proposal.hasVoted[_user];
+        choice = proposal.votes[_user];
     }
     
-    /**
-     * @dev Emergency pause function (owner only)
-     */
+    // Owner functions
+    function setVotingDelay(uint256 _newVotingDelay) external onlyOwner {
+        votingDelay = _newVotingDelay;
+    }
+    
+    function setVotingPeriod(uint256 _newVotingPeriod) external onlyOwner {
+        votingPeriod = _newVotingPeriod;
+    }
+    
+    function setProposalThreshold(uint256 _newThreshold) external onlyOwner {
+        proposalThreshold = _newThreshold;
+    }
+    
+    function setQuorum(uint256 _numerator, uint256 _denominator) external onlyOwner {
+        require(_denominator > 0, "Denominator cannot be zero");
+        require(_numerator <= _denominator, "Numerator cannot exceed denominator");
+        
+        quorumNumerator = _numerator;
+        quorumDenominator = _denominator;
+    }
+    
     function pause() external onlyOwner {
-        // Implementation for pausing transfers if needed
-        // This would require additional pause functionality
+        _pause();
     }
     
-    // Internal functions
-    
-    function _releasableAmount(address beneficiary) internal view returns (uint256) {
-        VestingSchedule storage vesting = vestingSchedules[beneficiary];
-        if (vesting.totalAmount == 0 || vesting.revoked) {
-            return 0;
-        }
-        
-        if (block.timestamp < vesting.startTime + vesting.cliffDuration) {
-            return 0;
-        }
-        
-        if (block.timestamp >= vesting.startTime + vesting.duration) {
-            return vesting.totalAmount - vesting.releasedAmount;
-        }
-        
-        uint256 timeElapsed = block.timestamp - vesting.startTime;
-        uint256 vestedAmount = (vesting.totalAmount * timeElapsed) / vesting.duration;
-        return vestedAmount - vesting.releasedAmount;
+    function unpause() external onlyOwner {
+        _unpause();
     }
     
-    // The following functions are overrides required by Solidity
-    
-    function _afterTokenTransfer(address from, address to, uint256 amount)
+    // Required overrides
+    function _update(address from, address to, uint256 value)
         internal
         override(ERC20, ERC20Votes)
     {
-        super._afterTokenTransfer(from, to, amount);
+        super._update(from, to, value);
     }
     
-    function _mint(address to, uint256 amount)
-        internal
-        override(ERC20, ERC20Votes)
+    function nonces(address owner)
+        public
+        view
+        override(ERC20Permit, Nonces)
+        returns (uint256)
     {
-        super._mint(to, amount);
-    }
-    
-    function _burn(address account, uint256 amount)
-        internal
-        override(ERC20, ERC20Votes)
-    {
-        super._burn(account, amount);
+        return super.nonces(owner);
     }
 }

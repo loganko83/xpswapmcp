@@ -1,25 +1,11 @@
 // Contract addresses on Xphere network
 export const CONTRACT_ADDRESSES = {
-  // XPS Token Contract
-  XPSToken: "0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2",
-  
-  // DEX Core Contracts
-  XpSwapDEX: "0x5b0bcfa1490d000000000000000000000000000",
-  XpSwapLiquidityPool: "0xe909098d05c06000000000000000000000000000",
-  XpSwapAdvancedAMM: "0x123c1d407d04a000000000000000000000000000",
-  
-  // Staking and Rewards
-  XpSwapStaking: "0xdcbe5c4f166a3000000000000000000000000000",
-  XpSwapFarmingRewards: "0xb99484ee2d452000000000000000000000000000",
-  
-  // Governance
-  XpSwapGovernanceToken: "0xa62a2b8601833000000000000000000000000000",
-  
-  // Revenue Management
-  XpSwapRevenueManager: "0xb3cde158e6838000000000000000000000000000",
-  
-  // Cross-chain Bridge
-  XpSwapCrosschainBridge: "0x1301bc0dccf81000000000000000000000000000"
+  XpSwapToken: '0x17E0Cd7AaC2f1096F753649D605e45dA39DE7F68',
+  XpSwapDEX: '0x1f20c338bF5004a081f7B1335D73f4BC03948CE7',
+  XPSwapFlashLoanSecurity: '0x02195Fa532845B9d743B180f15dF5580964B1aB9',
+  XPSwapMEVProtection: '0x5fcF495bec38b587ab3eAdf6a928f399f69288FF',
+  XPSwapOptionsSecurity: '0x40Ba1d3B27cF6471169eC0b5F04B5bAa86FBE9a5',
+  MultiSigWallet: '0x43Ca4Da324d9794a63b05B643A6fB7fC08BC660F',
 };
 
 // Network Configuration

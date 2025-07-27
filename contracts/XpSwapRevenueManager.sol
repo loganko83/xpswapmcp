@@ -1,395 +1,351 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-interface IXpSwapToken {
-    function burnFromRevenue(uint256 amount, string memory reason) external;
-    function mintToCategory(string memory category, address recipient, uint256 amount) external;
-    function calculateFeeDiscount(address user) external view returns (uint256);
-}
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
- * @title XpSwap Revenue Manager
- * @dev Manages protocol revenue distribution and XPS burning mechanisms
- * Features:
- * - Revenue collection from trading fees
- * - Automatic XPS burning for deflation
- * - Bug bounty rewards distribution
- * - Marketing budget allocation
- * - Team and development fund management
+ * @title XpSwapRevenueManager
+ * @dev XPSwap 플랫폼 수익 관리 컨트랙트
  */
-contract XpSwapRevenueManager is ReentrancyGuard, Ownable {
-    using SafeERC20 for IERC20;
+contract XpSwapRevenueManager is ReentrancyGuard, Ownable, Pausable {
     
-    IXpSwapToken public immutable xpsToken;
+    struct RevenueStream {
+        string name;
+        address token;
+        uint256 totalRevenue;
+        uint256 distributedRevenue;
+        uint256 lastDistributionTime;
+        bool active;
+    }
     
-    // Revenue allocation percentages (basis points, 10000 = 100%)
-    uint256 public constant BURN_ALLOCATION = 4000;        // 40% for burning
-    uint256 public constant TEAM_ALLOCATION = 1500;        // 15% for team
-    uint256 public constant DEVELOPMENT_ALLOCATION = 1500; // 15% for development
-    uint256 public constant MARKETING_ALLOCATION = 1000;   // 10% for marketing
-    uint256 public constant BUG_BOUNTY_ALLOCATION = 500;   // 5% for bug bounty
-    uint256 public constant RESERVE_ALLOCATION = 1500;     // 15% for reserves
+    struct StakeHolder {
+        uint256 sharePercentage; // basis points (10000 = 100%)
+        address payoutAddress;
+        uint256 totalPaidOut;
+        bool active;
+    }
     
-    // Addresses for revenue distribution
-    address public teamWallet;
-    address public developmentWallet;
-    address public marketingWallet;
-    address public bugBountyWallet;
-    address public reserveWallet;
+    mapping(uint256 => RevenueStream) public revenueStreams;
+    mapping(address => StakeHolder) public stakeHolders;
+    mapping(uint256 => mapping(address => uint256)) public claimableAmount;
+    
+    address[] public stakeHolderList;
+    uint256 public streamCount;
+    uint256 public totalSharePercentage;
+    
+    // Fee settings
+    uint256 public platformFeeRate = 300; // 3% in basis points
+    uint256 public burnRate = 100; // 1% burn rate
+    address public feeRecipient;
+    address public burnAddress = 0x000000000000000000000000000000000000dEaD;
     
     // Revenue tracking
-    mapping(address => uint256) public totalRevenueByToken;
-    mapping(address => uint256) public totalBurnedByToken;
-    uint256 public totalXpsBurned;
+    mapping(address => uint256) public tokenRevenue;
+    mapping(address => uint256) public totalDistributed;
     
-    // Bug bounty system
-    struct BugBounty {
-        uint256 id;
-        address reporter;
-        string severity; // "low", "medium", "high", "critical"
-        uint256 reward;
-        bool claimed;
-        uint256 timestamp;
-        string description;
-    }
+    event RevenueStreamAdded(uint256 indexed streamId, string name, address token);
+    event RevenueReceived(uint256 indexed streamId, uint256 amount);
+    event RevenueDistributed(uint256 indexed streamId, uint256 amount);
+    event StakeHolderAdded(address indexed stakeHolder, uint256 sharePercentage);
+    event StakeHolderUpdated(address indexed stakeHolder, uint256 newSharePercentage);
+    event PayoutClaimed(address indexed stakeHolder, address token, uint256 amount);
+    event FeesDistributed(address token, uint256 platformFee, uint256 burnAmount);
     
-    mapping(uint256 => BugBounty) public bugBounties;
-    uint256 public nextBountyId;
-    uint256 public totalBugBountyPaid;
-    
-    // Marketing campaigns
-    struct MarketingCampaign {
-        uint256 id;
-        string name;
-        uint256 budget;
-        uint256 spent;
-        address manager;
-        bool active;
-        uint256 startTime;
-        uint256 endTime;
-    }
-    
-    mapping(uint256 => MarketingCampaign) public marketingCampaigns;
-    uint256 public nextCampaignId;
-    
-    // Events
-    event RevenueDistributed(
-        address indexed token,
-        uint256 totalAmount,
-        uint256 burnAmount,
-        uint256 teamAmount,
-        uint256 devAmount,
-        uint256 marketingAmount,
-        uint256 bugBountyAmount,
-        uint256 reserveAmount
-    );
-    event XpsBurned(uint256 amount, string reason);
-    event BugBountyCreated(uint256 indexed bountyId, address indexed reporter, string severity, uint256 reward);
-    event BugBountyClaimed(uint256 indexed bountyId, address indexed reporter, uint256 reward);
-    event MarketingCampaignCreated(uint256 indexed campaignId, string name, uint256 budget);
-    event MarketingExpenseApproved(uint256 indexed campaignId, uint256 amount, address recipient);
-    
-    constructor(
-        address _xpsToken,
-        address _teamWallet,
-        address _developmentWallet,
-        address _marketingWallet,
-        address _bugBountyWallet,
-        address _reserveWallet
-    ) {
-        require(_xpsToken != address(0), "Invalid XPS token");
-        require(_teamWallet != address(0), "Invalid team wallet");
-        require(_developmentWallet != address(0), "Invalid development wallet");
-        require(_marketingWallet != address(0), "Invalid marketing wallet");
-        require(_bugBountyWallet != address(0), "Invalid bug bounty wallet");
-        require(_reserveWallet != address(0), "Invalid reserve wallet");
-        
-        xpsToken = IXpSwapToken(_xpsToken);
-        teamWallet = _teamWallet;
-        developmentWallet = _developmentWallet;
-        marketingWallet = _marketingWallet;
-        bugBountyWallet = _bugBountyWallet;
-        reserveWallet = _reserveWallet;
-        
-        nextBountyId = 1;
-        nextCampaignId = 1;
+    constructor(address _feeRecipient) Ownable(msg.sender) {
+        require(_feeRecipient != address(0), "Invalid fee recipient");
+        feeRecipient = _feeRecipient;
     }
     
     /**
-     * @dev Distribute protocol revenue
+     * @dev 새 수익 스트림 추가
      */
-    function distributeRevenue(address token, uint256 amount) external onlyOwner nonReentrant {
-        require(amount > 0, "Amount must be greater than 0");
-        require(token != address(0), "Invalid token address");
+    function addRevenueStream(
+        string memory _name,
+        address _token
+    ) external onlyOwner returns (uint256) {
+        require(_token != address(0), "Invalid token address");
+        require(bytes(_name).length > 0, "Name cannot be empty");
         
-        IERC20 revenueToken = IERC20(token);
-        require(
-            revenueToken.balanceOf(address(this)) >= amount,
-            "Insufficient balance"
-        );
+        uint256 streamId = streamCount++;
         
-        // Calculate allocations
-        uint256 burnAmount = (amount * BURN_ALLOCATION) / 10000;
-        uint256 teamAmount = (amount * TEAM_ALLOCATION) / 10000;
-        uint256 devAmount = (amount * DEVELOPMENT_ALLOCATION) / 10000;
-        uint256 marketingAmount = (amount * MARKETING_ALLOCATION) / 10000;
-        uint256 bugBountyAmount = (amount * BUG_BOUNTY_ALLOCATION) / 10000;
-        uint256 reserveAmount = (amount * RESERVE_ALLOCATION) / 10000;
-        
-        // Handle XPS burning if revenue is in XPS
-        if (token == address(xpsToken)) {
-            xpsToken.burnFromRevenue(burnAmount, "Protocol revenue burn");
-            totalXpsBurned += burnAmount;
-        } else {
-            // For other tokens, transfer burn allocation to reserve for later conversion
-            revenueToken.safeTransfer(reserveWallet, burnAmount);
-        }
-        
-        // Distribute to wallets
-        revenueToken.safeTransfer(teamWallet, teamAmount);
-        revenueToken.safeTransfer(developmentWallet, devAmount);
-        revenueToken.safeTransfer(marketingWallet, marketingAmount);
-        revenueToken.safeTransfer(bugBountyWallet, bugBountyAmount);
-        revenueToken.safeTransfer(reserveWallet, reserveAmount);
-        
-        // Update tracking
-        totalRevenueByToken[token] += amount;
-        if (token == address(xpsToken)) {
-            totalBurnedByToken[token] += burnAmount;
-        }
-        
-        emit RevenueDistributed(
-            token,
-            amount,
-            burnAmount,
-            teamAmount,
-            devAmount,
-            marketingAmount,
-            bugBountyAmount,
-            reserveAmount
-        );
-    }
-    
-    /**
-     * @dev Create bug bounty reward
-     */
-    function createBugBounty(
-        address reporter,
-        string memory severity,
-        uint256 reward,
-        string memory description
-    ) external onlyOwner {
-        require(reporter != address(0), "Invalid reporter address");
-        require(reward > 0, "Reward must be greater than 0");
-        
-        bugBounties[nextBountyId] = BugBounty({
-            id: nextBountyId,
-            reporter: reporter,
-            severity: severity,
-            reward: reward,
-            claimed: false,
-            timestamp: block.timestamp,
-            description: description
+        revenueStreams[streamId] = RevenueStream({
+            name: _name,
+            token: _token,
+            totalRevenue: 0,
+            distributedRevenue: 0,
+            lastDistributionTime: block.timestamp,
+            active: true
         });
         
-        emit BugBountyCreated(nextBountyId, reporter, severity, reward);
-        nextBountyId++;
+        emit RevenueStreamAdded(streamId, _name, _token);
+        return streamId;
     }
     
     /**
-     * @dev Claim bug bounty reward
+     * @dev 스테이크홀더 추가
      */
-    function claimBugBounty(uint256 bountyId) external nonReentrant {
-        BugBounty storage bounty = bugBounties[bountyId];
-        
-        require(bounty.reporter == msg.sender, "Not the reporter");
-        require(!bounty.claimed, "Bounty already claimed");
-        require(bounty.reward > 0, "Invalid bounty");
-        
-        bounty.claimed = true;
-        totalBugBountyPaid += bounty.reward;
-        
-        // Mint XPS tokens as reward
-        xpsToken.mintToCategory("bugBounty", msg.sender, bounty.reward);
-        
-        emit BugBountyClaimed(bountyId, msg.sender, bounty.reward);
-    }
-    
-    /**
-     * @dev Create marketing campaign
-     */
-    function createMarketingCampaign(
-        string memory name,
-        uint256 budget,
-        address manager,
-        uint256 duration
+    function addStakeHolder(
+        address _stakeHolder,
+        uint256 _sharePercentage,
+        address _payoutAddress
     ) external onlyOwner {
-        require(budget > 0, "Budget must be greater than 0");
-        require(manager != address(0), "Invalid manager address");
+        require(_stakeHolder != address(0), "Invalid stakeholder address");
+        require(_payoutAddress != address(0), "Invalid payout address");
+        require(_sharePercentage > 0, "Share percentage must be greater than 0");
+        require(totalSharePercentage + _sharePercentage <= 10000, "Total share exceeds 100%");
+        require(!stakeHolders[_stakeHolder].active, "Stakeholder already exists");
         
-        marketingCampaigns[nextCampaignId] = MarketingCampaign({
-            id: nextCampaignId,
-            name: name,
-            budget: budget,
-            spent: 0,
-            manager: manager,
-            active: true,
-            startTime: block.timestamp,
-            endTime: block.timestamp + duration
+        stakeHolders[_stakeHolder] = StakeHolder({
+            sharePercentage: _sharePercentage,
+            payoutAddress: _payoutAddress,
+            totalPaidOut: 0,
+            active: true
         });
         
-        emit MarketingCampaignCreated(nextCampaignId, name, budget);
-        nextCampaignId++;
+        stakeHolderList.push(_stakeHolder);
+        totalSharePercentage += _sharePercentage;
+        
+        emit StakeHolderAdded(_stakeHolder, _sharePercentage);
     }
     
     /**
-     * @dev Approve marketing expense
+     * @dev 스테이크홀더 지분 업데이트
      */
-    function approveMarketingExpense(
-        uint256 campaignId,
-        uint256 amount,
-        address recipient
-    ) external onlyOwner nonReentrant {
-        MarketingCampaign storage campaign = marketingCampaigns[campaignId];
+    function updateStakeHolder(
+        address _stakeHolder,
+        uint256 _newSharePercentage,
+        address _newPayoutAddress
+    ) external onlyOwner {
+        require(stakeHolders[_stakeHolder].active, "Stakeholder does not exist");
+        require(_newPayoutAddress != address(0), "Invalid payout address");
         
-        require(campaign.active, "Campaign not active");
-        require(block.timestamp <= campaign.endTime, "Campaign ended");
-        require(campaign.spent + amount <= campaign.budget, "Exceeds budget");
-        require(recipient != address(0), "Invalid recipient");
+        uint256 oldShare = stakeHolders[_stakeHolder].sharePercentage;
+        require(totalSharePercentage - oldShare + _newSharePercentage <= 10000, "Total share exceeds 100%");
         
-        campaign.spent += amount;
+        totalSharePercentage = totalSharePercentage - oldShare + _newSharePercentage;
         
-        // Mint XPS tokens for marketing expense
-        xpsToken.mintToCategory("marketing", recipient, amount);
+        stakeHolders[_stakeHolder].sharePercentage = _newSharePercentage;
+        stakeHolders[_stakeHolder].payoutAddress = _newPayoutAddress;
         
-        emit MarketingExpenseApproved(campaignId, amount, recipient);
+        emit StakeHolderUpdated(_stakeHolder, _newSharePercentage);
     }
     
     /**
-     * @dev Emergency burn XPS for deflation
+     * @dev 수익 기록
      */
-    function emergencyBurnXps(uint256 amount, string memory reason) external onlyOwner {
-        require(amount > 0, "Amount must be greater than 0");
+    function recordRevenue(uint256 _streamId, uint256 _amount) external {
+        require(_streamId < streamCount, "Invalid stream ID");
+        require(_amount > 0, "Amount must be greater than 0");
         
-        xpsToken.burnFromRevenue(amount, reason);
-        totalXpsBurned += amount;
+        RevenueStream storage stream = revenueStreams[_streamId];
+        require(stream.active, "Stream is not active");
         
-        emit XpsBurned(amount, reason);
+        // Transfer tokens to contract
+        IERC20(stream.token).transferFrom(msg.sender, address(this), _amount);
+        
+        // Update revenue tracking
+        stream.totalRevenue += _amount;
+        tokenRevenue[stream.token] += _amount;
+        
+        emit RevenueReceived(_streamId, _amount);
+        
+        // Auto-distribute if conditions are met
+        _autoDistribute(_streamId);
     }
     
     /**
-     * @dev Get bug bounty information
+     * @dev 수익 분배
      */
-    function getBugBounty(uint256 bountyId)
-        external
-        view
-        returns (
-            uint256 id,
-            address reporter,
-            string memory severity,
-            uint256 reward,
-            bool claimed,
-            uint256 timestamp,
-            string memory description
-        )
-    {
-        BugBounty memory bounty = bugBounties[bountyId];
-        return (
-            bounty.id,
-            bounty.reporter,
-            bounty.severity,
-            bounty.reward,
-            bounty.claimed,
-            bounty.timestamp,
-            bounty.description
-        );
+    function distributeRevenue(uint256 _streamId) external nonReentrant {
+        require(_streamId < streamCount, "Invalid stream ID");
+        
+        RevenueStream storage stream = revenueStreams[_streamId];
+        require(stream.active, "Stream is not active");
+        
+        uint256 availableRevenue = stream.totalRevenue - stream.distributedRevenue;
+        require(availableRevenue > 0, "No revenue to distribute");
+        
+        _distributeRevenue(_streamId, availableRevenue);
     }
     
     /**
-     * @dev Get marketing campaign information
+     * @dev 내부 수익 분배 함수
      */
-    function getMarketingCampaign(uint256 campaignId)
-        external
-        view
-        returns (
-            uint256 id,
-            string memory name,
-            uint256 budget,
-            uint256 spent,
-            address manager,
-            bool active,
-            uint256 startTime,
-            uint256 endTime
-        )
-    {
-        MarketingCampaign memory campaign = marketingCampaigns[campaignId];
-        return (
-            campaign.id,
-            campaign.name,
-            campaign.budget,
-            campaign.spent,
-            campaign.manager,
-            campaign.active,
-            campaign.startTime,
-            campaign.endTime
-        );
-    }
-    
-    /**
-     * @dev Get revenue statistics
-     */
-    function getRevenueStats()
-        external
-        view
-        returns (
-            uint256 _totalXpsBurned,
-            uint256 _totalBugBountyPaid,
-            uint256 _activeCampaigns
-        )
-    {
-        uint256 activeCampaigns = 0;
-        for (uint256 i = 1; i < nextCampaignId; i++) {
-            if (marketingCampaigns[i].active && block.timestamp <= marketingCampaigns[i].endTime) {
-                activeCampaigns++;
+    function _distributeRevenue(uint256 _streamId, uint256 _amount) internal {
+        RevenueStream storage stream = revenueStreams[_streamId];
+        
+        // Calculate fees
+        uint256 platformFee = (_amount * platformFeeRate) / 10000;
+        uint256 burnAmount = (_amount * burnRate) / 10000;
+        uint256 distributableAmount = _amount - platformFee - burnAmount;
+        
+        // Distribute to stakeholders
+        for (uint256 i = 0; i < stakeHolderList.length; i++) {
+            address stakeholder = stakeHolderList[i];
+            if (stakeHolders[stakeholder].active) {
+                uint256 share = (distributableAmount * stakeHolders[stakeholder].sharePercentage) / 10000;
+                claimableAmount[_streamId][stakeholder] += share;
             }
         }
         
-        return (totalXpsBurned, totalBugBountyPaid, activeCampaigns);
-    }
-    
-    /**
-     * @dev Update wallet addresses
-     */
-    function updateWallets(
-        address _teamWallet,
-        address _developmentWallet,
-        address _marketingWallet,
-        address _bugBountyWallet,
-        address _reserveWallet
-    ) external onlyOwner {
-        require(_teamWallet != address(0), "Invalid team wallet");
-        require(_developmentWallet != address(0), "Invalid development wallet");
-        require(_marketingWallet != address(0), "Invalid marketing wallet");
-        require(_bugBountyWallet != address(0), "Invalid bug bounty wallet");
-        require(_reserveWallet != address(0), "Invalid reserve wallet");
+        // Handle fees
+        if (platformFee > 0) {
+            IERC20(stream.token).transfer(feeRecipient, platformFee);
+        }
         
-        teamWallet = _teamWallet;
-        developmentWallet = _developmentWallet;
-        marketingWallet = _marketingWallet;
-        bugBountyWallet = _bugBountyWallet;
-        reserveWallet = _reserveWallet;
+        if (burnAmount > 0) {
+            IERC20(stream.token).transfer(burnAddress, burnAmount);
+        }
+        
+        // Update tracking
+        stream.distributedRevenue += _amount;
+        stream.lastDistributionTime = block.timestamp;
+        totalDistributed[stream.token] += distributableAmount;
+        
+        emit RevenueDistributed(_streamId, _amount);
+        emit FeesDistributed(stream.token, platformFee, burnAmount);
     }
     
     /**
-     * @dev Withdraw stuck tokens (emergency)
+     * @dev 자동 분배 (조건 충족 시)
      */
-    function emergencyWithdrawToken(address token, uint256 amount) external onlyOwner {
-        require(token != address(0), "Invalid token");
-        IERC20(token).safeTransfer(owner(), amount);
+    function _autoDistribute(uint256 _streamId) internal {
+        RevenueStream storage stream = revenueStreams[_streamId];
+        uint256 availableRevenue = stream.totalRevenue - stream.distributedRevenue;
+        
+        // Auto-distribute if accumulated revenue exceeds threshold or time passed
+        uint256 threshold = 1000 * 10**18; // 1000 tokens threshold
+        uint256 timeThreshold = 7 days;
+        
+        if (availableRevenue >= threshold || 
+            (availableRevenue > 0 && block.timestamp >= stream.lastDistributionTime + timeThreshold)) {
+            _distributeRevenue(_streamId, availableRevenue);
+        }
+    }
+    
+    /**
+     * @dev 수익 청구
+     */
+    function claimPayout(uint256 _streamId) external nonReentrant {
+        require(_streamId < streamCount, "Invalid stream ID");
+        require(stakeHolders[msg.sender].active, "Not a stakeholder");
+        
+        uint256 amount = claimableAmount[_streamId][msg.sender];
+        require(amount > 0, "No claimable amount");
+        
+        RevenueStream storage stream = revenueStreams[_streamId];
+        address payoutAddress = stakeHolders[msg.sender].payoutAddress;
+        
+        claimableAmount[_streamId][msg.sender] = 0;
+        stakeHolders[msg.sender].totalPaidOut += amount;
+        
+        IERC20(stream.token).transfer(payoutAddress, amount);
+        
+        emit PayoutClaimed(msg.sender, stream.token, amount);
+    }
+    
+    /**
+     * @dev 모든 스트림에서 수익 청구
+     */
+    function claimAllPayouts() external nonReentrant {
+        require(stakeHolders[msg.sender].active, "Not a stakeholder");
+        
+        address payoutAddress = stakeHolders[msg.sender].payoutAddress;
+        uint256 totalClaimed = 0;
+        
+        for (uint256 i = 0; i < streamCount; i++) {
+            uint256 amount = claimableAmount[i][msg.sender];
+            if (amount > 0) {
+                RevenueStream storage stream = revenueStreams[i];
+                claimableAmount[i][msg.sender] = 0;
+                totalClaimed += amount;
+                
+                IERC20(stream.token).transfer(payoutAddress, amount);
+                emit PayoutClaimed(msg.sender, stream.token, amount);
+            }
+        }
+        
+        require(totalClaimed > 0, "No claimable amount");
+        stakeHolders[msg.sender].totalPaidOut += totalClaimed;
+    }
+    
+    /**
+     * @dev 청구 가능한 금액 확인
+     */
+    function getClaimableAmount(uint256 _streamId, address _stakeholder) external view returns (uint256) {
+        return claimableAmount[_streamId][_stakeholder];
+    }
+    
+    /**
+     * @dev 모든 스트림의 청구 가능한 금액 확인
+     */
+    function getTotalClaimableAmount(address _stakeholder) external view returns (uint256 total) {
+        for (uint256 i = 0; i < streamCount; i++) {
+            total += claimableAmount[i][_stakeholder];
+        }
+    }
+    
+    /**
+     * @dev 수익 스트림 정보 조회
+     */
+    function getRevenueStreamInfo(uint256 _streamId) external view returns (
+        string memory name,
+        address token,
+        uint256 totalRevenue,
+        uint256 distributedRevenue,
+        uint256 availableRevenue,
+        uint256 lastDistributionTime,
+        bool active
+    ) {
+        require(_streamId < streamCount, "Invalid stream ID");
+        
+        RevenueStream storage stream = revenueStreams[_streamId];
+        availableRevenue = stream.totalRevenue - stream.distributedRevenue;
+        
+        return (
+            stream.name,
+            stream.token,
+            stream.totalRevenue,
+            stream.distributedRevenue,
+            availableRevenue,
+            stream.lastDistributionTime,
+            stream.active
+        );
+    }
+    
+    // Owner functions
+    function setPlatformFeeRate(uint256 _newRate) external onlyOwner {
+        require(_newRate <= 1000, "Fee rate cannot exceed 10%");
+        platformFeeRate = _newRate;
+    }
+    
+    function setBurnRate(uint256 _newRate) external onlyOwner {
+        require(_newRate <= 500, "Burn rate cannot exceed 5%");
+        burnRate = _newRate;
+    }
+    
+    function setFeeRecipient(address _newRecipient) external onlyOwner {
+        require(_newRecipient != address(0), "Invalid recipient address");
+        feeRecipient = _newRecipient;
+    }
+    
+    function setStreamActive(uint256 _streamId, bool _active) external onlyOwner {
+        require(_streamId < streamCount, "Invalid stream ID");
+        revenueStreams[_streamId].active = _active;
+    }
+    
+    function pause() external onlyOwner {
+        _pause();
+    }
+    
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+    
+    function emergencyWithdraw(address _token, uint256 _amount) external onlyOwner {
+        IERC20(_token).transfer(owner(), _amount);
     }
 }
