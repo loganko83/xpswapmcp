@@ -336,13 +336,13 @@ npm run dev`}
             <div>
               <h1 className="text-4xl font-bold mb-4">Complete API Reference</h1>
               <p className="text-xl text-muted-foreground mb-6">
-                Detailed documentation for all 26 XpSwap DEX API endpoints
+                Comprehensive documentation for all XpSwap DEX API endpoints
               </p>
               <div className="flex flex-wrap gap-2 mb-8">
-                <Badge variant="secondary">26 Endpoints</Badge>
+                <Badge variant="secondary">30+ Endpoints</Badge>
                 <Badge variant="secondary">Real-time Data</Badge>
                 <Badge variant="secondary">RESTful API</Badge>
-                <Badge variant="secondary">JSON Responses</Badge>
+                <Badge variant="secondary">WebSocket Support</Badge>
               </div>
             </div>
 
