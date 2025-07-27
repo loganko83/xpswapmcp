@@ -5,6 +5,7 @@ import advancedRoutes from './routes/advanced';
 import securityRoutes from './routes/security';
 import bridgeRoutes from './routes/bridge';
 import cacheRoutes from './routes/cache';
+import deploymentRoutes from './routes/deployment';
 
 /**
  * XPSwap DEX API Routes - Modular Architecture
@@ -17,6 +18,7 @@ import cacheRoutes from './routes/cache';
  * - advanced.ts: Advanced trading (options, futures, flash loans)
  * - security.ts: Security monitoring and risk management
  * - bridge.ts: Cross-chain bridge functionality
+ * - deployment.ts: Smart contract deployment and management
  */
 
 export function setupRoutes(app: Express): void {
@@ -27,6 +29,7 @@ export function setupRoutes(app: Express): void {
   app.use('/api/security', securityRoutes);
   app.use('/api', bridgeRoutes);
   app.use('/api', cacheRoutes);
+  app.use('/api/deployment', deploymentRoutes);
 
   // Health check endpoint
   app.get('/api/health', (req, res) => {

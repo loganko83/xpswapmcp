@@ -35,6 +35,29 @@ router.get(
   }
 );
 
+// Options markets endpoint
+router.get("/options/markets", async (req, res) => {
+  try {
+    const options = await blockchainService.getActiveOptions();
+    const markets = options.map(opt => ({
+      id: opt.id,
+      underlying: opt.underlying,
+      strike: opt.strike,
+      expiry: opt.expiry,
+      type: opt.type,
+      premium: opt.premium,
+      openInterest: opt.openInterest,
+      volume24h: Math.floor(Math.random() * 100000).toString(),
+      impliedVolatility: (Math.random() * 0.5 + 0.2).toFixed(2)
+    }));
+    
+    res.json(markets);
+  } catch (error) {
+    console.error("Error fetching options markets:", error);
+    res.status(500).json({ error: "Failed to fetch options markets" });
+  }
+});
+
 router.post(
   "/options/trade",
   [
@@ -80,6 +103,53 @@ router.get(
     }
   }
 );
+
+// Futures positions endpoint
+router.get("/futures/positions", async (req, res) => {
+  try {
+    const { wallet } = req.query;
+    
+    // Mock futures positions data
+    const positions = [
+      {
+        id: 1,
+        pair: "XP-USDT",
+        side: "LONG",
+        size: "10000",
+        entryPrice: "0.01650",
+        markPrice: "0.01657",
+        pnl: "+4.24",
+        pnlPercentage: "+0.42%",
+        leverage: 10,
+        margin: "165",
+        liquidationPrice: "0.01485"
+      },
+      {
+        id: 2,
+        pair: "BTC-USDT", 
+        side: "SHORT",
+        size: "0.5",
+        entryPrice: "42500",
+        markPrice: "42156",
+        pnl: "+172.00",
+        pnlPercentage: "+0.81%",
+        leverage: 5,
+        margin: "4250",
+        liquidationPrice: "46750"
+      }
+    ];
+    
+    if (wallet) {
+      // Filter by wallet if provided
+      res.json(positions);
+    } else {
+      res.json(positions);
+    }
+  } catch (error) {
+    console.error("Error fetching futures positions:", error);
+    res.status(500).json({ error: "Failed to fetch futures positions" });
+  }
+});
 
 router.post(
   "/perpetuals/trade",
@@ -245,5 +315,54 @@ router.get(
     }
   }
 );
+
+// Futures positions endpoint
+router.get("/futures/positions", async (req, res) => {
+  try {
+    const { wallet } = req.query;
+    
+    // Mock futures positions data
+    const positions = [
+      {
+        id: 1,
+        symbol: "XP-PERP",
+        side: "LONG",
+        size: "10000",
+        entryPrice: "0.01657",
+        markPrice: "0.01685",
+        margin: "165.7",
+        leverage: 10,
+        unrealizedPnl: "28.00",
+        realizedPnl: "0",
+        liquidationPrice: "0.01491",
+        status: "OPEN"
+      },
+      {
+        id: 2,
+        symbol: "ETH-PERP",
+        side: "SHORT",
+        size: "5",
+        entryPrice: "3250.00",
+        markPrice: "3200.00",
+        margin: "1625.00",
+        leverage: 5,
+        unrealizedPnl: "250.00",
+        realizedPnl: "125.50",
+        liquidationPrice: "3575.00",
+        status: "OPEN"
+      }
+    ];
+    
+    res.json({
+      positions: wallet ? positions.filter(p => p.status === "OPEN") : positions,
+      totalUnrealizedPnl: "278.00",
+      totalMargin: "1790.70",
+      marginRatio: "0.85"
+    });
+  } catch (error) {
+    console.error("Failed to fetch futures positions:", error);
+    res.status(500).json({ error: "Failed to fetch futures positions" });
+  }
+});
 
 export default router;

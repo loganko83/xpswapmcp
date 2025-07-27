@@ -38,6 +38,17 @@ router.get(
   }
 );
 
+// Get all pools (alias for backward compatibility)
+router.get("/pools", async (req, res) => {
+  try {
+    const pools = await blockchainService.getLiquidityPools();
+    res.json(pools);
+  } catch (error) {
+    console.error("Error fetching pools:", error);
+    res.status(500).json({ error: "Failed to fetch pools" });
+  }
+});
+
 // Add liquidity
 router.post(
   "/liquidity/add",

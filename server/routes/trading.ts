@@ -629,4 +629,61 @@ router.get("/xps/staking", async (req, res) => {
   }
 });
 
+// Swap history
+router.get("/swap/history", async (req, res) => {
+  try {
+    const { wallet, limit = 10, offset = 0 } = req.query;
+    
+    // Mock swap history data
+    const swapHistory = [
+      {
+        id: 1,
+        txHash: SecurityUtils.generateTxHash(),
+        from: "XP",
+        to: "XPS",
+        amountIn: "1000",
+        amountOut: "16.52",
+        priceImpact: "0.15%",
+        gasUsed: "0.002",
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        status: "completed"
+      },
+      {
+        id: 2,
+        txHash: SecurityUtils.generateTxHash(),
+        from: "USDT",
+        to: "XP",
+        amountIn: "100",
+        amountOut: "6034.24",
+        priceImpact: "0.08%",
+        gasUsed: "0.002",
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        status: "completed"
+      },
+      {
+        id: 3,
+        txHash: SecurityUtils.generateTxHash(),
+        from: "XPS",
+        to: "ETH",
+        amountIn: "500",
+        amountOut: "0.1562",
+        priceImpact: "0.22%",
+        gasUsed: "0.003",
+        timestamp: new Date(Date.now() - 10800000).toISOString(),
+        status: "completed"
+      }
+    ];
+    
+    res.json({
+      history: swapHistory.slice(Number(offset), Number(offset) + Number(limit)),
+      total: swapHistory.length,
+      limit: Number(limit),
+      offset: Number(offset)
+    });
+  } catch (error) {
+    console.error("Failed to fetch swap history:", error);
+    res.status(500).json({ error: "Failed to fetch swap history" });
+  }
+});
+
 export default router;
