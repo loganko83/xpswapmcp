@@ -109,7 +109,7 @@ export default function SwapPage() {
                 <DollarSign className="w-7 h-7 text-white" />
               </div>
               <div className="text-2xl font-bold text-green-600">
-                {marketStats?.totalValueLocked ? formatCurrency(parseFloat(marketStats.totalValueLocked)) : "$32.5K"}
+                {marketStats?.totalValueLocked ? formatCurrency(parseFloat(marketStats.totalValueLocked)) : "$0"}
               </div>
               <div className="text-sm text-muted-foreground font-medium">Total Value Locked</div>
             </CardContent>
@@ -121,7 +121,7 @@ export default function SwapPage() {
                 <Activity className="w-7 h-7 text-white" />
               </div>
               <div className="text-2xl font-bold text-blue-600">
-                {marketStats?.volume24h ? formatCurrency(parseFloat(marketStats.volume24h)) : "$8.75K"}
+                {marketStats?.volume24h ? formatCurrency(parseFloat(marketStats.volume24h)) : "$0"}
               </div>
               <div className="text-sm text-muted-foreground font-medium">24h Volume</div>
             </CardContent>
@@ -132,7 +132,7 @@ export default function SwapPage() {
               <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-4">
                 <Zap className="w-7 h-7 text-white" />
               </div>
-              <div className="text-2xl font-bold text-purple-600">{marketStats?.activePairs || 3}</div>
+              <div className="text-2xl font-bold text-purple-600">{marketStats?.activePairs || 0}</div>
               <div className="text-sm text-muted-foreground font-medium">Active Pairs</div>
             </CardContent>
           </Card>

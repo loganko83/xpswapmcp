@@ -3,87 +3,26 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { TradingPair } from "@/types";
 import { getTokenIcon } from "@/lib/tokenUtils";
-
-// Realistic trading pairs data for beta version
-const mockPairs: TradingPair[] = [
-  {
-    id: 1,
-    tokenA: {
-      id: 1,
-      symbol: "XP",
-      name: "Xphere",
-      address: "0x0000000000000000000000000000000000000000",
-      decimals: 18,
-      isActive: true,
-    },
-    tokenB: {
-      id: 2,
-      symbol: "XPS",
-      name: "XpSwap Token",
-      address: "0x1234567890123456789012345678901234567890",
-      decimals: 18,
-      isActive: true,
-    },
-    liquidityTokenA: "2350000",
-    liquidityTokenB: "2350000",
-    volume24h: "4250",
-    price: "1.00",
-    priceChange24h: "0.5",
-    isActive: true,
-  },
-  {
-    id: 2,
-    tokenA: {
-      id: 1,
-      symbol: "XP",
-      name: "Xphere",
-      address: "0x0000000000000000000000000000000000000000",
-      decimals: 18,
-      isActive: true,
-    },
-    tokenB: {
-      id: 3,
-      symbol: "USDT",
-      name: "Tether USD",
-      address: "0x2345678901234567890123456789012345678901",
-      decimals: 6,
-      isActive: true,
-    },
-    liquidityTokenA: "850000",
-    liquidityTokenB: "12500",
-    volume24h: "2800",
-    price: "0.0147",
-    priceChange24h: "-1.8",
-    isActive: true,
-  },
-  {
-    id: 3,
-    tokenA: {
-      id: 2,
-      symbol: "XPS",
-      name: "XpSwap Token",
-      address: "0x1234567890123456789012345678901234567890",
-      decimals: 18,
-      isActive: true,
-    },
-    tokenB: {
-      id: 3,
-      symbol: "USDT",
-      name: "Tether USD",
-      address: "0x2345678901234567890123456789012345678901",
-      decimals: 6,
-      isActive: true,
-    },
-    liquidityTokenA: "950000",
-    liquidityTokenB: "950",
-    volume24h: "1700",
-    price: "1.00",
-    priceChange24h: "2.1",
-    isActive: true,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export function TopPairs() {
+  const { data: pairs = [] } = useQuery({
+    queryKey: ['top-pairs'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/pools/pairs');
+        if (!response.ok) {
+          return [];
+        }
+        const data = await response.json();
+        return data.slice(0, 3); // Top 3 pairs
+      } catch (error) {
+        console.error('Failed to fetch top pairs:', error);
+        return [];
+      }
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
 
   const formatVolume = (volume: string) => {
@@ -111,7 +50,12 @@ export function TopPairs() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {mockPairs.map((pair) => (
+          {pairs.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              No pairs available
+            </div>
+          ) : (
+            pairs.map((pair: TradingPair) => (
             <div
               key={pair.id}
               className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
@@ -172,7 +116,8 @@ export function TopPairs() {
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       </CardContent>
     </Card>

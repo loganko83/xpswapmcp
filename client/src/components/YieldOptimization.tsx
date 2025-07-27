@@ -149,7 +149,7 @@ export function YieldOptimization() {
               <Target className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Potential Improvement</p>
-                <p className="text-2xl font-bold">+{yieldData?.totalImprovement || "24.5"}%</p>
+                <p className="text-2xl font-bold">+{yieldData?.totalImprovement || "0"}%</p>
               </div>
             </div>
           </CardContent>
@@ -160,7 +160,7 @@ export function YieldOptimization() {
               <DollarSign className="w-5 h-5 text-green-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Additional Annual Yield</p>
-                <p className="text-2xl font-bold">${yieldData?.additionalYield || "2,847"}</p>
+                <p className="text-2xl font-bold">${yieldData?.additionalYield || "0"}</p>
               </div>
             </div>
           </CardContent>
@@ -171,7 +171,7 @@ export function YieldOptimization() {
               <Sparkles className="w-5 h-5 text-purple-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Auto-Compound Boost</p>
-                <p className="text-2xl font-bold">+{yieldData?.compoundBoost || "12.3"}%</p>
+                <p className="text-2xl font-bold">+{yieldData?.compoundBoost || "0"}%</p>
               </div>
             </div>
           </CardContent>
@@ -215,47 +215,7 @@ export function YieldOptimization() {
             {isLoading ? (
               <div className="text-center py-8">Loading optimization opportunities...</div>
             ) : (
-              (yieldData?.opportunities || [
-                {
-                  id: "1",
-                  protocol: "XpSwap",
-                  type: "staking",
-                  tokenPair: "XPS",
-                  currentAPY: 158.3,
-                  optimizedAPY: 189.7,
-                  improvement: 31.4,
-                  risk: "low",
-                  tvl: "12.3M",
-                  autoCompound: true,
-                  description: "Stake XPS tokens with auto-compounding for enhanced rewards"
-                },
-                {
-                  id: "2",
-                  protocol: "XpSwap",
-                  type: "liquidity",
-                  tokenPair: "XP-USDT",
-                  currentAPY: 45.2,
-                  optimizedAPY: 67.8,
-                  improvement: 22.6,
-                  risk: "medium",
-                  tvl: "8.5M",
-                  autoCompound: true,
-                  description: "Provide liquidity to XP-USDT pair with LP boosting"
-                },
-                {
-                  id: "3",
-                  protocol: "XpSwap",
-                  type: "farming",
-                  tokenPair: "ETH-XP",
-                  currentAPY: 67.4,
-                  optimizedAPY: 92.1,
-                  improvement: 24.7,
-                  risk: "medium",
-                  tvl: "6.8M",
-                  autoCompound: false,
-                  description: "Farm ETH-XP LP tokens with governance token rewards"
-                }
-              ]).map((opportunity: YieldOpportunity) => (
+              (yieldData?.opportunities || []).map((opportunity: YieldOpportunity) => (
                 <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -345,38 +305,7 @@ export function YieldOptimization() {
 
         <TabsContent value="strategies" className="space-y-4">
           <div className="space-y-4">
-            {(strategies || [
-              {
-                id: "compound",
-                name: "Auto-Compound Strategy",
-                description: "Automatically compound rewards to maximize APY",
-                expectedImprovement: 15.2,
-                estimatedGas: "0.003 ETH",
-                timeframe: "Daily",
-                complexity: "simple",
-                enabled: true
-              },
-              {
-                id: "rebalance",
-                name: "Portfolio Rebalancing",
-                description: "Rebalance positions based on market conditions",
-                expectedImprovement: 8.7,
-                estimatedGas: "0.008 ETH",
-                timeframe: "Weekly",
-                complexity: "moderate",
-                enabled: false
-              },
-              {
-                id: "arbitrage",
-                name: "Yield Arbitrage",
-                description: "Move funds between protocols for optimal yields",
-                expectedImprovement: 12.4,
-                estimatedGas: "0.015 ETH",
-                timeframe: "As needed",
-                complexity: "complex",
-                enabled: false
-              }
-            ]).map((strategy: OptimizationStrategy) => (
+            {(strategies || []).map((strategy: OptimizationStrategy) => (
               <Card key={strategy.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -437,30 +366,7 @@ export function YieldOptimization() {
 
         <TabsContent value="positions" className="space-y-4">
           <div className="space-y-4">
-            {(currentPositions || [
-              {
-                id: "pos1",
-                protocol: "XpSwap",
-                type: "staking",
-                tokenPair: "XPS",
-                amount: "1,500",
-                currentAPY: 158.3,
-                earned: "234.5",
-                lastCompound: "2 hours ago",
-                autoCompound: true
-              },
-              {
-                id: "pos2",
-                protocol: "XpSwap",
-                type: "liquidity",
-                tokenPair: "XP-USDT",
-                amount: "2,500",
-                currentAPY: 45.2,
-                earned: "156.8",
-                lastCompound: "1 day ago",
-                autoCompound: false
-              }
-            ]).map((position: any) => (
+            {(currentPositions || []).map((position: any) => (
               <Card key={position.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">

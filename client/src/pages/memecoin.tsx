@@ -64,11 +64,11 @@ interface TradingData {
   hearts: number;
 }
 
-// 보안 강화된 유틸리티 함수
+// 실제 트랜잭션 해시는 블록체인에서 반환됨
 const generateSecureTxHash = (): string => {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return `0x${Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')}`;
+  // 이 함수는 더 이상 사용되지 않음
+  // 실제 트랜잭션 해시는 Web3 호출에서 반환됨
+  return '';
 };
 
 export default function MemeCoinPage() {

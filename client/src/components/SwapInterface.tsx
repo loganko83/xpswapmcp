@@ -78,7 +78,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     onTokenChange?.(fromToken, toToken, fromAmount);
   }, [fromToken.id, toToken.id, fromAmount]);
 
-  // Swap quote mutation
+  // Swap quote mutation with better error handling
   const swapQuoteMutation = useMutation({
     mutationFn: async ({ amount, from, to, currentSlippage }: {
       amount: string;
@@ -86,53 +86,58 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
       to: string;
       currentSlippage: number;
     }) => {
-      console.log('🚀 Fetching swap quote...', { 
-        from, 
-        to, 
-        amount,
-        slippage: currentSlippage
-      });
-      
-      const response = await fetch(getApiUrl('api/swap/quote'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from,
-          to,
+      try {
+        console.log('🚀 Fetching swap quote...', { 
+          from, 
+          to, 
           amount,
-          slippage: currentSlippage,
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        console.error('❌ Quote API error:', data);
-        throw new Error(data.error || 'Failed to get swap quote');
+          slippage: currentSlippage
+        });
+        
+        const response = await fetch(getApiUrl('api/swap/quote'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from,
+            to,
+            amount,
+            slippage: currentSlippage,
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          console.error('❌ Quote API error:', data);
+          throw new Error(data.error || 'Failed to get swap quote');
+        }
+        
+        console.log('✅ Quote received:', data);
+        return data;
+      } catch (error) {
+        console.error('❌ Network error:', error);
+        throw error;
       }
-      
-      console.log('✅ Quote received:', data);
-      return data;
     },
     onSuccess: (data) => {
       console.log('📊 Setting quote data:', data);
       setSwapQuote({
-        inputAmount: data.inputAmount,
-        outputAmount: data.outputAmount,
-        priceImpact: data.priceImpact,
-        minimumReceived: data.minimumReceived,
-        route: data.route,
-        gasEstimate: data.gasEstimate
+        inputAmount: data.inputAmount || "0",
+        outputAmount: data.outputAmount || "0", 
+        priceImpact: data.priceImpact || 0,
+        minimumReceived: data.minimumReceived || "0",
+        route: data.route || [],
+        gasEstimate: data.gasEstimate || "0"
       });
-      setToAmount(data.outputAmount);
+      setToAmount(data.outputAmount || "0");
       isLoadingQuoteRef.current = false;
     },
     onError: (error: Error) => {
       console.error('❌ Quote error:', error);
       setSwapQuote(null);
-      setToAmount("");
+      setToAmount("0");
       isLoadingQuoteRef.current = false;
       
       // Only show toast for actual errors, not for normal validation issues
@@ -195,8 +200,8 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     },
   });
 
-  // Stable fetch quote function with proper validation
-  const fetchQuote = useCallback(async (amount: string) => {
+  // Stable fetch quote function with better debouncing
+  const fetchQuote = useCallback((amount: string, fromSymbol: string, toSymbol: string, currentSlippage: number) => {
     // Clear existing timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
@@ -205,13 +210,13 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     // Validate inputs
     if (!amount || amount === "0" || parseFloat(amount) <= 0) {
       setSwapQuote(null);
-      setToAmount("");
+      setToAmount("0");
       return;
     }
 
-    if (!fromToken || !toToken || fromToken.symbol === toToken.symbol) {
+    if (!fromSymbol || !toSymbol || fromSymbol === toSymbol) {
       setSwapQuote(null);
-      setToAmount("");
+      setToAmount("0");
       return;
     }
 
@@ -225,19 +230,19 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
       isLoadingQuoteRef.current = true;
       swapQuoteMutation.mutate({
         amount,
-        from: fromToken.symbol,
-        to: toToken.symbol,
-        currentSlippage: slippage
+        from: fromSymbol,
+        to: toSymbol,
+        currentSlippage
       });
     }, 500);
-  }, [fromToken?.symbol, toToken?.symbol, slippage, swapQuoteMutation]);
+  }, [swapQuoteMutation]);
 
   // Handle amount change with better validation
   const handleFromAmountChange = useCallback((value: string) => {
     // Allow empty string
     if (value === "") {
       setFromAmount("");
-      setToAmount("");
+      setToAmount("0");
       setSwapQuote(null);
       return;
     }
@@ -259,20 +264,20 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     setFromAmount(numericValue);
     
     // Fetch quote for valid amounts
-    if (numericValue && parseFloat(numericValue) > 0) {
-      fetchQuote(numericValue);
+    if (numericValue && parseFloat(numericValue) > 0 && fromToken && toToken && fromToken.symbol !== toToken.symbol) {
+      fetchQuote(numericValue, fromToken.symbol, toToken.symbol, slippage);
     } else {
-      setToAmount("");
+      setToAmount("0");
       setSwapQuote(null);
     }
-  }, [fetchQuote]);
+  }, [fromToken, toToken, slippage, fetchQuote]);
 
   // Effect to handle slippage changes
   useEffect(() => {
     if (fromAmount && parseFloat(fromAmount) > 0 && fromToken && toToken && fromToken.symbol !== toToken.symbol) {
-      fetchQuote(fromAmount);
+      fetchQuote(fromAmount, fromToken.symbol, toToken.symbol, slippage);
     }
-  }, [slippage]);
+  }, [slippage, fromAmount, fromToken, toToken, fetchQuote]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -308,7 +313,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
       
       // Fetch new quote if amount exists
       if (fromAmount && parseFloat(fromAmount) > 0) {
-        setTimeout(() => fetchQuote(fromAmount), 100);
+        setTimeout(() => fetchQuote(fromAmount, token.symbol, toToken.symbol, slippage), 100);
       }
     } else if (isToSelectorOpen) {
       if (token.id === fromToken.id) {
@@ -323,7 +328,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
       
       // Fetch new quote if amount exists
       if (fromAmount && parseFloat(fromAmount) > 0) {
-        setTimeout(() => fetchQuote(fromAmount), 100);
+        setTimeout(() => fetchQuote(fromAmount, token.symbol, toToken.symbol, slippage), 100);
       }
     }
   };
@@ -340,7 +345,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     
     // Fetch new quote after swap
     if (toAmount && parseFloat(toAmount) > 0) {
-      setTimeout(() => fetchQuote(toAmount), 100);
+      setTimeout(() => fetchQuote(toAmount, toToken.symbol, tempFromToken.symbol, slippage), 100);
     }
   };
 

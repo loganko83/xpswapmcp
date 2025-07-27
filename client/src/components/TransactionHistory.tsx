@@ -1,56 +1,28 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpDown, Plus, ExternalLink } from "lucide-react";
 import { Transaction } from "@/types";
 import { formatDistanceToNow } from "date-fns";
-
-// Mock transaction data
-const mockTransactions: Transaction[] = [
-  {
-    id: 1,
-    userAddress: "0x1234...5678",
-    transactionHash: "0xabcd...efgh",
-    type: "swap",
-    tokenIn: "XP",
-    tokenOut: "USDT",
-    amountIn: "1000",
-    amountOut: "84.2",
-    status: "confirmed",
-    gasUsed: "150000",
-    gasPrice: "20",
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 2,
-    userAddress: "0x1234...5678",
-    transactionHash: "0x1234...5678",
-    type: "add_liquidity",
-    tokenIn: "XP",
-    tokenOut: "USDT",
-    amountIn: "500",
-    amountOut: "42.1",
-    status: "confirmed",
-    gasUsed: "250000",
-    gasPrice: "22",
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 3,
-    userAddress: "0x1234...5678",
-    transactionHash: "0x9876...5432",
-    type: "swap",
-    tokenIn: "ETH",
-    tokenOut: "XP",
-    amountIn: "0.5",
-    amountOut: "740.2",
-    status: "pending",
-    gasUsed: "180000",
-    gasPrice: "25",
-    createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-  },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export function TransactionHistory() {
+  const { data: transactions = [], isLoading } = useQuery({
+    queryKey: ['transactionHistory'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/transactions/history');
+        if (!response.ok) throw new Error('Failed to fetch transactions');
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Failed to fetch transaction history:', error);
+        return [];
+      }
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
   const getTransactionIcon = (type: Transaction["type"]) => {
     switch (type) {
       case "swap":
@@ -103,6 +75,21 @@ export function TransactionHistory() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            Loading transactions...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -110,12 +97,12 @@ export function TransactionHistory() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {mockTransactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No transactions yet
             </div>
           ) : (
-            mockTransactions.map((tx) => (
+            transactions.map((tx: Transaction) => (
               <div
                 key={tx.id}
                 className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"

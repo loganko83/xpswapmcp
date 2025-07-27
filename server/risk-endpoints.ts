@@ -8,25 +8,25 @@
       const riskAnalysis = {
         user_address: address,
         timeframe: timeframe,
-        overall_risk_score: Math.floor(Math.random() * 30) + 60, // 60-90
+        overall_risk_score: 0,
         risk_categories: {
           concentration_risk: {
-            score: Math.floor(Math.random() * 40) + 40, // 40-80
+            score: 0,
             description: "Portfolio concentration in specific tokens",
-            status: "warning"
+            status: "safe"
           },
           liquidity_risk: {
-            score: Math.floor(Math.random() * 20) + 70, // 70-90
+            score: 0,
             description: "Risk of insufficient liquidity for large trades",
             status: "safe"
           },
           volatility_risk: {
-            score: Math.floor(Math.random() * 30) + 30, // 30-60
+            score: 0,
             description: "Exposure to price volatility",
             status: "safe"
           },
           smart_contract_risk: {
-            score: Math.floor(Math.random() * 10) + 85, // 85-95
+            score: 0,
             description: "Risk from smart contract vulnerabilities",
             status: "safe"
           }

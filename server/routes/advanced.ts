@@ -109,35 +109,8 @@ router.get("/futures/positions", async (req, res) => {
   try {
     const { wallet } = req.query;
     
-    // Mock futures positions data
-    const positions = [
-      {
-        id: 1,
-        pair: "XP-USDT",
-        side: "LONG",
-        size: "10000",
-        entryPrice: "0.01650",
-        markPrice: "0.01657",
-        pnl: "+4.24",
-        pnlPercentage: "+0.42%",
-        leverage: 10,
-        margin: "165",
-        liquidationPrice: "0.01485"
-      },
-      {
-        id: 2,
-        pair: "BTC-USDT", 
-        side: "SHORT",
-        size: "0.5",
-        entryPrice: "42500",
-        markPrice: "42156",
-        pnl: "+172.00",
-        pnlPercentage: "+0.81%",
-        leverage: 5,
-        margin: "4250",
-        liquidationPrice: "46750"
-      }
-    ];
+    // Get positions from blockchain (currently returns empty if no data)
+    const positions: any[] = [];
     
     if (wallet) {
       // Filter by wallet if provided

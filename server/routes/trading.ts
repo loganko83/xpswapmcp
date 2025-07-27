@@ -8,6 +8,7 @@ import {
 } from "../middleware/security.js";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
 import web3Service from "../services/web3";
+import { BlockchainService } from "../services/BlockchainService";
 
 const router = Router();
 
@@ -15,61 +16,73 @@ const router = Router();
 router.get("/market-stats", 
   async (req, res) => {
     try {
-      console.log("📡 Fetching market stats");
+      console.log("📡 Fetching market stats from blockchain");
       
-      // Get real-time XP price from CoinMarketCap
-      const response = await fetch(
-      'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056',
-      {
-        headers: {
-          "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
-          "Accept": "application/json",
-        },
-      }
-    );
+      // Get blockchain service instance
+      const blockchainService = new BlockchainService();
+      
+      // Get real-time stats from blockchain
+      const [blockchainStats, xpPriceData] = await Promise.all([
+        blockchainService.getMarketStats(),
+        (async () => {
+          try {
+            const response = await fetch(
+              'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?id=36056',
+              {
+                headers: {
+                  "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
+                  "Accept": "application/json",
+                },
+              }
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              return data.data?.['36056']?.quote?.USD?.price || 0.016571759599689175;
+            }
+          } catch (error) {
+            console.error("CoinMarketCap API error:", error);
+          }
+          return 0.016571759599689175; // Fallback price
+        })()
+      ]);
 
-    let xpPrice = 0.016571759599689175; // Fallback price
-    if (response.ok) {
-      const data = await response.json();
-      xpPrice = data.data?.['36056']?.quote?.USD?.price || xpPrice;
+      const marketStats = {
+        totalValueLocked: blockchainStats.totalValueLocked || "0",
+        volume24h: blockchainStats.volume24h || "0", 
+        totalTrades: 0,
+        activePairs: blockchainStats.activePairs || 0,
+        xpPrice: xpPriceData,
+        xpsPrice: 1.0,
+        topPairs: [
+          {
+            pair: "XP/XPS",
+            volume: "0",
+            price: xpPriceData.toFixed(6),
+            change: "0.00%"
+          },
+          {
+            pair: "XP/USDT", 
+            volume: "0",
+            price: xpPriceData.toFixed(6),
+            change: "0.00%"
+          },
+          {
+            pair: "XPS/USDT",
+            volume: "0", 
+            price: "1.000000",
+            change: "0.00%"
+          }
+        ]
+      };
+      
+      // Middleware will handle caching automatically
+      res.json(marketStats);
+    } catch (error) {
+      console.error("Failed to fetch market stats:", error);
+      res.status(500).json({ error: "Failed to fetch market statistics" });
     }
-
-    const marketStats = {
-      totalValueLocked: "32.5K",
-      volume24h: "8.75K", 
-      totalTrades: 47,
-      activePairs: 3,
-      xpPrice: xpPrice,
-      xpsPrice: 1.0,
-      topPairs: [
-        {
-          pair: "XP/XPS",
-          volume: "3.2K",
-          price: xpPrice.toFixed(6),
-          change: "+2.34%"
-        },
-        {
-          pair: "XP/USDT", 
-          volume: "2.8K",
-          price: xpPrice.toFixed(6),
-          change: "+1.67%"
-        },
-        {
-          pair: "XPS/USDT",
-          volume: "2.75K", 
-          price: "1.000000",
-          change: "0.00%"
-        }
-      ]
-    };
-    
-    // Middleware will handle caching automatically
-    res.json(marketStats);
-  } catch (error) {
-    console.error("Failed to fetch market stats:", error);
-    res.status(500).json({ error: "Failed to fetch market statistics" });
-  }
-});
+  });
 
 // XP token price
 router.get("/xp-price", async (req, res) => {

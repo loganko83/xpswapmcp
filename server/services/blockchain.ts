@@ -3,15 +3,17 @@ import { ethers } from "ethers";
 // Xphere RPC URL from environment
 const RPC_URL = process.env.XPHERE_RPC_URL || "https://en-bkk.x-phere.com";
 
-// Contract addresses (these should be from your deployed contracts)
+// Contract addresses from deployed contracts (2025-07-27)
 const CONTRACTS = {
-  XPS_TOKEN: "0x0000000000000000000000000000000000000001", // Replace with actual
-  ROUTER: "0x0000000000000000000000000000000000000002", // Replace with actual
-  FACTORY: "0x0000000000000000000000000000000000000003", // Replace with actual
-  FARMING: "0x0000000000000000000000000000000000000004", // Replace with actual
-  OPTIONS: "0x0000000000000000000000000000000000000005", // Replace with actual
-  PERPETUALS: "0x0000000000000000000000000000000000000006", // Replace with actual
-  FLASHLOAN: "0x0000000000000000000000000000000000000007", // Replace with actual
+  XPS_TOKEN: "0x17E0Cd7AaC2f1096F753649D605e45dA39DE7F68", // XpSwapToken
+  ROUTER: "0x1f20c338bF5004a081f7B1335D73f4BC03948CE7", // XpSwapDEX
+  FACTORY: "0x1f20c338bF5004a081f7B1335D73f4BC03948CE7", // XpSwapDEX also acts as factory
+  FARMING: "0x1f20c338bF5004a081f7B1335D73f4BC03948CE7", // Using DEX for farming (integrated)
+  OPTIONS: "0x40Ba1d3B27cF6471169eC0b5F04B5bAa86FBE9a5", // XPSwapOptionsSecurity
+  PERPETUALS: "0x1f20c338bF5004a081f7B1335D73f4BC03948CE7", // Using DEX for perpetuals
+  FLASHLOAN: "0x02195Fa532845B9d743B180f15dF5580964B1aB9", // XPSwapFlashLoanSecurity
+  MEV_PROTECTION: "0x5fcF495bec38b587ab3eAdf6a928f399f69288FF", // XPSwapMEVProtection
+  MULTISIG: "0x43Ca4Da324d9794a63b05B643A6fB7fC08BC660F", // MultiSigWallet
 };
 
 interface LiquidityPool {
@@ -54,7 +56,11 @@ interface FarmingPool {
   isActive: boolean;
 }
 
-export class BlockchainService {
+// Export RealBlockchainService as BlockchainService
+export { RealBlockchainService as BlockchainService } from './realBlockchain';
+
+// Legacy BlockchainService (deprecated)
+export class LegacyBlockchainService {
   private provider: ethers.JsonRpcProvider;
 
   constructor() {

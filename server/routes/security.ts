@@ -3,35 +3,10 @@ import { getEnhancedSecurityStatus, cryptoManager } from '../middleware/enhanced
 
 const router = Router();
 
-// Mock security audit log data
-const mockSecurityLogs: any[] = [];
-
 // Helper function to get security audit logs
 function getSecurityAuditLog(limit: number = 100) {
-  // Generate some mock logs if empty
-  if (mockSecurityLogs.length === 0) {
-    const types = ['AUTH_ATTEMPT', 'RATE_LIMIT', 'SUSPICIOUS_ACTIVITY', 'ACCESS_DENIED', 'API_CALL'];
-    const severities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-    const ips = ['192.168.1.1', '10.0.0.1', '172.16.0.1', '::1'];
-    
-    for (let i = 0; i < 20; i++) {
-      mockSecurityLogs.push({
-        id: i + 1,
-        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        type: types[Math.floor(Math.random() * types.length)],
-        severity: severities[Math.floor(Math.random() * severities.length)],
-        ip: ips[Math.floor(Math.random() * ips.length)],
-        message: `Security event ${i + 1}`,
-        details: {
-          userAgent: 'Mozilla/5.0',
-          endpoint: '/api/swap/quote',
-          method: 'POST'
-        }
-      });
-    }
-  }
-  
-  return mockSecurityLogs.slice(0, limit).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  // Return empty array if no logs available
+  return [];
 }
 
 // 🛡️ Enhanced Security Status Endpoint

@@ -301,8 +301,9 @@ export default function TradingPage() {
               });
             } else {
               toast({
-                title: "Trade Completed (Simulated)",
-                description: `${side === "buy" ? "Buy" : "Sell"} order processed successfully. Price: $${result.executionPrice}`,
+                title: "Trade Failed",
+                description: `Failed to execute trade on blockchain. Please try again.`,
+                variant: "destructive",
               });
             }
           } catch (web3Error: any) {
