@@ -8,7 +8,7 @@ import {
 } from "../middleware/security.js";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
 import web3Service from "../services/web3";
-import { BlockchainService } from "../services/BlockchainService";
+import { BlockchainService } from "../services/blockchain.js";
 
 const router = Router();
 
