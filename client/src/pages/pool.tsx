@@ -14,6 +14,7 @@ import { getTokenIcon } from "@/lib/tokenUtils";
 import { web3Service } from "@/lib/web3";
 import { lpTokenService } from "@/lib/lpTokenService";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/lib/apiUrl";
 
 export default function PoolPage() {
   const { wallet } = useWeb3Context();
@@ -33,7 +34,7 @@ export default function PoolPage() {
     queryKey: ["pools"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/pools");
+        const response = await fetch(getApiUrl("api/pools"));
         if (!response.ok) {
           console.error("Pool API error:", response.status, response.statusText);
           throw new Error(`Failed to fetch pools: ${response.status}`);

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { getApiUrl } from "../lib/apiUrl";
 
 interface TickerData {
   id: string;
@@ -16,7 +17,7 @@ export function CryptoTicker() {
   const { data: tickerData, isLoading } = useQuery({
     queryKey: ["crypto-ticker"],
     queryFn: async () => {
-      const response = await fetch("/api/crypto-ticker");
+      const response = await fetch(getApiUrl("api/crypto-ticker"));
       if (!response.ok) throw new Error("Failed to fetch ticker data");
       const data = await response.json();
       return data;

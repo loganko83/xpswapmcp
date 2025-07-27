@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useState } from "react";
 import { Token } from "@/types";
+import { getApiUrl } from "@/lib/apiUrl";
 
 export default function SwapPage() {
   const { data: tokenPrices } = useTokenPrices();
@@ -26,9 +27,9 @@ export default function SwapPage() {
   
   // Fetch market stats
   const { data: marketStats } = useQuery({
-    queryKey: ["/api/market-stats"],
+    queryKey: ["market-stats"],
     queryFn: async () => {
-      const response = await fetch("/api/market-stats");
+      const response = await fetch(getApiUrl("api/market-stats"));
       if (!response.ok) throw new Error("Failed to fetch market stats");
       return response.json();
     },
@@ -37,9 +38,9 @@ export default function SwapPage() {
 
   // Fetch XP price data
   const { data: xpData } = useQuery({
-    queryKey: ["/api/xp-price"],
+    queryKey: ["xp-price"],
     queryFn: async () => {
-      const response = await fetch("/api/xp-price");
+      const response = await fetch(getApiUrl("api/xp-price"));
       if (!response.ok) throw new Error("Failed to fetch XP price");
       return response.json();
     },

@@ -10,6 +10,7 @@ import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { YieldFarmingManager } from "@/components/YieldFarmingManager";
+import { getApiUrl } from "@/lib/apiUrl";
 
 export default function FarmPage() {
   const { wallet } = useWeb3Context();
@@ -17,9 +18,9 @@ export default function FarmPage() {
 
   // Fetch real farm data from API
   const { data: farms = [], isLoading: farmsLoading } = useQuery({
-    queryKey: ["/api/farming/pools"],
+    queryKey: ["farming-pools"],
     queryFn: async () => {
-      const response = await fetch("/api/farming/pools");
+      const response = await fetch(getApiUrl("api/farming/pools"));
       if (!response.ok) throw new Error("Failed to fetch farms");
       return response.json();
     },
