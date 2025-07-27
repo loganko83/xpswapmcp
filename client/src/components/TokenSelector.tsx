@@ -14,15 +14,66 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Star, AlertTriangle, ExternalLink, RefreshCw, Wallet } from "lucide-react";
 import { Token } from "@/types";
 import { DEFAULT_TOKENS } from "@/lib/constants";
-import { getTokenIcon } from "@/lib/tokenUtils";
+import { getApiUrl } from "@/lib/apiUrl";
+import { getTokenIcon, formatTokenAmount } from "@/lib/tokenUtils";
 import { useQuery } from "@tanstack/react-query";
 import { switchNetwork } from "@/lib/web3";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useWeb3Context } from "@/contexts/Web3Context";
 
 interface TokenSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectToken: (token: Token) => void;
   selectedToken?: Token;
+}
+
+// Component to display token balance
+function TokenBalanceDisplay({ symbol }: { symbol: string }) {
+  const { wallet } = useWeb3Context();
+  const { balance, isLoading, error } = useTokenBalance(symbol);
+
+  if (!wallet.isConnected) {
+    return (
+      <div className="text-right">
+        <div className="font-medium text-muted-foreground">--</div>
+        <div className="text-sm text-muted-foreground">
+          Balance
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="text-right">
+        <div className="font-medium animate-pulse">...</div>
+        <div className="text-sm text-muted-foreground">
+          Balance
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-right">
+        <div className="font-medium text-red-500">Error</div>
+        <div className="text-sm text-muted-foreground">
+          Balance
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-right">
+      <div className="font-medium">{formatTokenAmount(balance)}</div>
+      <div className="text-sm text-muted-foreground">
+        Balance
+      </div>
+    </div>
+  );
 }
 
 export function TokenSelector({
@@ -42,7 +93,7 @@ export function TokenSelector({
     queryKey: ["xphere-tokens"],
     queryFn: async () => {
       console.log('🔥 Fetching Xphere tokens...');
-      const response = await fetch('/api/xphere-tokens');
+      const response = await fetch(getApiUrl('api/xphere-tokens'));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -57,7 +108,7 @@ export function TokenSelector({
     queryKey: ["ethereum-tokens"],
     queryFn: async () => {
       console.log('🔥 Fetching Ethereum tokens...');
-      const response = await fetch('/api/ethereum-tokens');
+      const response = await fetch(getApiUrl('api/ethereum-tokens'));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -73,7 +124,7 @@ export function TokenSelector({
     queryKey: ["bsc-tokens"],
     queryFn: async () => {
       console.log('🔥 Fetching BSC tokens...');
-      const response = await fetch('/api/bsc-tokens');
+      const response = await fetch(getApiUrl('api/bsc-tokens'));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -196,10 +247,10 @@ export function TokenSelector({
                         <img 
                           src={getTokenIcon(token.symbol)} 
                           alt={token.symbol}
-                          className="w-4 h-4 mr-2 rounded-full"
+                          className="w-4 h-4 mr-2 rounded-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
+                            target.outerHTML = `<div class="w-4 h-4 mr-2 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">${token.symbol.slice(0, 1)}</div>`;
                           }}
                         />
                         {token.symbol}
@@ -251,14 +302,17 @@ export function TokenSelector({
                         disabled={selectedToken?.id === token.id}
                       >
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-100">
                             <img 
                               src={getTokenIcon(token.symbol, token)} 
                               alt={token.symbol}
-                              className="w-8 h-8 rounded-full"
+                              className="w-8 h-8 rounded-full object-cover"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">${token.symbol.slice(0, 2)}</div>`;
+                                }
                               }}
                             />
                           </div>
@@ -276,12 +330,7 @@ export function TokenSelector({
                           {favoriteTokens.includes(token.symbol) && (
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           )}
-                          <div className="text-right">
-                            <div className="font-medium">0.00</div>
-                            <div className="text-sm text-muted-foreground">
-                              Balance
-                            </div>
-                          </div>
+                          <TokenBalanceDisplay symbol={token.symbol} />
                         </div>
                       </Button>
                     ))}
@@ -325,14 +374,17 @@ export function TokenSelector({
                         disabled={selectedToken?.id === token.id}
                       >
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-100">
                             <img 
                               src={(token as any).iconUrl || getTokenIcon(token.symbol, token)} 
                               alt={token.symbol}
-                              className="w-8 h-8 rounded-full"
+                              className="w-8 h-8 rounded-full object-cover"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center text-white text-xs font-bold">${token.symbol.slice(0, 2)}</div>`;
+                                }
                               }}
                             />
                           </div>
@@ -355,12 +407,7 @@ export function TokenSelector({
                           {favoriteTokens.includes(token.symbol) && (
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           )}
-                          <div className="text-right">
-                            <div className="font-medium">0.00</div>
-                            <div className="text-sm text-muted-foreground">
-                              Balance
-                            </div>
-                          </div>
+                          <TokenBalanceDisplay symbol={token.symbol} />
                         </div>
                       </Button>
                     ))}
@@ -404,14 +451,17 @@ export function TokenSelector({
                         disabled={selectedToken?.id === token.id}
                       >
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-100">
                             <img 
                               src={(token as any).iconUrl || getTokenIcon(token.symbol, token)} 
                               alt={token.symbol}
-                              className="w-8 h-8 rounded-full"
+                              className="w-8 h-8 rounded-full object-cover"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center text-white text-xs font-bold">${token.symbol.slice(0, 2)}</div>`;
+                                }
                               }}
                             />
                           </div>
@@ -434,12 +484,7 @@ export function TokenSelector({
                           {favoriteTokens.includes(token.symbol) && (
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           )}
-                          <div className="text-right">
-                            <div className="font-medium">0.00</div>
-                            <div className="text-sm text-muted-foreground">
-                              Balance
-                            </div>
-                          </div>
+                          <TokenBalanceDisplay symbol={token.symbol} />
                         </div>
                       </Button>
                     ))}
