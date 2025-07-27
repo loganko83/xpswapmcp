@@ -34,12 +34,12 @@ export const NETWORK_CONFIGS = {
     }
   },
   xphere: {
-    chainId: 62831,
+    chainId: 20250217,
     name: 'Xphere',
     rpcUrl: 'https://en-bkk.x-phere.com',
     tokens: {
       'XP': 'native',
-      'XPS': '0xf1bA1aF6fae54C0f9d82C1d12aeF0c57543F12e2',
+      'XPS': '0x17E0Cd7AaC2f1096F753649D605e45dA39DE7F68', // 배포된 XPSwapToken 주소 사용
       'XCR': '0x0C6bd4C7581cCc3205eC69BEaB6e6E89A27D45aE',
       'XEF': '0x80252c2d06bbd85699c555fc3633d5b8ee67c9ad',
       'ml': '0x889E7CA318d7653630E3e874597D2f35EE7ACc84',
@@ -176,7 +176,7 @@ function getCurrentNetwork(chainId: number | undefined): string {
       return 'ethereum';
     case 56:
       return 'bsc';
-    case 62831:
+    case 20250217:
       return 'xphere';
     default:
       return 'unknown';

@@ -686,4 +686,56 @@ router.get("/swap/history", async (req, res) => {
   }
 });
 
+// Get wallet balance across multiple tokens
+router.get("/blockchain/balance/:address", async (req, res) => {
+  try {
+    const { address } = req.params;
+    
+    if (!address) {
+      return res.status(400).json({ error: "Wallet address is required" });
+    }
+    
+    // Mock wallet balances for different tokens
+    const mockBalances = {
+      XP: Math.random() * 10000 + 1000, // 1000-11000 XP
+      XPS: Math.random() * 500 + 100,   // 100-600 XPS
+      USDT: Math.random() * 2000 + 500, // 500-2500 USDT
+      ETH: Math.random() * 5 + 0.5,     // 0.5-5.5 ETH
+      BTC: Math.random() * 0.1 + 0.01,  // 0.01-0.11 BTC
+      BNB: Math.random() * 10 + 2,      // 2-12 BNB
+      MATIC: Math.random() * 1000 + 200 // 200-1200 MATIC
+    };
+    
+    // Calculate USD values (mock prices)
+    const tokenPrices = {
+      XP: 0.0166,
+      XPS: 60.34,
+      USDT: 1.0,
+      ETH: 3245.67,
+      BTC: 43567.89,
+      BNB: 315.42,
+      MATIC: 0.89
+    };
+    
+    const balances = Object.entries(mockBalances).map(([symbol, balance]) => ({
+      symbol,
+      balance: balance.toFixed(6),
+      balanceUSD: (balance * tokenPrices[symbol]).toFixed(2),
+      price: tokenPrices[symbol]
+    }));
+    
+    const totalUSD = balances.reduce((sum, token) => sum + parseFloat(token.balanceUSD), 0);
+    
+    res.json({
+      address,
+      balances,
+      totalUSD: totalUSD.toFixed(2),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Failed to fetch blockchain balance:", error);
+    res.status(500).json({ error: "Failed to fetch blockchain balance" });
+  }
+});
+
 export default router;
