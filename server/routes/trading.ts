@@ -7,6 +7,7 @@ import {
   sanitizeSQLInput 
 } from "../middleware/security.js";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
+import web3Service from "../services/web3";
 
 const router = Router();
 
@@ -173,13 +174,18 @@ router.post("/swap/quote",
   console.log('📋 Request body:', req.body);
   console.log('📋 Request headers:', req.headers);
   try {
-    const { from, to, amount } = req.body;
-    console.log('📥 Received swap quote request:', { from, to, amount, body: req.body });
+    const { fromToken, toToken, amount, from, to } = req.body;
+    
+    // Support both parameter formats for backward compatibility
+    const fromTokenSymbol = fromToken || from;
+    const toTokenSymbol = toToken || to;
+    
+    console.log('📥 Received swap quote request:', { fromToken: fromTokenSymbol, toToken: toTokenSymbol, amount, body: req.body });
     
     // Validate inputs exist
-    if (!from || !to || !amount) {
-      console.log('❌ Missing parameters:', { from, to, amount });
-      return res.status(400).json({ error: "Missing required parameters: from, to, amount" });
+    if (!fromTokenSymbol || !toTokenSymbol || !amount) {
+      console.log('❌ Missing parameters:', { fromToken: fromTokenSymbol, toToken: toTokenSymbol, amount });
+      return res.status(400).json({ error: "Missing required parameters: fromToken/from, toToken/to, amount" });
     }
     
     // Skip sanitization for now - just use the values directly
@@ -187,18 +193,25 @@ router.post("/swap/quote",
     
     // Define token prices
     const tokenPrices: { [key: string]: number } = {
-      'XP': 0.016571759599689175, // Current XP price
+      'XP': 0.016571759599689175, // Current XP price from API
       'XPS': 1.0, // XPS fixed at 1 USD
-      'ETH': 3200, // Example ETH price
-      'BTC': 42000, // Example BTC price
       'USDT': 1.0, // Stablecoin
       'USDC': 1.0, // Stablecoin
-      'BNB': 300 // Example BNB price
+      'XCR': 0.05, // XCrypto token
+      'XEF': 0.02, // XEfficient token
+      'ML': 0.01, // Mello token
+      'WARP': 0.1, // Warp token
+      'DEV': 0.001, // Dev token
+      'GCO': 0.005, // GCO token
+      'WXPT': 0.15, // WXPT token
+      'ETH': 3200, // Ethereum
+      'BTC': 42000, // Bitcoin
+      'BNB': 300 // Binance Coin
     };
     
     // Get prices or use default values
-    const fromPrice = tokenPrices[from.toUpperCase()] || 1.0;
-    const toPrice = tokenPrices[to.toUpperCase()] || 1.0;
+    const fromPrice = tokenPrices[fromTokenSymbol.toUpperCase()] || 1.0;
+    const toPrice = tokenPrices[toTokenSymbol.toUpperCase()] || 1.0;
     const inputAmount = parseFloat(amount);
     
     if (inputAmount <= 0) {
@@ -215,7 +228,7 @@ router.post("/swap/quote",
       outputAmount: outputAmount.toFixed(6),
       priceImpact,
       minimumReceived: minimumReceived.toFixed(6),
-      route: [from, to],
+      route: [fromTokenSymbol, toTokenSymbol],
       gasEstimate: "0.002"
     });
   } catch (error) {
@@ -227,10 +240,14 @@ router.post("/swap/quote",
 // Execute swap
 router.post("/swap/execute", async (req, res) => {
   try {
-    const { from, to, amount, slippage = 0.5 } = req.body;
+    const { fromToken, toToken, amount, slippage = 0.5, from, to } = req.body;
     
-    if (!from || !to || !amount) {
-      return res.status(400).json({ error: "Missing required parameters" });
+    // Support both parameter formats for backward compatibility
+    const fromTokenSymbol = fromToken || from;
+    const toTokenSymbol = toToken || to;
+    
+    if (!fromTokenSymbol || !toTokenSymbol || !amount) {
+      return res.status(400).json({ error: "Missing required parameters: fromToken/from, toToken/to, amount" });
     }
     
     // Simulate swap execution
@@ -240,8 +257,8 @@ router.post("/swap/execute", async (req, res) => {
     res.json({
       success: true,
       transactionHash: txHash,
-      fromToken,
-      toToken,
+      fromToken: fromTokenSymbol,
+      toToken: toTokenSymbol,
       inputAmount: amount,
       outputAmount: (parseFloat(amount) * 0.997).toFixed(6),
       gasUsed: "0.002",
@@ -253,27 +270,64 @@ router.post("/swap/execute", async (req, res) => {
   }
 });
 
-// Token balance
+// Token balance - 실제 블록체인 연결
 router.get("/token-balance/:address/:token", async (req, res) => {
   try {
     const { address, token } = req.params;
+    const { network = 'xphere' } = req.query;
     
     if (!address || !token) {
       return res.status(400).json({ error: "Missing address or token" });
     }
     
-    // Simulate balance retrieval
-    const balance = (SecurityUtils.getSecureRandomFloat() * 10000).toFixed(6);
-    const tokenSymbol = token.toUpperCase();
+    console.log(`🔍 Fetching REAL blockchain balance for ${token} (${address}) on ${network}`);
     
-    res.json({ 
-      balance, 
-      symbol: tokenSymbol,
-      address,
-      timestamp: new Date().toISOString()
-    });
+    // 캐시 확인
+    const cacheKey = `real_balance_${address}_${token}_${network}`;
+    const cachedBalance = cache.get(cacheKey);
+    
+    if (cachedBalance) {
+      console.log(`🚀 Real balance served from cache for ${token}`);
+      return res.json(cachedBalance);
+    }
+    
+    try {
+      // 실제 블록체인에서 밸런스 조회
+      const balanceResult = await web3Service.getTokenBalance(
+        network as string, 
+        address, 
+        token.toUpperCase()
+      );
+      
+      console.log(`✅ REAL balance fetched: ${balanceResult.balance} ${balanceResult.symbol}`);
+      
+      const response = {
+        balance: balanceResult.balance,
+        symbol: balanceResult.symbol,
+        decimals: balanceResult.decimals,
+        address,
+        network: balanceResult.network,
+        timestamp: new Date().toISOString(),
+        source: 'blockchain'
+      };
+      
+      // 30초 캐시
+      cache.set(cacheKey, response, 30);
+      
+      res.json(response);
+      
+    } catch (blockchainError) {
+      console.error(`❌ Blockchain fetch failed for ${token}:`, blockchainError.message);
+      
+      // 블록체인 연결 실패 시 폴백 처리
+      res.status(503).json({ 
+        error: "Blockchain connection unavailable",
+        details: blockchainError.message,
+        suggestion: "Please try again later or check your wallet connection"
+      });
+    }
   } catch (error) {
-    console.error("Failed to fetch token balance:", error);
+    console.error("Token balance API error:", error);
     res.status(500).json({ error: "Failed to fetch token balance" });
   }
 });
@@ -464,6 +518,61 @@ router.get("/xphere-tokens", async (req, res) => {
         logoUrl: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
         balance: "0",
         price: 0.02,
+        isActive: true
+      },
+      {
+        id: 6,
+        symbol: "ML",
+        name: "Mello Token",
+        address: "0x4567890123456789012345678901234567890123",
+        decimals: 18,
+        logoUrl: "https://api.tamsa.io/public/images/mello-token-image.png",
+        balance: "0",
+        price: 0.01,
+        isActive: true
+      },
+      {
+        id: 7,
+        symbol: "WARP",
+        name: "Warp XP",
+        address: "0x5678901234567890123456789012345678901234",
+        decimals: 18,
+        logoUrl: "https://api.tamsa.io/public/images/warp-xp.png",
+        balance: "0",
+        price: 0.1,
+        isActive: true
+      },
+      {
+        id: 8,
+        symbol: "DEV",
+        name: "Developer Token",
+        address: "0x6789012345678901234567890123456789012345",
+        decimals: 18,
+        logoUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+        balance: "0",
+        price: 0.001,
+        isActive: true
+      },
+      {
+        id: 9,
+        symbol: "GCO",
+        name: "GCO Token",
+        address: "0x7890123456789012345678901234567890123456",
+        decimals: 18,
+        logoUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+        balance: "0",
+        price: 0.005,
+        isActive: true
+      },
+      {
+        id: 10,
+        symbol: "WXPT",
+        name: "WXPT Token",
+        address: "0x8901234567890123456789012345678901234567",
+        decimals: 18,
+        logoUrl: "https://api.tamsa.io/public/images/default-token-image.svg",
+        balance: "0",
+        price: 0.15,
         isActive: true
       }
     ];
@@ -686,52 +795,148 @@ router.get("/swap/history", async (req, res) => {
   }
 });
 
-// Get wallet balance across multiple tokens
+// Get specific token balance for an address - 실제 블록체인 연결
+router.get("/token-balance/:address/:token", async (req, res) => {
+  try {
+    const { address, token } = req.params;
+    const { network = 'xphere' } = req.query;
+    
+    if (!address || !token) {
+      return res.status(400).json({ error: "Missing address or token" });
+    }
+    
+    const tokenSymbol = token.toUpperCase();
+    console.log(`🔍 Fetching REAL token balance: ${tokenSymbol} for ${address} on ${network}`);
+    
+    // 캐시 확인
+    const cacheKey = `real_token_${address}_${tokenSymbol}_${network}`;
+    const cachedBalance = cache.get(cacheKey);
+    
+    if (cachedBalance) {
+      console.log(`🚀 Real token balance served from cache for ${tokenSymbol}`);
+      return res.json(cachedBalance);
+    }
+    
+    try {
+      // 실제 블록체인에서 밸런스 조회
+      const balanceResult = await web3Service.getTokenBalance(
+        network as string, 
+        address, 
+        tokenSymbol
+      );
+      
+      console.log(`✅ REAL ${tokenSymbol} balance: ${balanceResult.balance}`);
+      
+      const response = {
+        balance: balanceResult.balance,
+        symbol: balanceResult.symbol,
+        decimals: balanceResult.decimals,
+        address,
+        network: balanceResult.network,
+        timestamp: new Date().toISOString(),
+        source: 'blockchain'
+      };
+      
+      // 60초 캐시
+      cache.set(cacheKey, response, 60);
+      
+      res.json(response);
+      
+    } catch (blockchainError) {
+      console.error(`❌ Blockchain fetch failed for ${tokenSymbol}:`, blockchainError.message);
+      
+      // 실패 시 사용자에게 명확한 메시지 제공
+      res.status(503).json({ 
+        error: "Blockchain connection unavailable",
+        token: tokenSymbol,
+        network: network,
+        details: blockchainError.message,
+        suggestion: "Please check your wallet connection and try again"
+      });
+    }
+  } catch (error) {
+    console.error("Token balance API error:", error);
+    res.status(500).json({ error: "Failed to fetch token balance" });
+  }
+});
+
+// Get wallet balance across multiple tokens - 실제 블록체인 연결
 router.get("/blockchain/balance/:address", async (req, res) => {
   try {
     const { address } = req.params;
+    const { network = 'xphere' } = req.query;
     
     if (!address) {
       return res.status(400).json({ error: "Wallet address is required" });
     }
     
-    // Mock wallet balances for different tokens
-    const mockBalances = {
-      XP: Math.random() * 10000 + 1000, // 1000-11000 XP
-      XPS: Math.random() * 500 + 100,   // 100-600 XPS
-      USDT: Math.random() * 2000 + 500, // 500-2500 USDT
-      ETH: Math.random() * 5 + 0.5,     // 0.5-5.5 ETH
-      BTC: Math.random() * 0.1 + 0.01,  // 0.01-0.11 BTC
-      BNB: Math.random() * 10 + 2,      // 2-12 BNB
-      MATIC: Math.random() * 1000 + 200 // 200-1200 MATIC
-    };
+    console.log(`🔍 Fetching REAL wallet balance for ${address} on ${network}`);
     
-    // Calculate USD values (mock prices)
-    const tokenPrices = {
-      XP: 0.0166,
-      XPS: 60.34,
-      USDT: 1.0,
-      ETH: 3245.67,
-      BTC: 43567.89,
-      BNB: 315.42,
-      MATIC: 0.89
-    };
+    // 캐시 확인
+    const cacheKey = `real_wallet_balance_${address}_${network}`;
+    const cachedData = cache.get(cacheKey);
     
-    const balances = Object.entries(mockBalances).map(([symbol, balance]) => ({
-      symbol,
-      balance: balance.toFixed(6),
-      balanceUSD: (balance * tokenPrices[symbol]).toFixed(2),
-      price: tokenPrices[symbol]
-    }));
+    if (cachedData) {
+      console.log(`🚀 Real wallet balance served from cache`);
+      return res.json(cachedData);
+    }
     
-    const totalUSD = balances.reduce((sum, token) => sum + parseFloat(token.balanceUSD), 0);
-    
-    res.json({
-      address,
-      balances,
-      totalUSD: totalUSD.toFixed(2),
-      timestamp: new Date().toISOString()
-    });
+    try {
+      // 실제 블록체인에서 모든 토큰 밸런스 조회
+      const balances = await web3Service.getWalletBalances(network as string, address);
+      
+      // 토큰 가격 (실제 환경에서는 CoinGecko/CoinMarketCap API 사용)
+      const tokenPrices: { [key: string]: number } = {
+        XP: 0.0166,
+        XPS: 60.34,
+        ETH: 3245.67,
+        BNB: 315.42,
+        USDT: 1.0,
+        USDC: 1.0,
+        BUSD: 1.0
+      };
+      
+      const formattedBalances = balances.map(token => {
+        const balance = parseFloat(token.balance);
+        const price = tokenPrices[token.symbol] || 0;
+        const balanceUSD = balance * price;
+        
+        return {
+          symbol: token.symbol,
+          balance: token.balance,
+          balanceUSD: balanceUSD.toFixed(2),
+          price: price,
+          decimals: token.decimals,
+          network: token.network
+        };
+      });
+      
+      const totalUSD = formattedBalances.reduce((sum, token) => sum + parseFloat(token.balanceUSD), 0);
+      
+      const response = {
+        address,
+        network,
+        balances: formattedBalances,
+        totalUSD: totalUSD.toFixed(2),
+        timestamp: new Date().toISOString(),
+        source: 'blockchain'
+      };
+      
+      // 30초 캐시
+      cache.set(cacheKey, response, 30);
+      
+      console.log(`✅ REAL wallet balance fetched: $${totalUSD.toFixed(2)} total`);
+      res.json(response);
+      
+    } catch (blockchainError) {
+      console.error(`❌ Blockchain wallet fetch failed:`, blockchainError.message);
+      
+      res.status(503).json({ 
+        error: "Blockchain connection unavailable",
+        details: blockchainError.message,
+        suggestion: "Please try again later or check network connectivity"
+      });
+    }
   } catch (error) {
     console.error("Failed to fetch blockchain balance:", error);
     res.status(500).json({ error: "Failed to fetch blockchain balance" });

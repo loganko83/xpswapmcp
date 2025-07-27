@@ -1,51 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWeb3Context } from '@/contexts/Web3Context';
-import { web3Service } from '@/lib/web3';
-import { ethers } from 'ethers';
-
-// ERC20 ABI for balanceOf function
-const ERC20_ABI = [
-  'function balanceOf(address account) view returns (uint256)',
-  'function decimals() view returns (uint8)',
-  'function symbol() view returns (string)'
-];
-
-// Network configurations
-export const NETWORK_CONFIGS = {
-  ethereum: {
-    chainId: 1,
-    name: 'Ethereum',
-    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2/your-key',
-    tokens: {
-      'ETH': 'native',
-      'USDT': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      'USDC': '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      'WBTC': '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-    }
-  },
-  bsc: {
-    chainId: 56,
-    name: 'BSC',
-    rpcUrl: 'https://bsc-dataseed.binance.org/',
-    tokens: {
-      'BNB': 'native',
-      'BUSD': '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56',
-      'CAKE': '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
-    }
-  },
-  xphere: {
-    chainId: 20250217,
-    name: 'Xphere',
-    rpcUrl: 'https://en-bkk.x-phere.com',
-    tokens: {
-      'XP': 'native',
-      'XPS': '0x17E0Cd7AaC2f1096F753649D605e45dA39DE7F68', // 배포된 XPSwapToken 주소 사용
-      'XCR': '0x0C6bd4C7581cCc3205eC69BEaB6e6E89A27D45aE',
-      'XEF': '0x80252c2d06bbd85699c555fc3633d5b8ee67c9ad',
-      'ml': '0x889E7CA318d7653630E3e874597D2f35EE7ACc84',
-    }
-  }
-};
+import { getApiUrl } from '@/lib/apiUrl';
 
 export interface TokenBalance {
   balance: string;
@@ -63,7 +18,7 @@ export function useUniversalTokenBalance(tokenSymbol: string, network?: string) 
     formattedBalance: '0',
     decimals: 18,
     symbol: tokenSymbol,
-    network: network || 'unknown'
+    network: network || getCurrentNetwork(chainId)
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,73 +32,29 @@ export function useUniversalTokenBalance(tokenSymbol: string, network?: string) 
       setIsLoading(true);
 
       try {
-        // Determine current network
-        const currentNetwork = network || getCurrentNetwork(chainId);
-        const networkConfig = NETWORK_CONFIGS[currentNetwork as keyof typeof NETWORK_CONFIGS];
+        console.log(`🔍 Fetching ${tokenSymbol} balance for ${wallet.address}`);
         
-        if (!networkConfig) {
-          throw new Error(`Unsupported network: ${currentNetwork}`);
-        }
-
-        // Check if we're on the right network
-        if (chainId !== networkConfig.chainId && !network) {
-          // If user is on wrong network and no specific network requested
-          setBalanceData(prev => ({
-            ...prev,
-            balance: '0',
-            formattedBalance: '0',
-            error: `Please switch to ${networkConfig.name} network`
-          }));
-          return;
-        }
-
-        const tokenAddress = networkConfig.tokens[tokenSymbol as keyof typeof networkConfig.tokens];
+        // Call the API endpoint for token balance
+        const response = await fetch(getApiUrl(`api/token-balance/${wallet.address}/${tokenSymbol}`));
         
-        if (!tokenAddress) {
-          // Token not available on this network
-          setBalanceData(prev => ({
-            ...prev,
-            balance: '0',
-            formattedBalance: '0',
-            error: `${tokenSymbol} not available on ${networkConfig.name}`
-          }));
-          return;
+        if (!response.ok) {
+          throw new Error(`API responded with status: ${response.status}`);
         }
-
-        let balance: string;
-        let decimals = 18;
-
-        // Get provider for specific network if requested
-        const provider = network ? 
-          new ethers.JsonRpcProvider(networkConfig.rpcUrl) : 
-          web3Service.getProvider();
-
-        if (!provider) {
-          throw new Error('No provider available');
-        }
-
-        if (tokenAddress === 'native') {
-          // Get native token balance
-          const rawBalance = await provider.getBalance(wallet.address);
-          balance = ethers.formatEther(rawBalance);
-        } else {
-          // Get ERC20 token balance
-          const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
-          const rawBalance = await contract.balanceOf(wallet.address);
-          decimals = await contract.decimals();
-          balance = ethers.formatUnits(rawBalance, decimals);
-        }
-
+        
+        const data = await response.json();
+        
+        console.log(`✅ Received ${tokenSymbol} balance:`, data);
+        
         setBalanceData({
-          balance: rawBalance.toString(),
-          formattedBalance: balance,
-          decimals,
-          symbol: tokenSymbol,
-          network: currentNetwork,
+          balance: data.balance,
+          formattedBalance: data.balance,
+          decimals: 18, // Standard decimals
+          symbol: data.symbol,
+          network: data.network || getCurrentNetwork(chainId),
           error: undefined
         });
       } catch (err) {
-        console.error(`Failed to fetch ${tokenSymbol} balance:`, err);
+        console.error(`❌ Failed to fetch ${tokenSymbol} balance:`, err);
         setBalanceData(prev => ({
           ...prev,
           balance: '0',
@@ -157,8 +68,8 @@ export function useUniversalTokenBalance(tokenSymbol: string, network?: string) 
 
     fetchBalance();
 
-    // Poll for balance updates every 10 seconds
-    const interval = setInterval(fetchBalance, 10000);
+    // Poll for balance updates every 30 seconds (reduced frequency for API calls)
+    const interval = setInterval(fetchBalance, 30000);
 
     return () => clearInterval(interval);
   }, [wallet.isConnected, wallet.address, tokenSymbol, chainId, network]);

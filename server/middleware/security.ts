@@ -16,10 +16,20 @@ export const securityConfig = {
   NONCE_EXPIRY: 15 * 60 * 1000, // 15 minutes nonce validity
 };
 
-// 🛡️ Enhanced Rate Limiting
+// 🛡️ Enhanced Rate Limiting (disabled in development)
+const createRateLimit = (options: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    // Return a no-op middleware in development
+    return (req: Request, res: Response, next: NextFunction) => {
+      next();
+    };
+  }
+  return rateLimit(options);
+};
+
 export const rateLimiters = {
   // General API rate limit - Enhanced
-  general: rateLimit({
+  general: createRateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100,
     message: {
@@ -45,7 +55,7 @@ export const rateLimiters = {
   }),
 
   // Trading operations - Stricter limits
-  trading: rateLimit({
+  trading: createRateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 10, // Reduced from 30 to 10
     message: {
@@ -67,7 +77,7 @@ export const rateLimiters = {
   }),
 
   // High-risk operations (Flash loans, large trades)
-  highRisk: rateLimit({
+  highRisk: createRateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 3, // Only 3 high-risk operations per 15 minutes
     message: {
@@ -78,7 +88,7 @@ export const rateLimiters = {
   }),
 
   // Options and Futures trading
-  derivatives: rateLimit({
+  derivatives: createRateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes
     max: 20, // 20 derivative trades per 5 minutes
     message: {
@@ -94,7 +104,22 @@ export const corsOptions = {
   origin: function (origin: string | undefined, callback: Function) {
     const allowedOrigins = process.env.NODE_ENV === 'production' 
       ? ['https://trendy.storydot.kr', 'https://xpswap.com']
-      : ['http://localhost:5000', 'http://localhost:3000', 'http://127.0.0.1:5000'];
+      : [
+          'http://localhost:5000', 
+          'http://localhost:3000', 
+          'http://localhost:5173',
+          'http://localhost:5174',
+          'http://localhost:5175',
+          'http://localhost:5176',
+          'http://localhost:5177',
+          'http://localhost:5178',
+          'http://localhost:5179',
+          'http://localhost:5180',
+          'http://localhost:5181',
+          'http://localhost:5182',
+          'http://localhost:5183',
+          'http://127.0.0.1:5000'
+        ];
     
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);

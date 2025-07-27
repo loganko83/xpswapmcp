@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { TokenSelector } from "./TokenSelector";
 import { WalletSelector } from "./WalletSelector";
@@ -15,16 +15,6 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { apiRequest } from "@/lib/queryClient";
 import { getApiUrl } from "@/lib/apiUrl";
 import { useToast } from "@/hooks/use-toast";
-
-// Utility function for debouncing
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
-  let timeout: NodeJS.Timeout | null = null;
-  
-  return function(...args: Parameters<T>) {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
 
 interface SwapInterfaceProps {
   onTokenChange?: (fromToken: Token | null, toToken: Token | null, fromAmount: string) => void;
@@ -56,6 +46,10 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState(false);
   const [swapQuote, setSwapQuote] = useState<SwapQuote | null>(null);
 
+  // Refs for debouncing
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isLoadingQuoteRef = useRef(false);
+
   // Fetch real-time token prices
   const { data: tokenPrices, isLoading: pricesLoading } = useTokenPrices([
     fromToken.symbol, 
@@ -86,27 +80,44 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
 
   // Swap quote mutation
   const swapQuoteMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ amount, from, to, currentSlippage }: {
+      amount: string;
+      from: string;
+      to: string;
+      currentSlippage: number;
+    }) => {
+      console.log('🚀 Fetching swap quote...', { 
+        from, 
+        to, 
+        amount,
+        slippage: currentSlippage
+      });
+      
       const response = await fetch(getApiUrl('api/swap/quote'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fromToken: fromToken.symbol,
-          toToken: toToken.symbol,
-          amount: fromAmount,
-          slippage,
+          from,
+          to,
+          amount,
+          slippage: currentSlippage,
         }),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Failed to get swap quote');
+        console.error('❌ Quote API error:', data);
+        throw new Error(data.error || 'Failed to get swap quote');
       }
       
-      return response.json();
+      console.log('✅ Quote received:', data);
+      return data;
     },
     onSuccess: (data) => {
+      console.log('📊 Setting quote data:', data);
       setSwapQuote({
         inputAmount: data.inputAmount,
         outputAmount: data.outputAmount,
@@ -116,14 +127,22 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
         gasEstimate: data.gasEstimate
       });
       setToAmount(data.outputAmount);
+      isLoadingQuoteRef.current = false;
     },
-    onError: (error) => {
-      console.error('Quote error:', error);
-      toast({
-        title: "Error getting quote",
-        description: "Please try again later",
-        variant: "destructive",
-      });
+    onError: (error: Error) => {
+      console.error('❌ Quote error:', error);
+      setSwapQuote(null);
+      setToAmount("");
+      isLoadingQuoteRef.current = false;
+      
+      // Only show toast for actual errors, not for normal validation issues
+      if (!error.message.includes('Invalid amount') && !error.message.includes('Same token')) {
+        toast({
+          title: "스왑 견적 오류",
+          description: error.message || "다시 시도해주세요",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -138,8 +157,8 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fromToken: fromToken.symbol,
-          toToken: toToken.symbol,
+          from: fromToken.symbol,
+          to: toToken.symbol,
           amount: fromAmount,
           slippage,
           userAddress: wallet.address,
@@ -176,19 +195,93 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     },
   });
 
-  // Get quote when amount changes
-  const debouncedQuote = useCallback(
-    debounce(() => {
-      if (fromAmount && parseFloat(fromAmount) > 0 && wallet.isConnected && isXphereNetwork) {
-        swapQuoteMutation.mutate();
-      }
-    }, 500),
-    [fromAmount, fromToken.symbol, toToken.symbol, slippage, wallet.isConnected, isXphereNetwork]
-  );
+  // Stable fetch quote function with proper validation
+  const fetchQuote = useCallback(async (amount: string) => {
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
 
+    // Validate inputs
+    if (!amount || amount === "0" || parseFloat(amount) <= 0) {
+      setSwapQuote(null);
+      setToAmount("");
+      return;
+    }
+
+    if (!fromToken || !toToken || fromToken.symbol === toToken.symbol) {
+      setSwapQuote(null);
+      setToAmount("");
+      return;
+    }
+
+    // Check if we're already loading a quote
+    if (isLoadingQuoteRef.current) {
+      return;
+    }
+
+    // Debounce the API call
+    debounceTimeoutRef.current = setTimeout(() => {
+      isLoadingQuoteRef.current = true;
+      swapQuoteMutation.mutate({
+        amount,
+        from: fromToken.symbol,
+        to: toToken.symbol,
+        currentSlippage: slippage
+      });
+    }, 500);
+  }, [fromToken?.symbol, toToken?.symbol, slippage, swapQuoteMutation]);
+
+  // Handle amount change with better validation
+  const handleFromAmountChange = useCallback((value: string) => {
+    // Allow empty string
+    if (value === "") {
+      setFromAmount("");
+      setToAmount("");
+      setSwapQuote(null);
+      return;
+    }
+
+    // Validate numeric input
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      return;
+    }
+
+    // Limit decimal places to 8
+    if (parts[1] && parts[1].length > 8) {
+      return;
+    }
+
+    setFromAmount(numericValue);
+    
+    // Fetch quote for valid amounts
+    if (numericValue && parseFloat(numericValue) > 0) {
+      fetchQuote(numericValue);
+    } else {
+      setToAmount("");
+      setSwapQuote(null);
+    }
+  }, [fetchQuote]);
+
+  // Effect to handle slippage changes
   useEffect(() => {
-    debouncedQuote();
-  }, [debouncedQuote]);
+    if (fromAmount && parseFloat(fromAmount) > 0 && fromToken && toToken && fromToken.symbol !== toToken.symbol) {
+      fetchQuote(fromAmount);
+    }
+  }, [slippage]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Utility functions
   const isCrossChainSwap = () => {
@@ -208,12 +301,30 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
       }
       setFromToken(token);
       setIsFromSelectorOpen(false);
+      
+      // Clear quote and to amount when changing tokens
+      setSwapQuote(null);
+      setToAmount("");
+      
+      // Fetch new quote if amount exists
+      if (fromAmount && parseFloat(fromAmount) > 0) {
+        setTimeout(() => fetchQuote(fromAmount), 100);
+      }
     } else if (isToSelectorOpen) {
       if (token.id === fromToken.id) {
         setFromToken(toToken);
       }
       setToToken(token);
       setIsToSelectorOpen(false);
+      
+      // Clear quote and to amount when changing tokens
+      setSwapQuote(null);
+      setToAmount("");
+      
+      // Fetch new quote if amount exists
+      if (fromAmount && parseFloat(fromAmount) > 0) {
+        setTimeout(() => fetchQuote(fromAmount), 100);
+      }
     }
   };
 
@@ -226,13 +337,18 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     setFromAmount(toAmount);
     setToAmount(tempFromAmount);
     setSwapQuote(null);
+    
+    // Fetch new quote after swap
+    if (toAmount && parseFloat(toAmount) > 0) {
+      setTimeout(() => fetchQuote(toAmount), 100);
+    }
   };
 
   const handleMaxClick = () => {
     const balance = parseFloat(fromTokenBalance);
     if (balance > 0) {
       const maxAmount = Math.max(0, balance - 0.01).toString();
-      setFromAmount(maxAmount);
+      handleFromAmountChange(maxAmount);
     }
   };
 
@@ -260,7 +376,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
         fromAmountUSD={fromAmountUSD}
         toAmountUSD={toAmountUSD}
         pricesLoading={pricesLoading}
-        onFromAmountChange={setFromAmount}
+        onFromAmountChange={handleFromAmountChange}
         onToAmountChange={setToAmount}
         onSwapTokens={handleSwapTokens}
         onOpenFromSelector={() => setIsFromSelectorOpen(true)}
@@ -280,7 +396,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
         isXphereNetwork={isXphereNetwork}
         requiresCrossChainBridge={requiresCrossChainBridge}
         isInsufficientBalance={isInsufficientBalance}
-        isGettingQuote={swapQuoteMutation.isPending}
+        isGettingQuote={swapQuoteMutation.isPending || isLoadingQuoteRef.current}
         isSwapping={executeSwapMutation.isPending}
         slippage={slippage}
         onConnectWallet={() => setIsWalletSelectorOpen(true)}

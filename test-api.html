@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XPSwap API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>XPSwap API Test</h1>
+    
+    <button onclick="testHealth()">Test /api/health</button>
+    <button onclick="testXpPrice()">Test /api/xp-price</button>
+    <button onclick="testMarketStats()">Test /api/market-stats</button>
+    <button onclick="testSwapQuote()">Test /api/swap/quote</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        
+        function addResult(test, success, data) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${success ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <h3>${test}</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            results.appendChild(div);
+        }
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                addResult('Health Check', response.ok, data);
+            } catch (error) {
+                addResult('Health Check', false, { error: error.message });
+            }
+        }
+        
+        async function testXpPrice() {
+            try {
+                const response = await fetch(`${API_BASE}/api/xp-price`);
+                const data = await response.json();
+                addResult('XP Price', response.ok, data);
+            } catch (error) {
+                addResult('XP Price', false, { error: error.message });
+            }
+        }
+        
+        async function testMarketStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/market-stats`);
+                const data = await response.json();
+                addResult('Market Stats', response.ok, data);
+            } catch (error) {
+                addResult('Market Stats', false, { error: error.message });
+            }
+        }
+        
+        async function testSwapQuote() {
+            try {
+                const response = await fetch(`${API_BASE}/api/swap/quote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fromToken: 'XP',
+                        toToken: 'XPS',
+                        amount: '1',
+                        slippage: 0.5
+                    })
+                });
+                const data = await response.json();
+                addResult('Swap Quote', response.ok, data);
+            } catch (error) {
+                addResult('Swap Quote', false, { error: error.message });
+            }
+        }
+    </script>
+</body>
+</html>
