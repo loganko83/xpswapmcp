@@ -1,483 +1,249 @@
-import { Router } from 'express';
-import { validateInput, checkRateLimit, handleError } from './common';
+import { Router } from "express";
+import { validateRequest } from "../middleware/validation";
+import { body, query } from "express-validator";
+import { BlockchainService } from "../services/blockchain";
 
 const router = Router();
+const blockchainService = new BlockchainService();
 
-// Options Trading APIs
-router.get('/options/pools', checkRateLimit, (req, res) => {
-  try {
-    const mockOptionsPools = [
-      {
-        id: '1',
-        underlying: 'ETH',
-        strikePrice: 3000,
-        expiryDate: '2024-12-31',
-        type: 'call',
-        premium: 0.05,
-        impliedVolatility: 0.25,
-        liquidity: 1000000,
-        volume24h: 250000
-      },
-      {
-        id: '2',
-        underlying: 'BTC',
-        strikePrice: 50000,
-        expiryDate: '2024-12-31',
-        type: 'put',
-        premium: 0.08,
-        impliedVolatility: 0.30,
-        liquidity: 2000000,
-        volume24h: 500000
-      },
-      {
-        id: '3',
-        underlying: 'XP',
-        strikePrice: 0.5,
-        expiryDate: '2025-01-15',
-        type: 'call',
-        premium: 0.02,
-        impliedVolatility: 0.35,
-        liquidity: 500000,
-        volume24h: 125000
+// Options Trading Routes
+router.get(
+  "/options/active",
+  [
+    query("underlying").optional().isString(),
+    query("type").optional().isIn(["CALL", "PUT"]),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const options = await blockchainService.getActiveOptions();
+      
+      // Filter by underlying asset if provided
+      let filtered = options;
+      if (req.query.underlying) {
+        filtered = filtered.filter(opt => opt.underlying === req.query.underlying);
       }
-    ];
+      if (req.query.type) {
+        filtered = filtered.filter(opt => opt.type === req.query.type);
+      }
 
-    res.json({
-      success: true,
-      data: mockOptionsPools,
-      timestamp: Date.now()
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch options pools');
-  }
-});
-
-router.get('/options/positions/:address', checkRateLimit, (req, res) => {
-  try {
-    const { address } = req.params;
-    
-    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      return res.status(400).json({ error: 'Invalid address format' });
+      res.json(filtered);
+    } catch (error) {
+      console.error("Error fetching options:", error);
+      res.status(500).json({ error: "Failed to fetch options" });
     }
-
-    const mockPositions = [
-      {
-        id: '1',
-        underlying: 'ETH',
-        strikePrice: 3000,
-        expiryDate: '2024-12-31',
-        type: 'call',
-        quantity: 10,
-        avgPremium: 0.05,
-        currentPremium: 0.06,
-        pnl: 100,
-        pnlPercentage: 20
-      },
-      {
-        id: '2',
-        underlying: 'BTC',
-        strikePrice: 48000,
-        expiryDate: '2024-12-31',
-        type: 'put',
-        quantity: 5,
-        avgPremium: 0.09,
-        currentPremium: 0.07,
-        pnl: -100,
-        pnlPercentage: -22.22
-      }
-    ];
-
-    res.json({
-      success: true,
-      data: mockPositions,
-      totalValue: 1000,
-      totalPnl: 0,
-      timestamp: Date.now()
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch options positions');
   }
-});
+);
 
-router.get('/options/greeks/:optionId', checkRateLimit, (req, res) => {
-  try {
-    const { optionId } = req.params;
-    
-    const mockGreeks = {
-      optionId,
-      delta: 0.65,
-      gamma: 0.025,
-      theta: -0.12,
-      vega: 0.08,
-      rho: 0.03,
-      impliedVolatility: 0.25,
-      timeToExpiry: 30,
-      underlying: 'ETH',
-      timestamp: Date.now()
-    };
+router.post(
+  "/options/trade",
+  [
+    body("optionId").isString(),
+    body("quantity").isNumeric(),
+    body("action").isIn(["BUY", "SELL"]),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { optionId, quantity, action } = req.body;
 
-    res.json({
-      success: true,
-      data: mockGreeks
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch option Greeks');
-  }
-});
+      // In production, this would interact with options contract
+      const result = {
+        success: true,
+        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        optionId,
+        quantity,
+        action,
+        premium: action === "BUY" ? "50" : "45",
+        totalCost: action === "BUY" ? (50 * quantity).toString() : "0",
+        totalReceived: action === "SELL" ? (45 * quantity).toString() : "0"
+      };
 
-// Perpetual Futures APIs
-router.get('/perpetual/markets', checkRateLimit, (req, res) => {
-  try {
-    const mockPerpetualMarkets = [
-      {
-        symbol: 'ETHUSDT',
-        markPrice: 3250.50,
-        indexPrice: 3248.75,
-        fundingRate: 0.0001,
-        nextFundingTime: Date.now() + 8 * 60 * 60 * 1000,
-        openInterest: 15000000,
-        volume24h: 250000000,
-        maxLeverage: 100,
-        maintenanceMargin: 0.005,
-        takerFee: 0.0005,
-        makerFee: 0.0002
-      },
-      {
-        symbol: 'BTCUSDT',
-        markPrice: 65000.00,
-        indexPrice: 64995.25,
-        fundingRate: 0.00008,
-        nextFundingTime: Date.now() + 8 * 60 * 60 * 1000,
-        openInterest: 50000000,
-        volume24h: 800000000,
-        maxLeverage: 125,
-        maintenanceMargin: 0.004,
-        takerFee: 0.0005,
-        makerFee: 0.0002
-      },
-      {
-        symbol: 'XPUSDT',
-        markPrice: 0.45,
-        indexPrice: 0.4498,
-        fundingRate: 0.0003,
-        nextFundingTime: Date.now() + 8 * 60 * 60 * 1000,
-        openInterest: 2000000,
-        volume24h: 5000000,
-        maxLeverage: 50,
-        maintenanceMargin: 0.01,
-        takerFee: 0.0008,
-        makerFee: 0.0003
-      }
-    ];
-
-    res.json({
-      success: true,
-      data: mockPerpetualMarkets,
-      timestamp: Date.now()
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch perpetual markets');
-  }
-});
-
-router.get('/perpetual/positions/:address', checkRateLimit, (req, res) => {
-  try {
-    const { address } = req.params;
-    
-    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      return res.status(400).json({ error: 'Invalid address format' });
+      res.json(result);
+    } catch (error) {
+      console.error("Error trading option:", error);
+      res.status(500).json({ error: "Failed to execute option trade" });
     }
-
-    const mockPerpetualPositions = [
-      {
-        symbol: 'ETHUSDT',
-        side: 'long',
-        size: 10.5,
-        entryPrice: 3200.00,
-        markPrice: 3250.50,
-        margin: 3360.00,
-        leverage: 10,
-        pnl: 530.25,
-        pnlPercentage: 15.77,
-        liquidationPrice: 2880.00,
-        maintenanceMargin: 168.00,
-        timestamp: Date.now() - 2 * 60 * 60 * 1000
-      },
-      {
-        symbol: 'BTCUSDT',
-        side: 'short',
-        size: 0.25,
-        entryPrice: 66000.00,
-        markPrice: 65000.00,
-        margin: 1320.00,
-        leverage: 12.5,
-        pnl: 250.00,
-        pnlPercentage: 18.94,
-        liquidationPrice: 73920.00,
-        maintenanceMargin: 65.00,
-        timestamp: Date.now() - 4 * 60 * 60 * 1000
-      }
-    ];
-
-    res.json({
-      success: true,
-      data: mockPerpetualPositions,
-      totalMargin: 4680.00,
-      totalPnl: 780.25,
-      totalPnlPercentage: 16.67,
-      timestamp: Date.now()
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch perpetual positions');
   }
-});
+);
 
-router.get('/perpetual/funding-history/:symbol', checkRateLimit, (req, res) => {
-  try {
-    const { symbol } = req.params;
-    const { days = 7 } = req.query;
-    
-    const mockFundingHistory = [];
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    const fundingInterval = 8 * 60 * 60 * 1000; // 8 hours
-    
-    for (let i = 0; i < Number(days) * 3; i++) {
-      mockFundingHistory.push({
-        timestamp: now - (i * fundingInterval),
-        fundingRate: (Math.random() - 0.5) * 0.001,
-        markPrice: 3200 + (Math.random() - 0.5) * 200,
-        indexPrice: 3200 + (Math.random() - 0.5) * 100
-      });
+// Perpetuals Trading Routes
+router.get(
+  "/perpetuals/markets",
+  async (req, res) => {
+    try {
+      const markets = await blockchainService.getActivePerpetuals();
+      res.json(markets);
+    } catch (error) {
+      console.error("Error fetching perpetuals:", error);
+      res.status(500).json({ error: "Failed to fetch perpetual markets" });
     }
-
-    res.json({
-      success: true,
-      data: mockFundingHistory.reverse(),
-      symbol,
-      period: `${days} days`
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch funding history');
   }
-});
+);
 
-// Flash Loans APIs
-router.get('/flashloan/pools', checkRateLimit, (req, res) => {
-  try {
-    const mockFlashLoanPools = [
-      {
-        asset: 'ETH',
-        symbol: 'ETH',
-        totalSupply: 50000,
-        availableLiquidity: 45000,
-        utilizationRate: 0.10,
-        flashLoanFee: 0.0009,
-        apy: 2.5,
-        maxFlashLoan: 45000,
-        decimals: 18
-      },
-      {
-        asset: 'USDT',
-        symbol: 'USDT',
-        totalSupply: 100000000,
-        availableLiquidity: 85000000,
-        utilizationRate: 0.15,
-        flashLoanFee: 0.0009,
-        apy: 4.2,
-        maxFlashLoan: 85000000,
-        decimals: 6
-      },
-      {
-        asset: 'USDC',
-        symbol: 'USDC',
-        totalSupply: 80000000,
-        availableLiquidity: 70000000,
-        utilizationRate: 0.125,
-        flashLoanFee: 0.0009,
-        apy: 3.8,
-        maxFlashLoan: 70000000,
-        decimals: 6
-      },
-      {
-        asset: 'WBTC',
-        symbol: 'WBTC',
-        totalSupply: 1000,
-        availableLiquidity: 850,
-        utilizationRate: 0.15,
-        flashLoanFee: 0.0009,
-        apy: 1.8,
-        maxFlashLoan: 850,
-        decimals: 8
-      },
-      {
-        asset: 'XP',
-        symbol: 'XP',
-        totalSupply: 10000000,
-        availableLiquidity: 8500000,
-        utilizationRate: 0.15,
-        flashLoanFee: 0.0015,
-        apy: 8.5,
-        maxFlashLoan: 8500000,
-        decimals: 18
-      }
-    ];
+router.post(
+  "/perpetuals/trade",
+  [
+    body("pair").isString(),
+    body("size").isNumeric(),
+    body("side").isIn(["LONG", "SHORT"]),
+    body("leverage").isInt({ min: 1, max: 100 }),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { pair, size, side, leverage } = req.body;
 
-    res.json({
-      success: true,
-      data: mockFlashLoanPools,
-      totalValueLocked: 245000000,
-      timestamp: Date.now()
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch flash loan pools');
-  }
-});
+      // In production, this would interact with perpetuals contract
+      const result = {
+        success: true,
+        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        position: {
+          pair,
+          size,
+          side,
+          leverage,
+          entryPrice: "1.0234",
+          liquidationPrice: side === "LONG" ? "0.9210" : "1.1257",
+          margin: (size / leverage).toString(),
+          unrealizedPnl: "0"
+        }
+      };
 
-router.get('/flashloan/history/:address', checkRateLimit, (req, res) => {
-  try {
-    const { address } = req.params;
-    const { page = 1, limit = 20 } = req.query;
-    
-    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      return res.status(400).json({ error: 'Invalid address format' });
+      res.json(result);
+    } catch (error) {
+      console.error("Error opening position:", error);
+      res.status(500).json({ error: "Failed to open perpetual position" });
     }
-
-    const mockFlashLoanHistory = [
-      {
-        txHash: '0x' + Math.random().toString(16).slice(2, 66),
-        timestamp: Date.now() - 2 * 60 * 60 * 1000,
-        asset: 'ETH',
-        amount: 100,
-        fee: 0.09,
-        status: 'completed',
-        purpose: 'Arbitrage',
-        profit: 2.5,
-        gasUsed: 450000,
-        gasCost: 0.015
-      },
-      {
-        txHash: '0x' + Math.random().toString(16).slice(2, 66),
-        timestamp: Date.now() - 24 * 60 * 60 * 1000,
-        asset: 'USDT',
-        amount: 50000,
-        fee: 45,
-        status: 'completed',
-        purpose: 'Liquidation',
-        profit: 850,
-        gasUsed: 380000,
-        gasCost: 12.5
-      },
-      {
-        txHash: '0x' + Math.random().toString(16).slice(2, 66),
-        timestamp: Date.now() - 3 * 24 * 60 * 60 * 1000,
-        asset: 'WBTC',
-        amount: 2.5,
-        fee: 0.00225,
-        status: 'failed',
-        purpose: 'Arbitrage',
-        profit: 0,
-        gasUsed: 200000,
-        gasCost: 0.008
-      }
-    ];
-
-    const startIndex = (Number(page) - 1) * Number(limit);
-    const endIndex = startIndex + Number(limit);
-    const paginatedHistory = mockFlashLoanHistory.slice(startIndex, endIndex);
-
-    res.json({
-      success: true,
-      data: paginatedHistory,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: mockFlashLoanHistory.length,
-        totalPages: Math.ceil(mockFlashLoanHistory.length / Number(limit))
-      },
-      timestamp: Date.now()
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch flash loan history');
   }
-});
+);
 
-router.get('/flashloan/simulate', checkRateLimit, (req, res) => {
-  try {
-    const { asset, amount, strategy } = req.query;
-    
-    if (!asset || !amount || !strategy) {
-      return res.status(400).json({ 
-        error: 'Missing required parameters: asset, amount, strategy' 
-      });
+router.get(
+  "/perpetuals/positions/:wallet",
+  async (req, res) => {
+    try {
+      const { wallet } = req.params;
+
+      // Mock user positions
+      const positions = [
+        {
+          id: "1",
+          pair: "XP-USDT",
+          size: "10000",
+          side: "LONG",
+          leverage: 10,
+          entryPrice: "1.0100",
+          markPrice: "1.0234",
+          liquidationPrice: "0.9090",
+          margin: "1000",
+          unrealizedPnl: "134",
+          fundingPaid: "-2.5"
+        }
+      ];
+
+      res.json(positions);
+    } catch (error) {
+      console.error("Error fetching positions:", error);
+      res.status(500).json({ error: "Failed to fetch positions" });
     }
-
-    const flashLoanFees = {
-      'ETH': 0.0009,
-      'USDT': 0.0009,
-      'USDC': 0.0009,
-      'WBTC': 0.0009,
-      'XP': 0.0015
-    };
-
-    const fee = (Number(amount) * (flashLoanFees[asset as string] || 0.0009));
-    const estimatedGasCost = strategy === 'arbitrage' ? 0.02 : 0.015;
-    const estimatedProfit = strategy === 'arbitrage' ? Number(amount) * 0.003 : Number(amount) * 0.002;
-    
-    const simulation = {
-      asset,
-      amount: Number(amount),
-      strategy,
-      flashLoanFee: fee,
-      estimatedGasCost,
-      estimatedProfit,
-      netProfit: estimatedProfit - fee - estimatedGasCost,
-      profitability: ((estimatedProfit - fee - estimatedGasCost) / Number(amount) * 100).toFixed(4) + '%',
-      riskLevel: estimatedProfit > fee + estimatedGasCost ? 'Low' : 'High',
-      recommendedMinAmount: (fee + estimatedGasCost) / 0.001,
-      timestamp: Date.now()
-    };
-
-    res.json({
-      success: true,
-      data: simulation
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to simulate flash loan');
   }
-});
+);
 
-router.get('/flashloan/available-amount/:asset', checkRateLimit, (req, res) => {
-  try {
-    const { asset } = req.params;
-    
-    const availableAmounts = {
-      'ETH': 45000,
-      'USDT': 85000000,
-      'USDC': 70000000,
-      'WBTC': 850,
-      'XP': 8500000
-    };
-
-    const maxFlashLoan = availableAmounts[asset as keyof typeof availableAmounts];
-    
-    if (maxFlashLoan === undefined) {
-      return res.status(400).json({ error: 'Asset not supported for flash loans' });
+// Flash Loans Routes
+router.get(
+  "/flashloans/available",
+  async (req, res) => {
+    try {
+      const loans = await blockchainService.getAvailableFlashLoans();
+      res.json(loans);
+    } catch (error) {
+      console.error("Error fetching flash loans:", error);
+      res.status(500).json({ error: "Failed to fetch available flash loans" });
     }
-
-    res.json({
-      success: true,
-      data: {
-        asset,
-        maxFlashLoan,
-        fee: asset === 'XP' ? 0.0015 : 0.0009,
-        minimumAmount: 0.1,
-        timestamp: Date.now()
-      }
-    });
-  } catch (error) {
-    handleError(res, error, 'Failed to fetch available flash loan amount');
   }
-});
+);
+
+router.post(
+  "/flashloans/simulate",
+  [
+    body("token").isString(),
+    body("amount").isNumeric(),
+    body("operations").isArray(),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { token, amount, operations } = req.body;
+
+      // Simulate flash loan execution
+      const simulation = {
+        success: true,
+        token,
+        amount,
+        fee: (parseFloat(amount) * 0.0009).toString(),
+        totalRepayment: (parseFloat(amount) * 1.0009).toString(),
+        profit: "125.50", // Mock profit from arbitrage
+        gasEstimate: "0.015",
+        operations: operations.map((op: any, index: number) => ({
+          step: index + 1,
+          type: op.type,
+          status: "success",
+          gasUsed: "0.003"
+        }))
+      };
+
+      res.json(simulation);
+    } catch (error) {
+      console.error("Error simulating flash loan:", error);
+      res.status(500).json({ error: "Failed to simulate flash loan" });
+    }
+  }
+);
+
+router.post(
+  "/flashloans/execute",
+  [
+    body("token").isString(),
+    body("amount").isNumeric(),
+    body("operations").isArray(),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { token, amount, operations } = req.body;
+
+      // In production, this would execute the flash loan
+      const result = {
+        success: true,
+        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        token,
+        amount,
+        fee: (parseFloat(amount) * 0.0009).toString(),
+        profit: "125.50",
+        gasUsed: "0.045",
+        blockNumber: Math.floor(Math.random() * 1000000) + 1000000
+      };
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error executing flash loan:", error);
+      res.status(500).json({ error: "Failed to execute flash loan" });
+    }
+  }
+);
+
+// Get deployment wallet for smart contracts
+router.get(
+  "/deployment/wallet",
+  async (req, res) => {
+    try {
+      const wallet = await blockchainService.getDeploymentWallet();
+      res.json(wallet);
+    } catch (error) {
+      console.error("Error creating deployment wallet:", error);
+      res.status(500).json({ error: "Failed to create deployment wallet" });
+    }
+  }
+);
 
 export default router;

@@ -17,12 +17,12 @@ export default function FarmPage() {
 
   // Fetch real farm data from API
   const { data: farms = [], isLoading: farmsLoading } = useQuery({
-    queryKey: ["/api/farms"],
+    queryKey: ["/api/farming/pools"],
     queryFn: async () => {
-      const response = await fetch("/api/farms");
+      const response = await fetch("/api/farming/pools");
       if (!response.ok) throw new Error("Failed to fetch farms");
       return response.json();
-    }
+    },
   });
 
   const filteredFarms = farms.filter((farm: any) =>
@@ -33,127 +33,6 @@ export default function FarmPage() {
 
   const activeFarms = filteredFarms.filter((farm: any) => farm.isActive);
   const endedFarms = filteredFarms.filter((farm: any) => !farm.isActive);
-
-
-
-  const formatCurrency = (amount: string) => {
-    const num = parseFloat(amount.replace(/,/g, ''));
-    if (num >= 1000000) {
-      return `$${(num / 1000000).toFixed(1)}M`;
-    } else if (num >= 1000) {
-      return `$${(num / 1000).toFixed(0)}K`;
-    }
-    return `$${num.toLocaleString()}`;
-  };
-
-  const renderFarmCard = (farm: any) => (
-    <Card key={farm.id} className={`hover:shadow-lg transition-shadow ${farm.status === 'ended' ? 'opacity-60' : ''}`}>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center -space-x-2">
-              <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
-                <img 
-                  src={getTokenIcon(farm.tokenA.symbol)} 
-                  alt={farm.tokenA.symbol}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              </div>
-              <div className="w-10 h-10 rounded-full border-2 border-background overflow-hidden">
-                <img 
-                  src={getTokenIcon(farm.tokenB.symbol)} 
-                  alt={farm.tokenB.symbol}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">
-                {farm.tokenA.symbol}/{farm.tokenB.symbol}
-              </h3>
-              <div className="flex items-center space-x-2">
-                <Badge variant={farm.status === 'active' ? 'default' : 'secondary'}>
-                  {farm.multiplier}
-                </Badge>
-                <Badge variant="outline">
-                  {farm.lockPeriod}
-                </Badge>
-                {farm.status === 'ended' && (
-                  <Badge variant="destructive">Ended</Badge>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <div className="text-2xl font-bold text-green-600">{farm.apr}%</div>
-            <div className="text-sm text-muted-foreground">APR</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <p className="text-sm text-muted-foreground">TVL</p>
-            <p className="font-semibold">{formatCurrency(farm.tvl)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Reward Token</p>
-            <p className="font-semibold">{farm.rewardToken}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Lock Period</p>
-            <div className="flex items-center space-x-1">
-              {farm.lockPeriod === "0 days" ? (
-                <Unlock className="w-4 h-4 text-green-500" />
-              ) : (
-                <Lock className="w-4 h-4 text-orange-500" />
-              )}
-              <span className="font-semibold">{farm.lockPeriod}</span>
-            </div>
-          </div>
-        </div>
-
-        {wallet.isConnected && (
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between text-sm">
-              <span>Staked: {farm.userStaked} LP</span>
-              <span>Pending: {farm.pendingRewards} XP</span>
-            </div>
-            <Progress value={0} className="h-2" />
-          </div>
-        )}
-
-        <div className="flex space-x-2">
-          {farm.status === 'active' ? (
-            <>
-              <Button className="flex-1" disabled={!wallet.isConnected}>
-                <Sprout className="w-4 h-4 mr-1" />
-                Stake
-              </Button>
-              <Button variant="outline" className="flex-1" disabled={!wallet.isConnected}>
-                Unstake
-              </Button>
-              <Button variant="secondary" disabled={!wallet.isConnected}>
-                Harvest
-              </Button>
-            </>
-          ) : (
-            <Button variant="outline" className="flex-1" disabled>
-              Farm Ended
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -178,7 +57,7 @@ export default function FarmPage() {
                 <Button 
                   variant="secondary" 
                   className="bg-white text-orange-600 hover:bg-white/90"
-                  onClick={() => window.location.href = '/documentation#xps-whitepaper'}
+                  onClick={() => window.location.href = '/xpswap/documentation#xps-whitepaper'}
                 >
                   Start Staking <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
