@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { apiRequest } from "@/lib/queryClient";
-import { getApiUrl } from "@/lib/config";
+import { getApiUrl } from "@/lib/apiUrl";
 import { useToast } from "@/hooks/use-toast";
 
 // Utility function for debouncing
@@ -87,7 +87,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
   // Swap quote mutation
   const swapQuoteMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(getApiUrl('/swap-quote'), {
+      const response = await fetch(getApiUrl('api/swap/quote'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ export function SwapInterface({ onTokenChange }: SwapInterfaceProps = {}) {
     mutationFn: async () => {
       if (!swapQuote) throw new Error('No quote available');
       
-      const response = await fetch(getApiUrl('/swap'), {
+      const response = await fetch(getApiUrl('api/swap/execute'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

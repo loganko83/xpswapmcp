@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   connectMetaMask, 
   isMetaMaskInstalled, 
+  isMetaMaskConnected,
   onAccountsChanged, 
   onChainChanged, 
   removeMetaMaskListeners,
@@ -55,11 +56,13 @@ export function useWeb3() {
         walletType,
       });
       
-      // Store connection info for restoration
+      // Store connection info for restoration with extended info
       localStorage.setItem('xpswap_wallet_connection', JSON.stringify({
         walletType,
         address,
-        timestamp: Date.now()
+        chainId,
+        timestamp: Date.now(),
+        isConnected: true
       }));
       
       console.log(`✅ ${walletType} wallet info updated:`, { 
@@ -189,16 +192,20 @@ export function useWeb3() {
   const disconnectWallet = useCallback(() => {
     console.log("🔌 Disconnecting wallet...");
     
-    // Clear stored connection
+    // Clear stored connection immediately
     localStorage.removeItem('xpswap_wallet_connection');
+    sessionStorage.removeItem('xpswap_wallet_connection'); // Clear session storage too
+    
+    // Remove MetaMask event listeners before disconnecting
+    if (wallet.walletType === 'metamask') {
+      removeMetaMaskListeners();
+    }
     
     // Smooth transition
     setWallet(prev => ({ ...prev, isConnected: false }));
     
     setTimeout(() => {
       if (wallet.walletType === 'metamask') {
-        // Remove MetaMask event listeners
-        removeMetaMaskListeners();
         web3Service.disconnect();
       } else if (wallet.walletType === 'zigap') {
         zigapWalletService.disconnectZigap();
@@ -214,8 +221,15 @@ export function useWeb3() {
       setError(null);
       
       console.log("✅ Wallet disconnected successfully");
+      
+      // Show disconnect notification
+      toast({
+        title: "🔌 연결 해제됨",
+        description: "지갑 연결이 해제되었습니다.",
+        variant: "default",
+      });
     }, 300);
-  }, [wallet.walletType]);
+  }, [wallet.walletType, toast]);
 
   const switchToXphere = useCallback(async () => {
     setError(null);
@@ -268,6 +282,8 @@ export function useWeb3() {
       if (accounts.length === 0) {
         // User disconnected from wallet
         console.log("🔌 User disconnected from wallet");
+        localStorage.removeItem('xpswap_wallet_connection');
+        sessionStorage.removeItem('xpswap_wallet_connection');
         disconnectWallet();
         
         toast({
@@ -333,34 +349,95 @@ export function useWeb3() {
     };
   }, [wallet.address, wallet.walletType, wallet.isConnected, updateWalletInfo, disconnectWallet, toast]);
 
-  // Check if already connected on mount - DISABLED automatic connection
+  // Check if already connected on mount and restore connection
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        // DISABLED: Do not automatically connect wallet on page load
-        // User must manually click connect wallet button
-        console.log("📌 Auto-connect disabled. User must connect wallet manually.");
-        
-        // Just check if previous connection exists but don't connect
         const previousConnection = localStorage.getItem('xpswap_wallet_connection');
-        if (previousConnection) {
-          const { walletType, address } = JSON.parse(previousConnection);
-          console.log("📌 Previous wallet connection found but not auto-connecting:", { 
-            walletType, 
-            address: address.substring(0, 6) + "..." 
-          });
+        
+        if (!previousConnection) {
+          console.log("📌 No previous wallet connection found");
+          return;
         }
         
-        return; // Exit without connecting
+        const { walletType, address, timestamp } = JSON.parse(previousConnection);
+        
+        // Check if connection is not too old (24 hours)
+        const connectionAge = Date.now() - timestamp;
+        if (connectionAge > 24 * 60 * 60 * 1000) {
+          console.log("📌 Previous connection too old, clearing...");
+          localStorage.removeItem('xpswap_wallet_connection');
+          return;
+        }
+        
+        console.log("🔄 Restoring wallet connection:", { 
+          walletType, 
+          address: address.substring(0, 6) + "..." 
+        });
+        
+        // Check if wallet is still connected
+        if (walletType === 'metamask') {
+          if (!isMetaMaskInstalled()) {
+            console.log("❌ MetaMask not installed, clearing connection");
+            localStorage.removeItem('xpswap_wallet_connection');
+            return;
+          }
+          
+          // Check if MetaMask is still connected using the new function
+          const connectionStatus = await isMetaMaskConnected();
+          if (!connectionStatus.isConnected || connectionStatus.accounts.length === 0) {
+            console.log("❌ MetaMask not connected, clearing connection");
+            localStorage.removeItem('xpswap_wallet_connection');
+            return;
+          }
+          
+          // Verify the stored address matches current account
+          const currentAccount = connectionStatus.accounts[0];
+          if (currentAccount.toLowerCase() !== address.toLowerCase()) {
+            console.log("❌ Account changed, updating to current account");
+            // Update to current account instead of clearing
+            await updateWalletInfo(currentAccount, walletType);
+            return;
+          }
+          
+          // Initialize provider and restore connection
+          await web3Service.initializeProvider();
+          await updateWalletInfo(address, walletType);
+          
+          // Set up event listeners
+          onAccountsChanged((accounts: string[]) => {
+            if (accounts.length === 0) {
+              disconnectWallet();
+            } else if (accounts[0] !== wallet.address) {
+              updateWalletInfo(accounts[0], 'metamask');
+            }
+          });
+          
+          onChainChanged((chainId: string) => {
+            window.location.reload();
+          });
+          
+        } else if (walletType === 'zigap') {
+          // Check ZIGAP connection
+          if (!zigapWalletService.isZigapConnected()) {
+            console.log("❌ ZIGAP not connected, clearing connection");
+            localStorage.removeItem('xpswap_wallet_connection');
+            return;
+          }
+          
+          await updateWalletInfo(address, walletType);
+        }
+        
+        console.log("✅ Wallet connection restored successfully");
         
       } catch (err) {
-        console.error("❌ Failed to check existing connection:", err);
+        console.error("❌ Failed to restore wallet connection:", err);
         localStorage.removeItem('xpswap_wallet_connection');
       }
     };
 
     checkConnection();
-  }, [updateWalletInfo]);
+  }, []);
 
   // Auto-clear errors after some time
   useEffect(() => {

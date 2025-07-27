@@ -53,6 +53,24 @@ export const requestAccounts = async (): Promise<string[]> => {
   }
 };
 
+// Check if MetaMask is currently connected
+export const isMetaMaskConnected = async (): Promise<{ isConnected: boolean; accounts: string[] }> => {
+  if (!isMetaMaskInstalled()) {
+    return { isConnected: false, accounts: [] };
+  }
+
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    return { 
+      isConnected: accounts.length > 0, 
+      accounts: accounts || [] 
+    };
+  } catch (error) {
+    console.error('❌ Failed to check MetaMask connection:', error);
+    return { isConnected: false, accounts: [] };
+  }
+};
+
 // Get current chain ID
 export const getCurrentChainId = async (): Promise<string> => {
   if (!isMetaMaskInstalled()) {
