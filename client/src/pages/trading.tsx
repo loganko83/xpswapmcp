@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { createChart, ColorType } from 'lightweight-charts';
 import { getTokenIcon } from "@/lib/tokenUtils";
+import { getApiUrl } from "@/lib/apiUrl";
 
 interface TradingPair {
   id: string;
@@ -79,7 +80,7 @@ export default function TradingPage() {
   const { data: tradingPairs, isLoading: pairsLoading } = useQuery({
     queryKey: ["/api/trading/pairs"],
     queryFn: async () => {
-      const response = await fetch("/api/trading/pairs");
+      const response = await fetch(getApiUrl("/api/trading/pairs"));
       if (!response.ok) throw new Error("Failed to fetch trading pairs");
       return response.json();
     },
@@ -234,7 +235,7 @@ export default function TradingPage() {
       });
 
       // First execute the trade via API (which validates and processes the order)
-      const response = await fetch("/api/trading/execute", {
+      const response = await fetch(getApiUrl("/api/trading/execute"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -118,7 +118,7 @@ export default function PoolPage() {
   const { data: lpTokens = [], isLoading: lpTokensLoading } = useQuery({
     queryKey: ["lp-tokens"],
     queryFn: async () => {
-      const response = await fetch("/api/lp-tokens");
+      const response = await fetch(getApiUrl("/api/lp-tokens"));
       if (!response.ok) throw new Error("Failed to fetch LP tokens");
       return response.json();
     }
@@ -129,7 +129,7 @@ export default function PoolPage() {
     queryKey: ["lp-holdings", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return [];
-      const response = await fetch(`/api/lp-holdings?userAddress=${wallet.address}`);
+      const response = await fetch(getApiUrl(`/api/lp-holdings?userAddress=${wallet.address}`));
       if (!response.ok) throw new Error("Failed to fetch LP holdings");
       return response.json();
     },
@@ -186,7 +186,7 @@ export default function PoolPage() {
   // Claim LP rewards mutation
   const claimLpRewardsMutation = useMutation({
     mutationFn: async ({ lpTokenId }: { lpTokenId: number }) => {
-      const response = await fetch("/api/lp-rewards/claim", {
+      const response = await fetch(getApiUrl("/api/lp-rewards/claim"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
