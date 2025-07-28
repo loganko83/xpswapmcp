@@ -1,5 +1,33 @@
 # CLAUDE 작업 일지
 
+## 2025-07-29 작업 내용
+
+### 완료된 작업
+1. ✅ 환경 동기화 상태 확인
+   - 로컬, GitHub, 서버 모두 동일한 커밋 (f65e933)으로 완벽 동기화
+   - Git 저장소 정상 작동 확인
+
+2. ✅ 서버 운영 상태 점검
+   - PM2 프로세스 정상 작동 (xpswap-api)
+   - API Health Check 정상 응답
+   - HTTPS 프록시 정상 작동
+
+3. ✅ 문서 업데이트
+   - `progress_20250729.md` 작성 및 업데이트
+   - `DEPLOYMENT_WARNINGS.md` 최신 상태 반영
+   - 배포 현황 및 성능 지표 추가
+
+### 기술적 확인사항
+- **서버 API**: https://trendy.storydot.kr/xpswap/api/health ✅
+- **메모리 사용**: 115.6MB (안정적)
+- **빌드 파일**: dist/, client/dist/ 모두 최신 상태
+
+### 진행 상황 파일
+- 매일 작업 내용을 `doc/progress/progress_{날짜}.md` 형식으로 저장
+- 2025-07-29: 환경 동기화 및 서버 상태 점검 완료
+
+---
+
 ## 2025-07-28 작업 내용
 
 ### 완료된 작업
@@ -15,11 +43,6 @@
    - RealBlockchainService 완전 통합
    - API 응답 속도 최적화 (2-4ms)
    - 상세 내용: `doc/progress_20250728_debugging.md` 참조
-
-### 진행 상황 파일
-- 매일 작업 내용을 `doc/progress/progress_{날짜}.md` 형식으로 저장
-- 2025-07-28: 홈페이지 리디자인 완료
-- 2025-07-28: Mock 데이터 제거 및 실제 API 연동 완료 (`progress_20250728_debugging.md`)
 
 ### 기술적 성과
 - **100% Mock 데이터 제거** 완료
