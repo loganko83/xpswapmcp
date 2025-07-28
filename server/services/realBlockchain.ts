@@ -404,15 +404,6 @@ export class RealBlockchainService {
         fees24h: (parseFloat(simulatedVolume) * 0.003).toFixed(0) // 0.3% fees
       };
     }
-        totalValueLocked: simulatedTVL,
-        volume24h: simulatedVolume,
-        activePairs: 15,
-        totalUsers: Math.floor(Math.random() * 5000 + 8000),
-        xpsCirculatingSupply: "10000000", // 10M XPS
-        xpsMarketCap: "10000000", // $10M market cap
-        fees24h: (parseFloat(simulatedVolume) * 0.003).toFixed(0)
-      };
-    }
   }
 
   // Options trading functions
