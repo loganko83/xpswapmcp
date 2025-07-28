@@ -24,10 +24,43 @@ import {
   Gift,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Code,
+  Cpu,
+  Database,
+  Lock,
+  Gauge,
+  Users,
+  BookOpen,
+  MessageCircle,
+  Twitter,
+  Github,
+  CheckCircle2,
+  Activity,
+  Layers,
+  Brain,
+  Sparkles,
+  FileCode,
+  ShieldCheck,
+  AlertTriangle,
+  BarChart2,
+  TrendingDown,
+  Briefcase,
+  Landmark,
+  Timer,
+  Repeat,
+  ChartCandlestick,
+  PieChart,
+  Microscope,
+  Rocket,
+  Phone,
+  Mail,
+  FileText,
+  Bug
 } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect } from "react";
+import { Progress } from "@/components/ui/progress";
 
 export default function HomePage() {
   const { toast } = useToast();
@@ -132,165 +165,439 @@ export default function HomePage() {
   
   const isEligible = userAddress && xpBalance && parseFloat(xpBalance.balance) >= 10000;
   const hasAlreadyClaimed = claimStatus?.claimed === true;
-  const features = [
+
+  // Why Choose XPSwap
+  const whyChooseReasons = [
     {
-      title: "Advanced Swap Trading",
-      description: "Trade cryptocurrencies with real-time pricing from CoinMarketCap. Features include slippage protection, MEV resistance, and optimal routing for best prices.",
-      icon: ArrowRightLeft,
-      color: "from-blue-500 to-blue-600",
-      link: "/swap",
-      highlights: ["Real-time pricing", "MEV protection", "Slippage control"]
+      icon: ShieldCheck,
+      title: "🔐 Maximum Security",
+      description: "Audited smart contracts with MEV protection",
+      color: "from-green-500 to-emerald-500"
     },
     {
-      title: "Chart-based Trading",
-      description: "Professional trading interface with TradingView-style charts, real-time orderbook, trade history, and advanced order types for experienced traders.",
-      icon: BarChart3,
-      color: "from-green-500 to-green-600",
-      link: "/trading",
-      highlights: ["OHLC charts", "Live orderbook", "Market & limit orders"]
-    },
-    {
-      title: "Options Trading",
-      description: "Trade call and put options with Black-Scholes pricing model. Access real-time Greeks, option chains, and implied volatility analytics for advanced strategies.",
-      icon: Target,
-      color: "from-violet-500 to-violet-600",
-      link: "/options",
-      highlights: ["Call/Put options", "Greeks calculation", "IV analytics"]
-    },
-    {
-      title: "Perpetual Futures",
-      description: "Trade perpetual futures with up to 125x leverage. Features funding rates, mark price tracking, and advanced risk management for professional traders.",
-      icon: BarChart3,
-      color: "from-red-500 to-red-600",
-      link: "/futures",
-      highlights: ["125x leverage", "Funding rates", "Risk management"]
-    },
-    {
-      title: "Flash Loans",
-      description: "Access instant uncollateralized loans for arbitrage, liquidation, and collateral swapping strategies. Pre-built templates with 85% success rate.",
       icon: Zap,
-      color: "from-amber-500 to-amber-600",
-      link: "/flashloans",
-      highlights: ["Instant loans", "Strategy templates", "85% success rate"]
+      title: "⚡ Lightning Fast",
+      description: "Sub-second transaction finality on Xphere network",
+      color: "from-yellow-500 to-orange-500"
     },
     {
-      title: "Atomic Swaps",
-      description: "Execute trustless cross-chain swaps without intermediaries using Hash Time-Locked Contracts (HTLC). Completely decentralized asset exchange.",
-      icon: ArrowRightLeft,
-      color: "from-teal-500 to-teal-600",
-      link: "/atomic-swap",
-      highlights: ["Trustless swaps", "HTLC protocol", "Cross-chain support"]
+      icon: Globe,
+      title: "🌐 Multi-Chain",
+      description: "Trade across 6 major blockchain networks",
+      color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Liquidity Pools",
-      description: "Provide liquidity and earn rewards through our automated market maker (AMM). Features time-locked positions with boosted APY and auto-compounding.",
-      icon: Droplets,
-      color: "from-purple-500 to-purple-600",
-      link: "/pool",
-      highlights: ["AMM protocol", "Time-locked rewards", "Auto-compounding"]
-    },
-    {
-      title: "Yield Farming",
-      description: "Maximize your returns with our advanced farming system. Stake LP tokens to earn governance tokens with multipliers up to 2.5x based on lock duration.",
-      icon: TrendingUp,
-      color: "from-orange-500 to-orange-600",
-      link: "/farm",
-      highlights: ["2.5x multipliers", "Governance rewards", "Flexible periods"]
-    },
-    {
-      title: "Cross-chain Bridge",
-      description: "Transfer assets seamlessly across 40+ blockchains using LI.FI integration. Support for Ethereum, BSC, Polygon, Arbitrum, and more networks.",
-      icon: Network,
-      color: "from-cyan-500 to-cyan-600",
-      link: "/bridge",
-      highlights: ["40+ networks", "LI.FI integration", "Secure transfers"]
-    },
-    {
-      title: "XIP-20 Mint",
-      description: "Create custom XIP-20 tokens on Xphere Network with automated deployment, metadata management, and DEX integration for instant trading.",
-      icon: Coins,
-      color: "from-yellow-500 to-yellow-600",
-      link: "/minting",
-      highlights: ["XIP-20 standard", "Auto deployment", "Instant trading"]
-    },
-    {
-      title: "MemeCoin Launch",
-      description: "Launch your own meme coin with bonding curve pricing mechanism. When market cap reaches $69K, liquidity automatically migrates to DEX for trading.",
-      icon: Flame,
-      color: "from-orange-500 to-red-500",
-      link: "/memecoin",
-      highlights: ["Bonding curve", "Auto-listing", "Viral potential"]
-    },
-    {
-      title: "Multi-chain Portfolio",
-      description: "Track your assets across multiple blockchains in one unified dashboard. Real-time balances, transaction history, and portfolio analytics.",
-      icon: Wallet,
-      color: "from-pink-500 to-pink-600",
-      link: "/multichain-portfolio",
-      highlights: ["Multi-chain tracking", "Real-time data", "Portfolio analytics"]
-    },
-    {
-      title: "Real-time Analytics",
-      description: "Access comprehensive market data with live metrics, trading volume analysis, liquidity flows, and customizable alerts for better decision making.",
       icon: BarChart3,
-      color: "from-indigo-500 to-indigo-600",
-      link: "/analytics",
-      highlights: ["Live metrics", "Volume analysis", "Custom alerts"]
+      title: "📈 Advanced Trading",
+      description: "Options, futures, and flash loans like never before",
+      color: "from-purple-500 to-pink-500"
+    },
+    {
+      icon: Sparkles,
+      title: "💎 Early Access",
+      description: "Be part of the next DeFi revolution",
+      color: "from-indigo-500 to-purple-500"
+    }
+  ];
+
+  // Core Features Categories
+  const coreFeatures = {
+    "🔄 Trading Engine": [
+      { title: "Simple Swap", desc: "Instant token exchanges with minimal fees" },
+      { title: "Advanced Trading", desc: "Professional interface with charts and analytics" },
+      { title: "Options Trading", desc: "Call/Put options with Black-Scholes pricing" },
+      { title: "Perpetual Futures", desc: "Up to 125x leverage trading" },
+      { title: "Atomic Swaps", desc: "Trustless cross-chain exchanges" }
+    ],
+    "🏦 DeFi Services": [
+      { title: "Liquidity Pools", desc: "Provide liquidity and earn trading fees" },
+      { title: "Yield Farming", desc: "Stake LP tokens for high APY rewards" },
+      { title: "Flash Loans", desc: "Instant uncollateralized loans" },
+      { title: "Cross-Chain Bridge", desc: "Transfer assets across 6 networks" }
+    ],
+    "🪙 Token Services": [
+      { title: "XPS Staking", desc: "Lock XPS tokens for up to 75% APY" },
+      { title: "Buy XPS Token", desc: "Purchase native platform tokens" },
+      { title: "XIP-20 Minting", desc: "Create your own tokens on Xphere" },
+      { title: "MemeCoin Launch", desc: "Pump.fun style bonding curve launches" }
+    ],
+    "📊 Analytics & Tools": [
+      { title: "Real-Time Analytics", desc: "Live market data and trading metrics" },
+      { title: "Portfolio Manager", desc: "Track all your DeFi positions" },
+      { title: "Security Dashboard", desc: "Monitor platform security status" },
+      { title: "Multi-Chain Portfolio", desc: "Unified view across networks" }
+    ]
+  };
+
+  // Advanced DeFi Features
+  const advancedFeatures = [
+    {
+      icon: Target,
+      title: "🎯 Options Trading",
+      features: [
+        "Call/Put Options: European-style options with flexible expiry",
+        "Greeks Calculation: Delta, Gamma, Theta, Vega analytics",
+        "Black-Scholes Pricing: Accurate fair value calculations",
+        "Option Chains: Complete option series for major tokens",
+        "Strategy Builder: Complex options strategies made simple"
+      ],
+      color: "from-violet-500 to-purple-600"
+    },
+    {
+      icon: Zap,
+      title: "⚡ Perpetual Futures",
+      features: [
+        "High Leverage: Trade with up to 125x leverage",
+        "Funding Rates: Dynamic funding mechanism",
+        "Mark Price: Protected against manipulation",
+        "Position Management: Advanced risk management tools",
+        "Liquidation Engine: Fair and transparent liquidations"
+      ],
+      color: "from-red-500 to-pink-600"
+    },
+    {
+      icon: DollarSign,
+      title: "💰 Flash Loans",
+      features: [
+        "Instant Loans: Borrow without collateral",
+        "Strategy Templates: Pre-built arbitrage strategies",
+        "85% Success Rate: Proven profitable opportunities",
+        "Code Editor: Build custom flash loan strategies",
+        "Risk Analysis: Automated profitability checks"
+      ],
+      color: "from-amber-500 to-orange-600"
+    },
+    {
+      icon: Repeat,
+      title: "🔄 Atomic Swaps",
+      features: [
+        "Trustless Trading: No intermediaries required",
+        "Hash Time-locked Contracts (HTLC): Secure cross-chain swaps",
+        "Multi-Network: Trade directly between different blockchains",
+        "No Custody: Keep full control of your assets"
+      ],
+      color: "from-teal-500 to-cyan-600"
+    },
+    {
+      icon: Flame,
+      title: "🚀 MemeCoin Launch",
+      features: [
+        "Bonding Curve: Pump.fun style price discovery",
+        "Fair Launch: No pre-sales or insider allocations",
+        "Auto-Listing: Automatic DEX listing at $69K market cap",
+        "Community Driven: Let the market decide value",
+        "Instant Liquidity: Trade immediately after launch"
+      ],
+      color: "from-orange-500 to-red-600"
+    }
+  ];
+
+  // Security Features
+  const securityFeatures = {
+    "🛡️ Smart Contract Security": [
+      "OpenZeppelin Standards: Industry-leading security libraries",
+      "ReentrancyGuard: Protection against reentrancy attacks",
+      "SafeMath Operations: Overflow protection on all calculations",
+      "Multi-Signature: Decentralized governance controls",
+      "Circuit Breakers: Emergency pause mechanisms"
+    ],
+    "🚨 Real-Time Monitoring": [
+      "24/7 Security Dashboard: Live threat detection",
+      "MEV Protection: Sandwich attack prevention",
+      "Price Oracle Security: TWAP-based price feeds",
+      "Transaction Analysis: Automated risk scoring"
+    ]
+  };
+
+  // Technology Stack
+  const techStack = {
+    frontend: {
+      icon: Code,
+      title: "🎨 Frontend",
+      items: [
+        { name: "React 18", desc: "+ TypeScript + Vite" },
+        { name: "Tailwind CSS", desc: "+ shadcn/ui components" },
+        { name: "ethers.js", desc: "for Web3 integration" },
+        { name: "Recharts", desc: "for data visualization" },
+        { name: "Framer Motion", desc: "for animations" }
+      ]
+    },
+    backend: {
+      icon: Cpu,
+      title: "⚙️ Backend",
+      items: [
+        { name: "Node.js", desc: "+ Express.js" },
+        { name: "SQLite", desc: "with TypeScript ORM" },
+        { name: "WebSocket", desc: "for real-time data" },
+        { name: "CoinMarketCap API", desc: "integration" },
+        { name: "Li.Fi SDK", desc: "for cross-chain bridging" }
+      ]
+    },
+    blockchain: {
+      icon: Layers,
+      title: "⛓️ Blockchain",
+      items: [
+        { name: "Xphere Network", desc: "(Primary)" },
+        { name: "Solidity ^0.8.19", desc: "smart contracts" },
+        { name: "10 Production Contracts", desc: "deployed" },
+        { name: "OpenZeppelin", desc: "security libraries" },
+        { name: "MEV protection", desc: "mechanisms" }
+      ]
+    }
+  };
+
+  // Roadmap
+  const roadmap = [
+    {
+      phase: "✅ Completed (v1.0.0)",
+      items: [
+        "Core DEX functionality with AMM",
+        "Advanced trading features (Options, Futures, Flash Loans)",
+        "Cross-chain bridge integration",
+        "Security audit and improvements",
+        "Mobile-responsive UI"
+      ],
+      progress: 100
+    },
+    {
+      phase: "🔄 In Progress (v1.1.0)",
+      items: [
+        "Enhanced analytics dashboard",
+        "More trading pairs",
+        "Mobile app development",
+        "Additional network integrations"
+      ],
+      progress: 45
+    },
+    {
+      phase: "🎯 Future Plans (v2.0.0)",
+      items: [
+        "Governance voting interface",
+        "NFT marketplace integration",
+        "Advanced portfolio management",
+        "Institutional trading tools",
+        "Layer 2 scaling solutions"
+      ],
+      progress: 10
     }
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="mb-8">
-            <div className="flex items-center justify-center mx-auto mb-6">
+      {/* Hero Section with Enhanced Design */}
+      <section className="relative py-20 px-4 overflow-hidden">
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/10 to-transparent" />
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            {/* Logo and Title */}
+            <div className="flex items-center justify-center mx-auto mb-8">
               <img 
                 src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2"
                 alt="XPS"
-                className="w-20 h-20 object-contain"
+                className="w-24 h-24 object-contain animate-pulse"
               />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-              Trade the Future with <span className="text-primary">XpSwap</span>
+            <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-6 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              XpSwap DEX
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              🚀 Revolutionary DEX on Xphere blockchain. Experience lightning-fast trades, zero-slippage swaps, and earn rewards through advanced DeFi features. Join the next generation of decentralized trading!
+            <p className="text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed mb-8">
+              The Most Advanced Decentralized Exchange on Xphere Network
             </p>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Link href="/trading">
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Start Trading Now <ArrowRightLeft className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/xps-staking">
-              <Button size="lg" variant="outline">
-                Earn with XPS <Star className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            
+            {/* Why Choose XPSwap */}
+            <div className="grid md:grid-cols-5 gap-4 max-w-6xl mx-auto mb-12">
+              {whyChooseReasons.map((reason, index) => (
+                <Card key={index} className="bg-card/50 backdrop-blur-sm border-primary/20 hover:border-primary/40 transition-all">
+                  <CardContent className="p-4 text-center">
+                    <div className={`w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-r ${reason.color} flex items-center justify-center`}>
+                      <reason.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-sm mb-1">{reason.title}</h3>
+                    <p className="text-xs text-muted-foreground">{reason.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/trading">
+                <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-lg px-8">
+                  Launch App <Rocket className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link href="/xps-staking">
+                <Button size="lg" variant="outline" className="text-lg px-8 border-primary/50 hover:border-primary">
+                  Earn with XPS <Star className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link href="/analytics">
+                <Button size="lg" variant="outline" className="text-lg px-8">
+                  View Analytics <BarChart3 className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">5+</div>
-              <div className="text-sm text-muted-foreground">Supported Networks</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-              <div className="text-sm text-muted-foreground">DEX Available</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">0.3%</div>
-              <div className="text-sm text-muted-foreground">Trading Fees</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">100%</div>
-              <div className="text-sm text-muted-foreground">Decentralized</div>
-            </div>
+          {/* Live Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <Card className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-blue-500 mb-2">6+</div>
+                <div className="text-sm text-muted-foreground">Supported Networks</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-green-500 mb-2">24/7</div>
+                <div className="text-sm text-muted-foreground">Live Trading</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-purple-500 mb-2">0.3%</div>
+                <div className="text-sm text-muted-foreground">Trading Fees</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/20">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-orange-500 mb-2">100%</div>
+                <div className="text-sm text-muted-foreground">Decentralized</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Features Section */}
+      <section className="py-20 px-4 bg-muted/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">⭐ Core Features</h2>
+            <p className="text-xl text-muted-foreground">Everything you need for advanced DeFi trading</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Object.entries(coreFeatures).map(([category, features]) => (
+              <Card key={category} className="bg-card/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl">{category}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {features.map((feature, index) => (
+                      <div key={index} className="border-l-2 border-primary/50 pl-4">
+                        <h4 className="font-semibold text-sm">{feature.title}</h4>
+                        <p className="text-xs text-muted-foreground">{feature.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Advanced DeFi Features */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">📈 Advanced DeFi Features</h2>
+            <p className="text-xl text-muted-foreground">Professional-grade tools for serious traders</p>
+          </div>
+
+          <div className="space-y-8">
+            {advancedFeatures.map((feature, index) => (
+              <Card key={index} className="overflow-hidden">
+                <div className={`h-2 bg-gradient-to-r ${feature.color}`} />
+                <CardContent className="p-8">
+                  <div className="flex items-start gap-6">
+                    <div className={`w-16 h-16 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center flex-shrink-0`}>
+                      <feature.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {feature.features.map((item, idx) => (
+                          <div key={idx} className="flex items-start gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-muted-foreground">{item}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security & Audits Section */}
+      <section className="py-20 px-4 bg-gradient-to-b from-red-500/5 via-orange-500/5 to-yellow-500/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">🔐 Security & Audits</h2>
+            <p className="text-xl text-muted-foreground">Built with security as the top priority</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {Object.entries(securityFeatures).map(([title, features]) => (
+              <Card key={title} className="bg-card/90 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl">{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {features.map((feature, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <Shield className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">{feature}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Technology Stack Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">⚡ Technology Stack</h2>
+            <p className="text-xl text-muted-foreground">Built with cutting-edge technologies</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {Object.values(techStack).map((stack, index) => (
+              <Card key={index} className="bg-gradient-to-br from-primary/5 to-primary/10">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <stack.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl">{stack.title}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {stack.items.map((item, idx) => (
+                      <div key={idx} className="bg-background/50 rounded-lg p-3">
+                        <div className="font-semibold text-sm">{item.name}</div>
+                        <div className="text-xs text-muted-foreground">{item.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -382,198 +689,178 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* XPS Token Highlight */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="p-8">
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src="https://rebel-orangutan-6f0.notion.site/image/attachment%3Aea1e41e5-28b3-486e-bc20-978f86c7e213%3Alogo_xps3.png?table=block&id=22fa68fd-c4b9-80a2-93a5-edbcfa276af7&spaceId=5cba68fd-c4b9-81bc-873e-0003fe11fd03&width=860&userId=&cache=v2"
-                      alt="XPS"
-                      className="w-12 h-12 object-contain"
-                    />
-                    <h2 className="text-3xl font-bold text-foreground">XPS Native Token</h2>
+      {/* Roadmap Section */}
+      <section className="py-20 px-4 bg-muted/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">🗺️ Roadmap</h2>
+            <p className="text-xl text-muted-foreground">Our journey to revolutionize DeFi</p>
+          </div>
+
+          <div className="space-y-6">
+            {roadmap.map((phase, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl">{phase.phase}</CardTitle>
+                    <Badge variant={phase.progress === 100 ? "default" : "secondary"}>
+                      {phase.progress}%
+                    </Badge>
                   </div>
-                  <p className="text-muted-foreground text-lg mb-6">
-                    The utility token that powers the entire XpSwap ecosystem. Get trading fee discounts, 
-                    enhanced staking rewards, and governance voting rights.
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-3">
-                      <Percent className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">Up to 75% trading fee discounts</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">Up to 50% APY staking rewards</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Shield className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">Governance voting power</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Flame className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">Deflationary burn mechanism</span>
-                    </div>
+                </CardHeader>
+                <CardContent>
+                  <Progress value={phase.progress} className="mb-4" />
+                  <div className="grid md:grid-cols-2 gap-2">
+                    {phase.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <CheckCircle2 className={`w-4 h-4 ${phase.progress === 100 ? 'text-green-500' : 'text-muted-foreground'}`} />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex gap-4">
-                    <Link href="/xps-purchase">
-                      <Button className="bg-primary hover:bg-primary/90">
-                        Buy XPS (1 XPS = $1) <DollarSign className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
-                    <Link href="/xps-staking">
-                      <Button variant="outline">
-                        Stake XPS <Award className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Community & Support Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">💬 Community & Support</h2>
+            <p className="text-xl text-muted-foreground">Join our growing ecosystem</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Join Our Community */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">💬 Join Our Community</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  <Card className="bg-background/50 backdrop-blur-sm">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-2">1 XPS</div>
-                      <div className="text-sm text-muted-foreground">= $1 USD</div>
-                      <div className="text-xs text-muted-foreground mt-1">Fixed Price</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-background/50 backdrop-blur-sm">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-2">75%</div>
-                      <div className="text-sm text-muted-foreground">Max APY</div>
-                      <div className="text-xs text-muted-foreground mt-1">1 Year Lock</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-background/50 backdrop-blur-sm">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-2">75%</div>
-                      <div className="text-sm text-muted-foreground">Fee Discount</div>
-                      <div className="text-xs text-muted-foreground mt-1">Maximum</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-background/50 backdrop-blur-sm">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-2">40%</div>
-                      <div className="text-sm text-muted-foreground">Revenue Burn</div>
-                      <div className="text-xs text-muted-foreground mt-1">Deflationary</div>
-                    </CardContent>
-                  </Card>
+                  <Link href="https://github.com/loganko83/xpswapmcp" target="_blank">
+                    <Button variant="outline" className="w-full">
+                      <Github className="w-4 h-4 mr-2" />
+                      GitHub
+                    </Button>
+                  </Link>
+                  <Link href="https://xpsproject.blogspot.com/" target="_blank">
+                    <Button variant="outline" className="w-full">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Blog
+                    </Button>
+                  </Link>
+                  <Link href="https://t.me/xpscommunity" target="_blank">
+                    <Button variant="outline" className="w-full">
+                      <Phone className="w-4 h-4 mr-2" />
+                      Telegram
+                    </Button>
+                  </Link>
+                  <Link href="https://x.com/xpsproject" target="_blank">
+                    <Button variant="outline" className="w-full">
+                      <Twitter className="w-4 h-4 mr-2" />
+                      X (Twitter)
+                    </Button>
+                  </Link>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Get Help */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">📞 Get Help</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Link href="/docs" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="font-semibold">Documentation</div>
+                      <div className="text-xs text-muted-foreground">Complete user guide</div>
+                    </div>
+                  </Link>
+                  <Link href="/developer" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                    <FileCode className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="font-semibold">Developer Guide</div>
+                      <div className="text-xs text-muted-foreground">Technical documentation</div>
+                    </div>
+                  </Link>
+                  <Link href="/api" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                    <Code className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="font-semibold">API Reference</div>
+                      <div className="text-xs text-muted-foreground">API endpoints</div>
+                    </div>
+                  </Link>
+                  <Link href="/security" className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="font-semibold">Security Reports</div>
+                      <div className="text-xs text-muted-foreground">Audit results</div>
+                    </div>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Live Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">📈 Live Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <Link href="/api/health" target="_blank" className="flex items-center gap-3 p-4 rounded-lg border hover:border-primary transition-colors">
+                  <Activity className="w-5 h-5 text-green-500" />
+                  <div>
+                    <div className="font-semibold">System Health</div>
+                    <div className="text-xs text-muted-foreground">/api/health</div>
+                  </div>
+                </Link>
+                <Link href="/analytics" className="flex items-center gap-3 p-4 rounded-lg border hover:border-primary transition-colors">
+                  <BarChart2 className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <div className="font-semibold">Platform Analytics</div>
+                    <div className="text-xs text-muted-foreground">/analytics</div>
+                  </div>
+                </Link>
+                <Link href="/security" className="flex items-center gap-3 p-4 rounded-lg border hover:border-primary transition-colors">
+                  <Shield className="w-5 h-5 text-orange-500" />
+                  <div>
+                    <div className="font-semibold">Security Dashboard</div>
+                    <div className="text-xs text-muted-foreground">/security</div>
+                  </div>
+                </Link>
               </div>
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">🚀 All-in-One DeFi Powerhouse</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Experience the future of decentralized finance. Trade, earn, bridge, and grow your crypto portfolio with cutting-edge features designed for the next generation of DeFi users.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Link key={index} href={feature.link}>
-                <Card className="h-full bg-card hover:bg-card/80 transition-all duration-300 hover:scale-105 cursor-pointer group border-border">
-                  <CardHeader>
-                    <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                      <feature.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <CardTitle className="text-foreground group-hover:text-primary transition-colors">
-                      {feature.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <p className="text-muted-foreground mb-4 leading-relaxed">
-                      {feature.description}
-                    </p>
-                    <div className="space-y-2 mb-4">
-                      {feature.highlights.map((highlight, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                          <span className="text-sm text-muted-foreground">{highlight}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center text-primary group-hover:translate-x-1 transition-transform">
-                      <span className="text-sm font-medium">Explore</span>
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Security & Trust Section */}
-      <section className="py-16 px-4 bg-muted/20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">Built for Security & Performance</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Enterprise-grade security with cutting-edge DeFi innovations
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">MEV Protection</h3>
-              <p className="text-muted-foreground">
-                Advanced algorithms protect against sandwich attacks and front-running, ensuring fair prices for all trades.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Optimal Routing</h3>
-              <p className="text-muted-foreground">
-                Smart routing algorithms find the best prices across multiple liquidity sources for maximum efficiency.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Multi-chain Ready</h3>
-              <p className="text-muted-foreground">
-                Connect to multiple blockchains including Ethereum, BSC, and Polygon with unified interface and cross-chain capabilities.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-20 px-4">
+      {/* Final CTA */}
+      <section className="py-20 px-4 bg-gradient-to-t from-primary/10 to-transparent">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-foreground mb-6">
-            🎯 Be an Early Pioneer in the Future of DeFi
+          <h2 className="text-5xl font-bold text-foreground mb-6">
+            Ready to Experience Next-Gen DeFi?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join the revolutionary XpSwap ecosystem today! As an early user, you'll enjoy exclusive benefits, lower fees, and the opportunity to shape the future of decentralized trading.
+          <p className="text-xl text-muted-foreground mb-8">
+            Join thousands of traders already using XpSwap for advanced DeFi trading
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/trading">
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Start Your DeFi Journey <ArrowRightLeft className="w-5 h-5 ml-2" />
+              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-lg px-8">
+                Launch App <Rocket className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/xps-staking">
-              <Button size="lg" variant="outline">
-                Earn XPS Rewards <ChevronRight className="w-5 h-5 ml-2" />
+            <Link href="/docs">
+              <Button size="lg" variant="outline" className="text-lg px-8">
+                Read Documentation <BookOpen className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </div>
