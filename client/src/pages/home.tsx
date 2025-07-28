@@ -741,30 +741,30 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  <Link href="https://github.com/loganko83/xpswapmcp" target="_blank">
+                  <a href="https://github.com/loganko83/xpswapmcp" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="w-full">
                       <Github className="w-4 h-4 mr-2" />
                       GitHub
                     </Button>
-                  </Link>
-                  <Link href="https://xpsproject.blogspot.com/" target="_blank">
+                  </a>
+                  <a href="https://xpsproject.blogspot.com/" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="w-full">
                       <BookOpen className="w-4 h-4 mr-2" />
                       Blog
                     </Button>
-                  </Link>
-                  <Link href="https://t.me/xpscommunity" target="_blank">
+                  </a>
+                  <a href="https://t.me/xpscommunity" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="w-full">
                       <Phone className="w-4 h-4 mr-2" />
                       Telegram
                     </Button>
-                  </Link>
-                  <Link href="https://x.com/xpsproject" target="_blank">
+                  </a>
+                  <a href="https://x.com/xpsproject" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="w-full">
                       <Twitter className="w-4 h-4 mr-2" />
                       X (Twitter)
                     </Button>
-                  </Link>
+                  </a>
                 </div>
               </CardContent>
             </Card>
