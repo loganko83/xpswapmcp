@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWeb3Context } from "@/contexts/Web3Context";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getApiUrl } from "@/lib/apiUrl";
 
 interface RiskMetric {
   id: string;
@@ -283,13 +284,8 @@ export function RiskManagement() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Mock portfolio risk metrics */}
-                  {[
-                    { name: "Concentration Risk", value: 65, status: "warning", description: "High concentration in XP tokens" },
-                    { name: "Liquidity Risk", value: 82, status: "safe", description: "Good liquidity across positions" },
-                    { name: "Volatility Risk", value: 45, status: "safe", description: "Moderate volatility exposure" },
-                    { name: "Impermanent Loss", value: 23, status: "warning", description: "Potential IL in LP positions" }
-                  ].map((metric, index) => (
+                  {/* Portfolio risk metrics from API */}
+                  {portfolioMetrics?.metrics?.map((metric: any, index: number) => (
                     <div key={index} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-white font-medium">{metric.name}</span>
@@ -300,7 +296,10 @@ export function RiskManagement() {
                       <Progress value={metric.value} className="h-2" />
                       <p className="text-gray-400 text-sm">{metric.description}</p>
                     </div>
-                  ))}
+                  )) || (
+                    // Fallback if API is loading
+                    <div className="text-gray-400 text-center py-4">Loading risk metrics...</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -311,17 +310,13 @@ export function RiskManagement() {
                 <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[
-                        { timestamp: Date.now() - 86400000 * 6, risk: 68 },
-                        { timestamp: Date.now() - 86400000 * 5, risk: 71 },
-                        { timestamp: Date.now() - 86400000 * 4, risk: 69 },
-                        { timestamp: Date.now() - 86400000 * 3, risk: 74 },
-                        { timestamp: Date.now() - 86400000 * 2, risk: 72 },
-                        { timestamp: Date.now() - 86400000 * 1, risk: 70 },
-                        { timestamp: Date.now(), risk: 72 }
-                      ]}>
+                      <LineChart data={riskTrendData?.trend || []}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis dataKey="timestamp" stroke="#9CA3AF" />
+                        <XAxis 
+                          dataKey="timestamp" 
+                          stroke="#9CA3AF"
+                          tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                        />
                         <YAxis stroke="#9CA3AF" />
                         <Tooltip 
                           contentStyle={{ 
@@ -329,7 +324,8 @@ export function RiskManagement() {
                             border: "1px solid #374151",
                             borderRadius: "8px",
                             color: "#F9FAFB"
-                          }} 
+                          }}
+                          labelFormatter={(value) => new Date(value).toLocaleString()}
                         />
                         <Line 
                           type="monotone" 
@@ -494,36 +490,8 @@ export function RiskManagement() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Mock risk alerts */}
-                {[
-                  {
-                    id: "alert_001",
-                    type: "concentration",
-                    severity: "medium",
-                    title: "High Token Concentration",
-                    description: "Over 65% of portfolio concentrated in XP tokens",
-                    impact: "Increased volatility exposure",
-                    recommendation: "Consider diversifying into stablecoins"
-                  },
-                  {
-                    id: "alert_002",
-                    type: "impermanent_loss",
-                    severity: "low",
-                    title: "Potential Impermanent Loss",
-                    description: "LP position showing 3.2% impermanent loss",
-                    impact: "Reduced returns compared to holding",
-                    recommendation: "Monitor price divergence"
-                  },
-                  {
-                    id: "alert_003",
-                    type: "security",
-                    severity: "high",
-                    title: "MEV Attack Detected",
-                    description: "Suspicious MEV activity on recent transactions",
-                    impact: "Potential value extraction",
-                    recommendation: "Use MEV protection services"
-                  }
-                ].map((alert, index) => (
+                {/* Active Risk Alerts from API */}
+                {riskAlerts?.alerts?.map((alert: any) => (
                   <div key={alert.id} className="p-4 bg-black/20 rounded-lg border border-white/10">
                     <div className="flex items-start gap-3">
                       {getAlertIcon(alert.severity)}

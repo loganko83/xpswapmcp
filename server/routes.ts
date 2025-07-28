@@ -6,6 +6,8 @@ import securityRoutes from './routes/security';
 import bridgeRoutes from './routes/bridge';
 import cacheRoutes from './routes/cache';
 import deploymentRoutes from './routes/deployment';
+import riskRoutes from './routes/risk';
+import portfolioRoutes from './routes/portfolio';
 
 /**
  * XPSwap DEX API Routes - Modular Architecture
@@ -30,6 +32,8 @@ export function setupRoutes(app: Express): void {
   app.use('/api', bridgeRoutes);
   app.use('/api', cacheRoutes);
   app.use('/api/deployment', deploymentRoutes);
+  app.use('/api', riskRoutes);
+  app.use('/api', portfolioRoutes);
 
   // Health check endpoint
   app.get('/api/health', (req, res) => {

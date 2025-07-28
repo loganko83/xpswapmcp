@@ -9,6 +9,7 @@ import {
 import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
 import web3Service from "../services/web3";
 import { BlockchainService } from "../services/realBlockchain.js";
+import { ApiErrorResponse } from "../types/api-errors";
 
 const router = Router();
 

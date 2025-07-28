@@ -27,6 +27,7 @@ import { useTokenPrices } from "@/hooks/useTokenPrices";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { getTokenIcon } from "@/lib/tokenUtils";
+import { getApiUrl } from "@/lib/apiUrl";
 
 interface NetworkSelectorProps {
   selectedNetwork: string;
@@ -111,53 +112,40 @@ export function MultiChainPortfolio() {
   const { toast } = useToast();
   const { prices, loading: pricesLoading } = useTokenPrices();
 
-  // Mock portfolio data - in real app this would come from API
-  const portfolioData: PortfolioData = {
-    totalValue: 15250.43,
-    totalChange24h: 5.67,
-    tokens: [
-      {
-        symbol: "XP",
-        name: "Xphere Token",
-        balance: "125,430.50",
-        value: 8420.15,
-        change24h: 12.5,
-        network: "xphere"
-      },
-      {
-        symbol: "ETH",
-        name: "Ethereum",
-        balance: "2.847",
-        value: 4200.30,
-        change24h: -2.1,
-        network: "ethereum"
-      },
-      {
-        symbol: "USDT",
-        name: "Tether USD",
-        balance: "1,850.00",
-        value: 1850.00,
-        change24h: 0.1,
-        network: "ethereum"
-      },
-      {
-        symbol: "BNB",
-        name: "BNB",
-        balance: "3.25",
-        value: 779.98,
-        change24h: 3.8,
-        network: "bsc"
-      }
-    ],
-    networks: {
-      xphere: { value: 8420.15, percentage: 55.2 },
-      ethereum: { value: 6050.30, percentage: 39.7 },
-      bsc: { value: 779.98, percentage: 5.1 }
+  // Fetch portfolio data from API
+  const { data: portfolioData, isLoading: portfolioLoading } = useQuery({
+    queryKey: ["/api/portfolio/multichain", wallet.address],
+    queryFn: async () => {
+      const response = await fetch(getApiUrl(`/api/portfolio/multichain/${wallet.address}`));
+      if (!response.ok) throw new Error("Failed to fetch portfolio data");
+      return response.json();
     },
-    stakingRewards: {
-      earned: 45.67,
-      pending: 12.34,
-      apr: 75.5
+    enabled: !!wallet.address,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch transaction history
+  const { data: transactionHistory } = useQuery({
+    queryKey: ["/api/portfolio/transactions", wallet.address],
+    queryFn: async () => {
+      const response = await fetch(getApiUrl(`/api/portfolio/transactions/${wallet.address}?limit=10`));
+      if (!response.ok) throw new Error("Failed to fetch transactions");
+      return response.json();
+    },
+    enabled: !!wallet.address,
+    refetchInterval: 20000,
+  });
+
+  // Fetch portfolio analytics
+  const { data: analytics } = useQuery({
+    queryKey: ["/api/portfolio/analytics", wallet.address, selectedTimeframe],
+    queryFn: async () => {
+      const response = await fetch(getApiUrl(`/api/portfolio/analytics/${wallet.address}?timeframe=${selectedTimeframe}`));
+      if (!response.ok) throw new Error("Failed to fetch analytics");
+      return response.json();
+    },
+    enabled: !!wallet.address && selectedTab === "analytics",
+  });
     }
   };
 
