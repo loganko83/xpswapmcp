@@ -29,7 +29,7 @@ export function SwapPriceInfo({
     queryKey: ['market-stats'],
     queryFn: async () => {
       try {
-        const response = await fetch(getApiUrl("/api/market-stats');
+        const response = await fetch(getApiUrl("/api/market-stats"));
         if (!response.ok) {
           throw new Error('Failed to fetch market stats');
         }

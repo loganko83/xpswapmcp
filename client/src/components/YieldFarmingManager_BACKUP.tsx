@@ -277,7 +277,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
 
   const claimRewardsMutation = useMutation({
     mutationFn: async (farmId: number) => {
-      const response = await fetch(getApiUrl("/api/claim-rewards", {
+      const response = await fetch(getApiUrl("/api/claim-rewards"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -324,7 +324,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
       if (!wallet.address) return null;
       
       const farmDataPromises = farms.map(async (farm) => {
-        const response = await fetch(getApiUrl(`/api/farms/${farm.id}/user-info/${wallet.address}`);
+        const response = await fetch(getApiUrl(`/api/farms/${farm.id}/user-info/${wallet.address}`));;
         if (!response.ok) return null;
         return response.json();
       });

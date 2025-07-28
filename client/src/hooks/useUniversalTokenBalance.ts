@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useWeb3Context } from '@/contexts/Web3Context';
 import { getApiUrl } from '@/lib/apiUrl';
+import { useMultiChainBalance } from './useMultiChainBalance';
 
 export interface TokenBalance {
   balance: string;
@@ -8,34 +9,81 @@ export interface TokenBalance {
   decimals: number;
   symbol: string;
   network: string;
+  usdValue?: number;
   error?: string;
 }
 
 export function useUniversalTokenBalance(tokenSymbol: string, network?: string) {
   const { wallet, chainId } = useWeb3Context();
-  const [balanceData, setBalanceData] = useState<TokenBalance>({
+  const { balances, isLoadingBalances, error: multiChainError } = useMultiChainBalance();
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | undefined>();
+
+  // Determine the network to query
+  const targetNetwork = useMemo(() => {
+    if (network) return network;
+    return getCurrentNetwork(chainId);
+  }, [network, chainId]);
+
+  // Get balance from multi-chain data first
+  const multiChainBalance = useMemo(() => {
+    if (!targetNetwork || targetNetwork === 'unknown') return null;
+    
+    const networkBalances = balances[targetNetwork];
+    if (!networkBalances) return null;
+    
+    return networkBalances.find(t => 
+      t.symbol.toUpperCase() === tokenSymbol.toUpperCase()
+    );
+  }, [balances, targetNetwork, tokenSymbol]);
+
+  // State for API balance (fallback)
+  const [apiBalance, setApiBalance] = useState<TokenBalance>({
     balance: '0',
     formattedBalance: '0',
     decimals: 18,
     symbol: tokenSymbol,
-    network: network || getCurrentNetwork(chainId)
+    network: targetNetwork
   });
-  const [isLoading, setIsLoading] = useState(false);
 
+  // Use multi-chain balance if available, otherwise fall back to API
+  const balanceData = useMemo(() => {
+    if (multiChainBalance) {
+      return {
+        balance: multiChainBalance.balance,
+        formattedBalance: multiChainBalance.balance,
+        decimals: 18,
+        symbol: multiChainBalance.symbol,
+        network: multiChainBalance.network,
+        usdValue: multiChainBalance.usdValue,
+        error: undefined
+      };
+    }
+    return apiBalance;
+  }, [multiChainBalance, apiBalance]);
+
+  // Fetch from API if multi-chain balance is not available
   useEffect(() => {
     const fetchBalance = async () => {
+      // Skip if we already have multi-chain balance
+      if (multiChainBalance) {
+        setIsLoading(false);
+        return;
+      }
+
       if (!wallet.isConnected || !wallet.address) {
-        setBalanceData(prev => ({ ...prev, balance: '0', formattedBalance: '0' }));
+        setApiBalance(prev => ({ ...prev, balance: '0', formattedBalance: '0' }));
         return;
       }
 
       setIsLoading(true);
+      setApiError(undefined);
 
       try {
-        console.log(`🔍 Fetching ${tokenSymbol} balance for ${wallet.address}`);
+        console.log(`🔍 Fetching ${tokenSymbol} balance via API for ${wallet.address}`);
         
-        // Call the API endpoint for token balance
-        const response = await fetch(getApiUrl(`api/token-balance/${wallet.address}/${tokenSymbol}`));
+        const response = await fetch(getApiUrl(`/api/token-balance/${wallet.address}/${tokenSymbol}`));
         
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`);
@@ -43,19 +91,21 @@ export function useUniversalTokenBalance(tokenSymbol: string, network?: string) 
         
         const data = await response.json();
         
-        console.log(`✅ Received ${tokenSymbol} balance:`, data);
+        console.log(`✅ Received ${tokenSymbol} balance from API:`, data);
         
-        setBalanceData({
+        setApiBalance({
           balance: data.balance,
           formattedBalance: data.balance,
-          decimals: 18, // Standard decimals
+          decimals: data.decimals || 18,
           symbol: data.symbol,
-          network: data.network || getCurrentNetwork(chainId),
+          network: data.network || targetNetwork,
+          usdValue: data.usdValue,
           error: undefined
         });
       } catch (err) {
-        console.error(`❌ Failed to fetch ${tokenSymbol} balance:`, err);
-        setBalanceData(prev => ({
+        console.error(`❌ Failed to fetch ${tokenSymbol} balance from API:`, err);
+        setApiError(err instanceof Error ? err.message : 'Failed to fetch balance');
+        setApiBalance(prev => ({
           ...prev,
           balance: '0',
           formattedBalance: '0',
@@ -66,17 +116,16 @@ export function useUniversalTokenBalance(tokenSymbol: string, network?: string) 
       }
     };
 
-    fetchBalance();
-
-    // Poll for balance updates every 30 seconds (reduced frequency for API calls)
-    const interval = setInterval(fetchBalance, 30000);
-
-    return () => clearInterval(interval);
-  }, [wallet.isConnected, wallet.address, tokenSymbol, chainId, network]);
+    // Only fetch if we don't have multi-chain balance
+    if (!multiChainBalance) {
+      fetchBalance();
+    }
+  }, [wallet.isConnected, wallet.address, tokenSymbol, targetNetwork, multiChainBalance]);
 
   return { 
     ...balanceData,
-    isLoading
+    isLoading: isLoadingBalances || isLoading,
+    error: multiChainError || apiError || balanceData.error
   };
 }
 
@@ -94,31 +143,50 @@ function getCurrentNetwork(chainId: number | undefined): string {
   }
 }
 
-// Hook to get all balances across multiple chains
+// Enhanced hook to get all balances across multiple chains
 export function useMultiChainBalances(tokenSymbol: string) {
-  const ethereumBalance = useUniversalTokenBalance(tokenSymbol, 'ethereum');
-  const bscBalance = useUniversalTokenBalance(tokenSymbol, 'bsc');
-  const xphereBalance = useUniversalTokenBalance(tokenSymbol, 'xphere');
+  const { balances, isLoadingBalances, error } = useMultiChainBalance();
+  
+  const tokenBalances = useMemo(() => {
+    const result: Record<string, TokenBalance> = {};
+    
+    Object.entries(balances).forEach(([network, tokens]) => {
+      const token = tokens.find(t => t.symbol.toUpperCase() === tokenSymbol.toUpperCase());
+      if (token) {
+        result[network] = {
+          balance: token.balance,
+          formattedBalance: token.balance,
+          decimals: 18,
+          symbol: token.symbol,
+          network: token.network,
+          usdValue: token.usdValue
+        };
+      } else {
+        // Still include networks where token doesn't exist
+        result[network] = {
+          balance: '0',
+          formattedBalance: '0',
+          decimals: 18,
+          symbol: tokenSymbol,
+          network: network,
+          usdValue: 0
+        };
+      }
+    });
+    
+    return result;
+  }, [balances, tokenSymbol]);
 
-  const totalValue = calculateTotalValue([
-    ethereumBalance,
-    bscBalance,
-    xphereBalance
-  ]);
+  const totalValue = useMemo(() => {
+    return Object.values(tokenBalances).reduce((total, balance) => {
+      return total + (balance.usdValue || 0);
+    }, 0);
+  }, [tokenBalances]);
 
   return {
-    ethereum: ethereumBalance,
-    bsc: bscBalance,
-    xphere: xphereBalance,
+    balances: tokenBalances,
     totalValue,
-    isLoading: ethereumBalance.isLoading || bscBalance.isLoading || xphereBalance.isLoading
+    isLoading: isLoadingBalances,
+    error
   };
-}
-
-// Helper to calculate total value (would need price data in production)
-function calculateTotalValue(balances: TokenBalance[]): number {
-  // In production, this would fetch real-time prices and calculate USD value
-  return balances.reduce((total, balance) => {
-    return total + parseFloat(balance.formattedBalance);
-  }, 0);
 }

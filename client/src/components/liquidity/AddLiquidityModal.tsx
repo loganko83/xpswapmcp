@@ -42,7 +42,7 @@ export function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidityProps) 
         throw new Error("Wallet not connected");
       }
       
-      const response = await fetch(getApiUrl("/api/add-liquidity", {
+      const response = await fetch(getApiUrl("/api/add-liquidity"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

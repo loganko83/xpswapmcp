@@ -26,7 +26,7 @@ export default function BugBounty() {
 
   const submitBugReport = useMutation({
     mutationFn: async (data: BugReportForm) => {
-      const response = await fetch(getApiUrl("/api/bug-bounty/submit", {
+      const response = await fetch(getApiUrl("/api/bug-bounty/submit"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

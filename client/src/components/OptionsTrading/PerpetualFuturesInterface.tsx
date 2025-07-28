@@ -58,7 +58,7 @@ export function PerpetualFuturesInterface() {
   const { data: contracts } = useQuery({
     queryKey: ["/api/perpetuals/contracts"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/perpetuals/contracts");
+      const response = await fetch(getApiUrl("/api/perpetuals/contracts"));
       if (!response.ok) throw new Error("Failed to fetch contracts");
       return response.json();
     }
@@ -69,7 +69,7 @@ export function PerpetualFuturesInterface() {
     queryKey: ["/api/perpetuals/positions", wallet?.address],
     queryFn: async () => {
       if (!wallet?.address) return [];
-      const response = await fetch(getApiUrl(`/api/perpetuals/positions?address=${wallet.address}`);
+      const response = await fetch(getApiUrl(`/api/perpetuals/positions?address=${wallet.address}`));
       if (!response.ok) throw new Error("Failed to fetch positions");
       return response.json();
     },
@@ -80,7 +80,7 @@ export function PerpetualFuturesInterface() {
   const { data: analytics } = useQuery({
     queryKey: ["/api/perpetuals/analytics"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/perpetuals/analytics");
+      const response = await fetch(getApiUrl("/api/perpetuals/analytics"));
       if (!response.ok) throw new Error("Failed to fetch analytics");
       return response.json();
     }
@@ -116,7 +116,7 @@ export function PerpetualFuturesInterface() {
     }
 
     try {
-      const response = await fetch(getApiUrl("/api/perpetuals/trade", {
+      const response = await fetch(getApiUrl("/api/perpetuals/trade"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,7 +150,7 @@ export function PerpetualFuturesInterface() {
 
   const closePosition = async (positionId: string) => {
     try {
-      const response = await fetch(getApiUrl(`/api/perpetuals/close/${positionId}`, {
+      const response = await fetch(getApiUrl(`/api/perpetuals/close/${positionId}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: wallet.address })

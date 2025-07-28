@@ -10,7 +10,7 @@ export function RiskInsights() {
   const { data: riskMetrics } = useQuery({
     queryKey: ["/api/analytics/risk"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/analytics/risk");
+      const response = await fetch(getApiUrl("/api/analytics/risk"));
       if (!response.ok) throw new Error("Failed to fetch risk metrics");
       return response.json();
     }

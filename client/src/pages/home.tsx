@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getApiUrl } from "@/lib/apiUrl";
 import { 
   ArrowRightLeft, 
   Droplets, 
@@ -109,7 +110,7 @@ export default function HomePage() {
     mutationFn: async () => {
       if (!userAddress) throw new Error('Wallet not connected');
       
-      const response = await fetch('/api/xps/airdrop/claim', {
+      const response = await fetch(getApiUrl('/api/xps/airdrop/claim'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userAddress })

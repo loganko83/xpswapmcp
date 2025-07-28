@@ -8,7 +8,7 @@ export function PairAnalyticsTable() {
   const { data: pairAnalytics = [] } = useQuery({
     queryKey: ["/api/analytics/pairs"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/analytics/pairs");
+      const response = await fetch(getApiUrl("/api/analytics/pairs"));
       if (!response.ok) throw new Error("Failed to fetch pair analytics");
       return response.json();
     }

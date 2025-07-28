@@ -24,13 +24,15 @@ import {
 } from "lucide-react";
 import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
-
-import { getApiUrl } from "@/lib/apiUrl";
-// ?�제 ?�랜??�� ?�시??블록체인?�서 반환??const generateSecureTxHash = (): string => {
-  // ???�수?????�상 ?�용?��? ?�음
-  // ?�제 ?�랜??�� ?�시??Web3 ?�출?�서 반환??  return '';
-};
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/lib/apiUrl";
+
+// 실제 트랜잭션 발생시 블록체인에서 반환됨
+const generateSecureTxHash = (): string => {
+  // 임시 함수 - 실상 사용되지 않음
+  // 실제 트랜잭션 발생시 Web3 호출에서 반환됨
+  return '';
+};
 
 interface TokenInfo {
   name: string;
@@ -220,7 +222,7 @@ export default function MintingPage() {
         console.warn("Web3 deployment failed, using API fallback:", web3Error);
         
         // Fallback to API deployment
-        const response = await fetch(getApiUrl("/api/minting/deploy", {
+        const response = await fetch(getApiUrl("/api/minting/deploy"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -270,7 +272,7 @@ export default function MintingPage() {
           s.id === step.id ? { 
             ...s, 
             status: 'completed',
-            txHash: step.txHash || '' // ?�제 ?�랜??�� ?�시 ?�용
+            txHash: step.txHash || '' // ?�제 ?�랜??�� ?�시 ?�용
           } : s
         ));
         

@@ -5,6 +5,7 @@ import { web3Service } from '@/lib/web3';
 import { directWeb3Service } from '@/lib/web3-direct';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import { getApiUrl } from '@/lib/apiUrl';
 
 // 분리된 컴포넌트들 import
 import { StakingPool } from './staking/StakingPool';
@@ -148,7 +149,7 @@ export function XPSStakingInterface() {
       const result = await directWeb3Service.stakeXPSDirect(stakeAmount, parseInt(lockPeriod));
       
       if (result.success) {
-        const response = await fetch('/api/xps/stake', {
+        const response = await fetch(getApiUrl('/api/xps/stake'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -275,7 +276,7 @@ export function XPSStakingInterface() {
       const result = await directWeb3Service.claimRewardsDirect();
       
       if (result.success) {
-        const response = await fetch('/api/xps/claim-rewards', {
+        const response = await fetch(getApiUrl('/api/xps/claim-rewards'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

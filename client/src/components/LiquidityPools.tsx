@@ -5,13 +5,14 @@ import { ExternalLink } from "lucide-react";
 import { LiquidityPool } from "@/types";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { useQuery } from "@tanstack/react-query";
+import { getApiUrl } from "@/lib/apiUrl";
 
 export function LiquidityPools() {
   const { data: pools = [], isLoading } = useQuery({
     queryKey: ['liquidity-pools'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/pools');
+        const response = await fetch(getApiUrl('/api/pools'));
         if (!response.ok) {
           return [];
         }

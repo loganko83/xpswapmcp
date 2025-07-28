@@ -143,7 +143,7 @@ export function CrossChainBridge() {
         throw new Error('Missing required parameters');
       }
 
-      const response = await fetch(getApiUrl("/api/bridge/execute", {
+      const response = await fetch(getApiUrl("/api/bridge/execute"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

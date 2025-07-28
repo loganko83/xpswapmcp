@@ -12,7 +12,7 @@ export function TransactionHistory() {
     queryKey: ['transactionHistory'],
     queryFn: async () => {
       try {
-        const response = await fetch(getApiUrl("/api/transactions/history');
+        const response = await fetch(getApiUrl("/api/transactions/history"));
         if (!response.ok) throw new Error('Failed to fetch transactions');
         const data = await response.json();
         return data;

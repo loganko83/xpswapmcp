@@ -47,7 +47,7 @@ export function BridgeForm({
         throw new Error('Missing required parameters');
       }
 
-      const response = await fetch(getApiUrl("/api/bridge/quote", {
+      const response = await fetch(getApiUrl("/api/bridge/quote"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

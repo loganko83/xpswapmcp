@@ -65,9 +65,11 @@ interface TradingData {
   hearts: number;
 }
 
-// ?�제 ?�랜??�� ?�시??블록체인?�서 반환??const generateSecureTxHash = (): string => {
-  // ???�수?????�상 ?�용?��? ?�음
-  // ?�제 ?�랜??�� ?�시??Web3 ?�출?�서 반환??  return '';
+// 실제 트랜잭션 발생시 블록체인에서 반환됨
+const generateSecureTxHash = (): string => {
+  // 임시 함수 - 실상 사용되지 않음
+  // 실제 트랜잭션 발생시 Web3 호출에서 반환됨
+  return '';
 };
 
 export default function MemeCoinPage() {
@@ -104,7 +106,7 @@ export default function MemeCoinPage() {
       id: 1,
       name: "PEPE XPS",
       symbol: "PEPEXPS",
-      image: "?��",
+      image: "?��",
       marketCap: 45000,
       progress: 65.2,
       change24h: 156.7,
@@ -117,7 +119,7 @@ export default function MemeCoinPage() {
       id: 2,
       name: "Doge Xphere",
       symbol: "DOGEXPS",
-      image: "?��",
+      image: "?��",
       marketCap: 32000,
       progress: 46.4,
       change24h: 89.3,
@@ -130,7 +132,7 @@ export default function MemeCoinPage() {
       id: 3,
       name: "Shiba XPS",
       symbol: "SHIBXPS",
-      image: "?��",
+      image: "?��",
       marketCap: 28000,
       progress: 40.6,
       change24h: 67.2,
@@ -229,7 +231,7 @@ export default function MemeCoinPage() {
       }
 
       // API call to backend
-      const response = await fetch(getApiUrl("/api/memecoin/launch", {
+      const response = await fetch(getApiUrl("/api/memecoin/launch"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -420,7 +422,7 @@ export default function MemeCoinPage() {
                       <Input
                         value={memeCoinInfo.image}
                         onChange={(e) => handleInputChange('image', e.target.value)}
-                        placeholder="?�� or https://image-url.com"
+                        placeholder="?�� or https://image-url.com"
                         className="bg-background border-border text-foreground flex-1"
                       />
                       <Button variant="outline" size="sm">

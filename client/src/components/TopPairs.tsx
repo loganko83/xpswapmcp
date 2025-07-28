@@ -11,7 +11,7 @@ export function TopPairs() {
     queryKey: ['top-pairs'],
     queryFn: async () => {
       try {
-        const response = await fetch(getApiUrl("/api/pools/pairs');
+        const response = await fetch(getApiUrl("/api/pools/pairs"));
         if (!response.ok) {
           return [];
         }

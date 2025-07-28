@@ -151,7 +151,7 @@ export default function PoolPage() {
   // Add liquidity mutation with LP token creation
   const addLiquidityMutation = useMutation({
     mutationFn: async (liquidityData: any) => {
-      const response = await fetch("/api/lp-tokens/mint", {
+      const response = await fetch(getApiUrl("/api/lp-tokens/mint"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(liquidityData),

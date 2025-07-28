@@ -11,7 +11,7 @@ export default function BridgePage() {
   const { data: bridgeStats } = useQuery({
     queryKey: ["/api/bridge/stats"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/bridge/stats");
+      const response = await fetch(getApiUrl("/api/bridge/stats"));
       if (!response.ok) throw new Error("Failed to fetch bridge stats");
       return response.json();
     }

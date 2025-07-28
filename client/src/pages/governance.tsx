@@ -11,7 +11,7 @@ export default function GovernancePage() {
   const { data: governanceStats } = useQuery({
     queryKey: ["/api/governance/stats"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/governance/stats");
+      const response = await fetch(getApiUrl("/api/governance/stats"));
       if (!response.ok) throw new Error("Failed to fetch governance stats");
       return response.json();
     }

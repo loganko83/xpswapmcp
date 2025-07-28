@@ -8,7 +8,7 @@ export function TokenAnalyticsTable() {
   const { data: tokenAnalytics = [] } = useQuery({
     queryKey: ["/api/analytics/tokens"],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/analytics/tokens");
+      const response = await fetch(getApiUrl("/api/analytics/tokens"));
       if (!response.ok) throw new Error("Failed to fetch token analytics");
       return response.json();
     }
