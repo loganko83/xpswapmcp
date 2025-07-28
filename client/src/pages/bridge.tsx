@@ -5,12 +5,13 @@ import { ArrowLeftRight, TrendingUp, Clock, Shield, Zap, Globe } from "lucide-re
 import { CrossChainBridge } from "@/components/CrossChainBridge";
 import { useQuery } from "@tanstack/react-query";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export default function BridgePage() {
   // Fetch bridge statistics
   const { data: bridgeStats } = useQuery({
     queryKey: ["/api/bridge/stats"],
     queryFn: async () => {
-      const response = await fetch("/api/bridge/stats");
+      const response = await fetch(getApiUrl("/api/bridge/stats");
       if (!response.ok) throw new Error("Failed to fetch bridge stats");
       return response.json();
     }

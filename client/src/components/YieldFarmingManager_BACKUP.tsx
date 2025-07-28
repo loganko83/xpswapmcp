@@ -13,6 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { getTokenIcon } from "@/lib/tokenUtils";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface Farm {
   id: number;
   name: string;
@@ -276,7 +277,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
 
   const claimRewardsMutation = useMutation({
     mutationFn: async (farmId: number) => {
-      const response = await fetch("/api/claim-rewards", {
+      const response = await fetch(getApiUrl("/api/claim-rewards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -323,7 +324,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
       if (!wallet.address) return null;
       
       const farmDataPromises = farms.map(async (farm) => {
-        const response = await fetch(`/api/farms/${farm.id}/user-info/${wallet.address}`);
+        const response = await fetch(getApiUrl(`/api/farms/${farm.id}/user-info/${wallet.address}`);
         if (!response.ok) return null;
         return response.json();
       });
@@ -392,7 +393,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                     <div>
                       <h3 className="text-lg font-semibold">{farm.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Stake {farm.stakingToken.symbol} • Earn {farm.rewardToken.symbol}
+                        Stake {farm.stakingToken.symbol} ??Earn {farm.rewardToken.symbol}
                       </p>
                     </div>
                     <Badge variant="secondary" className="bg-purple-100 text-purple-700">
@@ -483,7 +484,7 @@ export function YieldFarmingManager({ farms }: YieldFarmingManagerProps) {
                           {getUserFarmData(farm.id)?.pendingRewards || '0.000'} XPS
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          ≈ ${parseFloat(getUserFarmData(farm.id)?.pendingRewards || '0').toFixed(2)}
+                          ??${parseFloat(getUserFarmData(farm.id)?.pendingRewards || '0').toFixed(2)}
                         </div>
                       </div>
                     </div>

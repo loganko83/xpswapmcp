@@ -10,6 +10,7 @@ import { useWeb3Context } from "@/contexts/Web3Context";
 import { Zap, Code, DollarSign, Clock, AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface FlashLoanPool {
   token: string;
   symbol: string;
@@ -54,7 +55,7 @@ export function FlashLoansInterface() {
   const { data: pools } = useQuery({
     queryKey: ["/api/flashloans/pools"],
     queryFn: async () => {
-      const response = await fetch("/api/flashloans/pools");
+      const response = await fetch(getApiUrl("/api/flashloans/pools");
       if (!response.ok) throw new Error("Failed to fetch pools");
       return response.json();
     }
@@ -64,7 +65,7 @@ export function FlashLoansInterface() {
   const { data: templates } = useQuery({
     queryKey: ["/api/flashloans/templates"],
     queryFn: async () => {
-      const response = await fetch("/api/flashloans/templates");
+      const response = await fetch(getApiUrl("/api/flashloans/templates");
       if (!response.ok) throw new Error("Failed to fetch templates");
       return response.json();
     }
@@ -75,7 +76,7 @@ export function FlashLoansInterface() {
     queryKey: ["/api/flashloans/history", wallet?.address],
     queryFn: async () => {
       if (!wallet?.address) return [];
-      const response = await fetch(`/api/flashloans/history?address=${wallet.address}`);
+      const response = await fetch(getApiUrl(`/api/flashloans/history?address=${wallet.address}`);
       if (!response.ok) throw new Error("Failed to fetch history");
       return response.json();
     },
@@ -86,7 +87,7 @@ export function FlashLoansInterface() {
   const { data: analytics } = useQuery({
     queryKey: ["/api/flashloans/analytics"],
     queryFn: async () => {
-      const response = await fetch("/api/flashloans/analytics");
+      const response = await fetch(getApiUrl("/api/flashloans/analytics");
       if (!response.ok) throw new Error("Failed to fetch analytics");
       return response.json();
     }
@@ -106,7 +107,7 @@ export function FlashLoansInterface() {
     }
 
     try {
-      const response = await fetch("/api/flashloans/execute", {
+      const response = await fetch(getApiUrl("/api/flashloans/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -3,13 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useWeb3Context } from "@/contexts/Web3Context";
 import { useToast } from "@/hooks/use-toast";
 
-// 모듈화된 컴포넌트들 import
+import { getApiUrl } from "@/lib/apiUrl";
+// 모듈?�된 컴포?�트??import
 import { SecurityOverview } from "./security/SecurityOverview";
 import { SecurityAlerts } from "./security/SecurityAlerts";
 import { SecurityMetrics } from "./security/SecurityMetrics";
 import { ThreatIntelligence } from "./security/ThreatIntelligence";
 
-// 타입 import
+// ?�??import
 import { 
   SecurityStatus, 
   SecurityAlert, 
@@ -27,7 +28,7 @@ export function SecurityDashboard() {
   const { data: securityStatus } = useQuery<SecurityStatus>({
     queryKey: ["/api/security/status"],
     queryFn: async () => {
-      const response = await fetch("/api/security/status");
+      const response = await fetch(getApiUrl("/api/security/status");
       if (!response.ok) throw new Error("Failed to fetch security status");
       return response.json();
     },
@@ -38,7 +39,7 @@ export function SecurityDashboard() {
   const { data: securityAlerts } = useQuery<SecurityAlert[]>({
     queryKey: ["/api/security/alerts"],
     queryFn: async () => {
-      const response = await fetch("/api/security/alerts");
+      const response = await fetch(getApiUrl("/api/security/alerts");
       if (!response.ok) throw new Error("Failed to fetch security alerts");
       return response.json();
     },
@@ -49,7 +50,7 @@ export function SecurityDashboard() {
   const { data: securityMetrics } = useQuery<SecurityMetric[]>({
     queryKey: ["/api/security/metrics", selectedTimeframe],
     queryFn: async () => {
-      const response = await fetch(`/api/security/metrics?timeframe=${selectedTimeframe}`);
+      const response = await fetch(getApiUrl(`/api/security/metrics?timeframe=${selectedTimeframe}`);
       if (!response.ok) throw new Error("Failed to fetch security metrics");
       return response.json();
     },
@@ -60,7 +61,7 @@ export function SecurityDashboard() {
   const { data: threatIntel } = useQuery<ThreatData[]>({
     queryKey: ["/api/security/threats", selectedTimeframe],
     queryFn: async () => {
-      const response = await fetch(`/api/security/threats?timeframe=${selectedTimeframe}`);
+      const response = await fetch(getApiUrl(`/api/security/threats?timeframe=${selectedTimeframe}`);
       if (!response.ok) throw new Error("Failed to fetch threat intelligence");
       return response.json();
     },
@@ -69,7 +70,7 @@ export function SecurityDashboard() {
 
   const handleResolveAlert = async (alertId: string) => {
     try {
-      const response = await fetch(`/api/security/alerts/${alertId}/resolve`, {
+      const response = await fetch(getApiUrl(`/api/security/alerts/${alertId}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

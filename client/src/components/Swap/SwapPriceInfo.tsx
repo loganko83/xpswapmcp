@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Activity, BarChart3 } from "lucide-react";
 import { Token } from "@/types";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface SwapPriceInfoProps {
   fromToken: Token;
   toToken: Token;
@@ -28,7 +29,7 @@ export function SwapPriceInfo({
     queryKey: ['market-stats'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/market-stats');
+        const response = await fetch(getApiUrl("/api/market-stats');
         if (!response.ok) {
           throw new Error('Failed to fetch market stats');
         }

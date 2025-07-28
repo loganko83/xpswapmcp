@@ -9,6 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Shield, Bug, AlertTriangle, CheckCircle, Mail, User, FileText } from "lucide-react";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface BugReportForm {
   name: string;
   title: string;
@@ -25,7 +26,7 @@ export default function BugBounty() {
 
   const submitBugReport = useMutation({
     mutationFn: async (data: BugReportForm) => {
-      const response = await fetch("/api/bug-bounty/submit", {
+      const response = await fetch(getApiUrl("/api/bug-bounty/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -204,12 +205,12 @@ export default function BugBounty() {
                 <Textarea
                   id="content"
                   placeholder="Please provide detailed information about the bug including:
-• Steps to reproduce
-• Expected behavior vs actual behavior
-• Screenshots or video (if applicable)
-• Environment details (browser, device, etc.)
-• Potential security impact
-• Suggested fixes (if any)"
+??Steps to reproduce
+??Expected behavior vs actual behavior
+??Screenshots or video (if applicable)
+??Environment details (browser, device, etc.)
+??Potential security impact
+??Suggested fixes (if any)"
                   value={formData.content}
                   onChange={(e) => handleInputChange("content", e.target.value)}
                   required
@@ -220,11 +221,11 @@ export default function BugBounty() {
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h4 className="font-medium mb-2">Important Guidelines:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Please test on testnet environments when possible</li>
-                  <li>• Do not exploit vulnerabilities on mainnet</li>
-                  <li>• Include proof-of-concept code or screenshots</li>
-                  <li>• Reports must be original and not previously disclosed</li>
-                  <li>• We review all submissions within 48-72 hours</li>
+                  <li>??Please test on testnet environments when possible</li>
+                  <li>??Do not exploit vulnerabilities on mainnet</li>
+                  <li>??Include proof-of-concept code or screenshots</li>
+                  <li>??Reports must be original and not previously disclosed</li>
+                  <li>??We review all submissions within 48-72 hours</li>
                 </ul>
               </div>
 
@@ -259,22 +260,22 @@ export default function BugBounty() {
               <div>
                 <h4 className="font-semibold mb-3">Scope</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Smart contracts and protocol logic</li>
-                  <li>• Web application security</li>
-                  <li>• API endpoints and backend services</li>
-                  <li>• Cross-chain bridge functionality</li>
-                  <li>• User data protection</li>
+                  <li>??Smart contracts and protocol logic</li>
+                  <li>??Web application security</li>
+                  <li>??API endpoints and backend services</li>
+                  <li>??Cross-chain bridge functionality</li>
+                  <li>??User data protection</li>
                 </ul>
               </div>
               
               <div>
                 <h4 className="font-semibold mb-3">Out of Scope</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Social engineering attacks</li>
-                  <li>• Physical security issues</li>
-                  <li>• Third-party services (MetaMask, etc.)</li>
-                  <li>• Known issues already reported</li>
-                  <li>• Spam or automated submissions</li>
+                  <li>??Social engineering attacks</li>
+                  <li>??Physical security issues</li>
+                  <li>??Third-party services (MetaMask, etc.)</li>
+                  <li>??Known issues already reported</li>
+                  <li>??Spam or automated submissions</li>
                 </ul>
               </div>
             </div>

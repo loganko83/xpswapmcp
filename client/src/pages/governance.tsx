@@ -5,12 +5,13 @@ import { Vote, Users, TrendingUp, Shield } from "lucide-react";
 import { GovernanceVoting } from "@/components/GovernanceVoting";
 import { useQuery } from "@tanstack/react-query";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export default function GovernancePage() {
   // Fetch governance statistics
   const { data: governanceStats } = useQuery({
     queryKey: ["/api/governance/stats"],
     queryFn: async () => {
-      const response = await fetch("/api/governance/stats");
+      const response = await fetch(getApiUrl("/api/governance/stats");
       if (!response.ok) throw new Error("Failed to fetch governance stats");
       return response.json();
     }

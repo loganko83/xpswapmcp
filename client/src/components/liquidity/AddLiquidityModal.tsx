@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { AddLiquidityProps } from "./LiquidityPoolTypes";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidityProps) {
   const { wallet } = useWeb3Context();
   const { toast } = useToast();
@@ -41,7 +42,7 @@ export function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidityProps) 
         throw new Error("Wallet not connected");
       }
       
-      const response = await fetch("/api/add-liquidity", {
+      const response = await fetch(getApiUrl("/api/add-liquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -171,7 +172,7 @@ export function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidityProps) 
                 <span className="text-sm font-medium">{pool.tokenA.symbol}</span>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">≈ ${valueA}</div>
+            <div className="text-xs text-muted-foreground">??${valueA}</div>
           </div>
 
           {/* Swap Icon */}
@@ -211,7 +212,7 @@ export function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidityProps) 
                 <span className="text-sm font-medium">{pool.tokenB.symbol}</span>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">≈ ${valueB}</div>
+            <div className="text-xs text-muted-foreground">??${valueB}</div>
           </div>
 
           {/* Pool Information */}

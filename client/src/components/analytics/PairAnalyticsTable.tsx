@@ -2,12 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { PairAnalytics, formatNumber, formatCurrency, getChangeColor } from "@/types/analytics";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function PairAnalyticsTable() {
   // Fetch pair analytics
   const { data: pairAnalytics = [] } = useQuery({
     queryKey: ["/api/analytics/pairs"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/pairs");
+      const response = await fetch(getApiUrl("/api/analytics/pairs");
       if (!response.ok) throw new Error("Failed to fetch pair analytics");
       return response.json();
     }

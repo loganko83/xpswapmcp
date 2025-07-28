@@ -5,12 +5,13 @@ import { TradingPair } from "@/types";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { useQuery } from "@tanstack/react-query";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function TopPairs() {
   const { data: pairs = [] } = useQuery({
     queryKey: ['top-pairs'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/pools/pairs');
+        const response = await fetch(getApiUrl("/api/pools/pairs');
         if (!response.ok) {
           return [];
         }

@@ -6,12 +6,13 @@ import { Transaction } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function TransactionHistory() {
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['transactionHistory'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/transactions/history');
+        const response = await fetch(getApiUrl("/api/transactions/history');
         if (!response.ok) throw new Error('Failed to fetch transactions');
         const data = await response.json();
         return data;
@@ -113,7 +114,7 @@ export function TransactionHistory() {
                   </div>
                   <div>
                     <div className="font-semibold">
-                      {getTransactionTitle(tx.type)} {tx.tokenIn} → {tx.tokenOut}
+                      {getTransactionTitle(tx.type)} {tx.tokenIn} ??{tx.tokenOut}
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center space-x-2">
                       <span>

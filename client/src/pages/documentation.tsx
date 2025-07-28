@@ -23,6 +23,7 @@ import {
   Repeat
 } from "lucide-react";
 
+import { getApiUrl } from "@/lib/apiUrl";
 const navigationItems = [
   { id: "overview", title: "Overview", icon: BookOpen },
   { id: "getting-started", title: "Getting Started", icon: Zap },
@@ -202,24 +203,24 @@ export default function Documentation() {
                   language="text"
                   code={`XpSwap DEX Architecture
 
-┌─ Frontend (React + TypeScript)
-│  ├─ Real-time price data (CoinMarketCap API)
-│  ├─ MetaMask wallet integration
-│  ├─ Advanced swap interface
-│  └─ Analytics dashboard
+?��? Frontend (React + TypeScript)
+?? ?��? Real-time price data (CoinMarketCap API)
+?? ?��? MetaMask wallet integration
+?? ?��? Advanced swap interface
+?? ?��? Analytics dashboard
 
-├─ Backend (Node.js + Express)
-│  ├─ Real AMM calculation engine
-│  ├─ MEV protection algorithms
-│  ├─ Farming analytics API
-│  └─ PostgreSQL database
+?��? Backend (Node.js + Express)
+?? ?��? Real AMM calculation engine
+?? ?��? MEV protection algorithms
+?? ?��? Farming analytics API
+?? ?��? PostgreSQL database
 
-└─ Smart Contracts (Solidity)
-   ├─ XpSwapAdvancedAMM.sol
-   ├─ XpSwapLiquidityPool.sol
-   ├─ XpSwapGovernanceToken.sol
-   ├─ XpSwapFarmingRewards.sol
-   └─ XpSwapCrosschainBridge.sol`}
+?��? Smart Contracts (Solidity)
+   ?��? XpSwapAdvancedAMM.sol
+   ?��? XpSwapLiquidityPool.sol
+   ?��? XpSwapGovernanceToken.sol
+   ?��? XpSwapFarmingRewards.sol
+   ?��? XpSwapCrosschainBridge.sol`}
                 />
               </CardContent>
             </Card>
@@ -580,39 +581,39 @@ npm run dev`}
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-semibold mb-3">🌐 Real-time Network Status</h4>
+                      <h4 className="font-semibold mb-3">?�� Real-time Network Status</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• Live RPC connectivity monitoring</li>
-                        <li>• Network health indicators</li>
-                        <li>• Automatic failover to backup RPCs</li>
-                        <li>• Visual network status dashboard</li>
+                        <li>??Live RPC connectivity monitoring</li>
+                        <li>??Network health indicators</li>
+                        <li>??Automatic failover to backup RPCs</li>
+                        <li>??Visual network status dashboard</li>
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-3">⚡ One-click Network Addition</h4>
+                      <h4 className="font-semibold mb-3">??One-click Network Addition</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• Auto-add networks to MetaMask</li>
-                        <li>• Pre-configured RPC endpoints</li>
-                        <li>• Automatic network switching</li>
-                        <li>• Built-in network detection</li>
+                        <li>??Auto-add networks to MetaMask</li>
+                        <li>??Pre-configured RPC endpoints</li>
+                        <li>??Automatic network switching</li>
+                        <li>??Built-in network detection</li>
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-3">🔗 Cross-chain Bridge</h4>
+                      <h4 className="font-semibold mb-3">?�� Cross-chain Bridge</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• Li.Fi SDK integration</li>
-                        <li>• 40+ blockchain support</li>
-                        <li>• Real-time bridge quotes</li>
-                        <li>• Multi-route optimization</li>
+                        <li>??Li.Fi SDK integration</li>
+                        <li>??40+ blockchain support</li>
+                        <li>??Real-time bridge quotes</li>
+                        <li>??Multi-route optimization</li>
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-3">💧 High Availability</h4>
+                      <h4 className="font-semibold mb-3">?�� High Availability</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• Multiple fallback RPC URLs</li>
-                        <li>• Load balancing across providers</li>
-                        <li>• 99.9% uptime guarantee</li>
-                        <li>• Redundant infrastructure</li>
+                        <li>??Multiple fallback RPC URLs</li>
+                        <li>??Load balancing across providers</li>
+                        <li>??99.9% uptime guarantee</li>
+                        <li>??Redundant infrastructure</li>
                       </ul>
                     </div>
                   </div>
@@ -628,7 +629,7 @@ npm run dev`}
                     id="bridge-example"
                     language="typescript"
                     code={`// Cross-chain bridge usage
-const bridgeQuote = await fetch('/api/bridge-quote', {
+const bridgeQuote = await fetch(getApiUrl("/api/bridge-quote', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -699,10 +700,10 @@ function calculatePriceImpact(amountIn, reserveIn, reserveOut) {
                     <div>
                       <h4 className="font-semibold mb-2">MEV Protection</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• Sandwich attack detection and blocking</li>
-                        <li>• Dynamic fee adjustment (volatility-based)</li>
-                        <li>• Maximum slippage protection</li>
-                        <li>• Timestamp-based verification</li>
+                        <li>??Sandwich attack detection and blocking</li>
+                        <li>??Dynamic fee adjustment (volatility-based)</li>
+                        <li>??Maximum slippage protection</li>
+                        <li>??Timestamp-based verification</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -740,10 +741,10 @@ function calculateAPY(baseReward, boost, totalStaked) {
                     <div>
                       <h4 className="font-semibold mb-2">Farming Strategies</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• <strong>Basic Farming:</strong> Base rewards from LP token staking</li>
-                        <li>• <strong>Governance Boosting:</strong> Up to 1.5x with XPS token staking</li>
-                        <li>• <strong>Time Locking:</strong> Additional boosting from long-term locks</li>
-                        <li>• <strong>Auto-compounding:</strong> Automatic reward reinvestment</li>
+                        <li>??<strong>Basic Farming:</strong> Base rewards from LP token staking</li>
+                        <li>??<strong>Governance Boosting:</strong> Up to 1.5x with XPS token staking</li>
+                        <li>??<strong>Time Locking:</strong> Additional boosting from long-term locks</li>
+                        <li>??<strong>Auto-compounding:</strong> Automatic reward reinvestment</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -760,19 +761,19 @@ function calculateAPY(baseReward, boost, totalStaked) {
                     <div>
                       <h4 className="font-semibold mb-2">Voting Mechanism</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• Time-weighted voting power</li>
-                        <li>• Delegated voting support</li>
-                        <li>• Proposal creation and execution</li>
-                        <li>• Community treasury management</li>
+                        <li>??Time-weighted voting power</li>
+                        <li>??Delegated voting support</li>
+                        <li>??Proposal creation and execution</li>
+                        <li>??Community treasury management</li>
                       </ul>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2">XPS Token Utility</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• Fee discounts (up to 75% for Diamond tier)</li>
-                        <li>• Yield farming boost multipliers</li>
-                        <li>• Governance voting rights</li>
-                        <li>• Exclusive feature access</li>
+                        <li>??Fee discounts (up to 75% for Diamond tier)</li>
+                        <li>??Yield farming boost multipliers</li>
+                        <li>??Governance voting rights</li>
+                        <li>??Exclusive feature access</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -789,21 +790,21 @@ function calculateAPY(baseReward, boost, totalStaked) {
                     <div>
                       <h4 className="font-semibold mb-2">Supported Networks</h4>
                       <div className="grid grid-cols-2 gap-2">
-                        <span className="text-sm">• Ethereum (ETH)</span>
-                        <span className="text-sm">• Binance Smart Chain (BNB)</span>
-                        <span className="text-sm">• Polygon (MATIC)</span>
-                        <span className="text-sm">• Arbitrum (ETH)</span>
-                        <span className="text-sm">• Optimism (ETH)</span>
-                        <span className="text-sm">• Xphere (XP)</span>
+                        <span className="text-sm">??Ethereum (ETH)</span>
+                        <span className="text-sm">??Binance Smart Chain (BNB)</span>
+                        <span className="text-sm">??Polygon (MATIC)</span>
+                        <span className="text-sm">??Arbitrum (ETH)</span>
+                        <span className="text-sm">??Optimism (ETH)</span>
+                        <span className="text-sm">??Xphere (XP)</span>
                       </div>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2">Bridge Features</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• Real-time quotes and route optimization</li>
-                        <li>• Automatic slippage protection</li>
-                        <li>• Transaction status tracking</li>
-                        <li>• Multi-step bridge operations</li>
+                        <li>??Real-time quotes and route optimization</li>
+                        <li>??Automatic slippage protection</li>
+                        <li>??Transaction status tracking</li>
+                        <li>??Multi-step bridge operations</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -902,10 +903,10 @@ const headers = {
                     <div>
                       <h4 className="font-semibold mb-2">Rate Limiting</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• 100 requests per minute per IP</li>
-                        <li>• Burst allowance: 20 requests in 10 seconds</li>
-                        <li>• Rate limit headers included in responses</li>
-                        <li>• Automatic retry with exponential backoff recommended</li>
+                        <li>??100 requests per minute per IP</li>
+                        <li>??Burst allowance: 20 requests in 10 seconds</li>
+                        <li>??Rate limit headers included in responses</li>
+                        <li>??Automatic retry with exponential backoff recommended</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -1108,19 +1109,19 @@ const headers = {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-semibold mb-2">📚 Documentation First</h4>
+                    <h4 className="font-semibold mb-2">?�� Documentation First</h4>
                     <p className="text-sm text-muted-foreground">Check our comprehensive documentation before asking questions</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">🐛 Bug Reports</h4>
+                    <h4 className="font-semibold mb-2">?�� Bug Reports</h4>
                     <p className="text-sm text-muted-foreground">Use GitHub Issues for bug reports with detailed reproduction steps</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">💡 Feature Requests</h4>
+                    <h4 className="font-semibold mb-2">?�� Feature Requests</h4>
                     <p className="text-sm text-muted-foreground">Submit feature requests via GitHub Discussions with use cases</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">🚨 Security Issues</h4>
+                    <h4 className="font-semibold mb-2">?�� Security Issues</h4>
                     <p className="text-sm text-muted-foreground">Report security vulnerabilities privately to security@xpswap.com</p>
                   </div>
                 </div>
@@ -1169,21 +1170,21 @@ const headers = {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-3">🎯 Option Types</h4>
+                        <h4 className="font-semibold mb-3">?�� Option Types</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• <strong>Call Options:</strong> Right to buy at strike price</li>
-                          <li>• <strong>Put Options:</strong> Right to sell at strike price</li>
-                          <li>• <strong>American Style:</strong> Exercise anytime before expiry</li>
-                          <li>• <strong>European Style:</strong> Exercise only at expiry</li>
+                          <li>??<strong>Call Options:</strong> Right to buy at strike price</li>
+                          <li>??<strong>Put Options:</strong> Right to sell at strike price</li>
+                          <li>??<strong>American Style:</strong> Exercise anytime before expiry</li>
+                          <li>??<strong>European Style:</strong> Exercise only at expiry</li>
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-3">⚡ Key Features</h4>
+                        <h4 className="font-semibold mb-3">??Key Features</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• Real-time Black-Scholes pricing</li>
-                          <li>• Automated IV calculations</li>
-                          <li>• Multi-collateral support</li>
-                          <li>• Advanced Greeks display</li>
+                          <li>??Real-time Black-Scholes pricing</li>
+                          <li>??Automated IV calculations</li>
+                          <li>??Multi-collateral support</li>
+                          <li>??Advanced Greeks display</li>
                         </ul>
                       </div>
                     </div>
@@ -1254,21 +1255,21 @@ function calculateGreeks(S, K, T, r, sigma) {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-3">📈 Contract Types</h4>
+                        <h4 className="font-semibold mb-3">?�� Contract Types</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• <strong>Perpetual Futures:</strong> No expiry date</li>
-                          <li>• <strong>Quarterly Futures:</strong> 3-month expiry</li>
-                          <li>• <strong>Weekly Futures:</strong> Weekly settlements</li>
-                          <li>• <strong>Inverse Futures:</strong> Settled in base currency</li>
+                          <li>??<strong>Perpetual Futures:</strong> No expiry date</li>
+                          <li>??<strong>Quarterly Futures:</strong> 3-month expiry</li>
+                          <li>??<strong>Weekly Futures:</strong> Weekly settlements</li>
+                          <li>??<strong>Inverse Futures:</strong> Settled in base currency</li>
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-3">⚡ Trading Features</h4>
+                        <h4 className="font-semibold mb-3">??Trading Features</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• Up to 10x leverage available</li>
-                          <li>• Cross and isolated margin modes</li>
-                          <li>• Advanced order types (OCO, Stop-Loss)</li>
-                          <li>• Real-time funding rate updates</li>
+                          <li>??Up to 10x leverage available</li>
+                          <li>??Cross and isolated margin modes</li>
+                          <li>??Advanced order types (OCO, Stop-Loss)</li>
+                          <li>??Real-time funding rate updates</li>
                         </ul>
                       </div>
                     </div>
@@ -1344,21 +1345,21 @@ function calculateLiquidationPrice(entryPrice, leverage, marginRatio, isLong) {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-3">⚡ Use Cases</h4>
+                        <h4 className="font-semibold mb-3">??Use Cases</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• <strong>Arbitrage Trading:</strong> Cross-DEX price differences</li>
-                          <li>• <strong>Debt Refinancing:</strong> Switch between protocols</li>
-                          <li>• <strong>Liquidation Protection:</strong> Save positions from liquidation</li>
-                          <li>• <strong>Collateral Swapping:</strong> Change collateral types</li>
+                          <li>??<strong>Arbitrage Trading:</strong> Cross-DEX price differences</li>
+                          <li>??<strong>Debt Refinancing:</strong> Switch between protocols</li>
+                          <li>??<strong>Liquidation Protection:</strong> Save positions from liquidation</li>
+                          <li>??<strong>Collateral Swapping:</strong> Change collateral types</li>
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-3">🔧 Technical Features</h4>
+                        <h4 className="font-semibold mb-3">?�� Technical Features</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• Zero collateral required</li>
-                          <li>• 0.09% flash loan fee</li>
-                          <li>• Multi-asset flash loans</li>
-                          <li>• Atomic execution guarantee</li>
+                          <li>??Zero collateral required</li>
+                          <li>??0.09% flash loan fee</li>
+                          <li>??Multi-asset flash loans</li>
+                          <li>??Atomic execution guarantee</li>
                         </ul>
                       </div>
                     </div>
@@ -1477,21 +1478,21 @@ await executeFlashLoan(
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-3">🔗 Supported Chains</h4>
+                        <h4 className="font-semibold mb-3">?�� Supported Chains</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• <strong>Xphere ↔ Ethereum:</strong> XP ↔ ETH/USDT</li>
-                          <li>• <strong>Xphere ↔ BSC:</strong> XP ↔ BNB/BUSD</li>
-                          <li>• <strong>Xphere ↔ Polygon:</strong> XP ↔ MATIC/USDC</li>
-                          <li>• <strong>Bitcoin Integration:</strong> XP ↔ BTC (via HTLC)</li>
+                          <li>??<strong>Xphere ??Ethereum:</strong> XP ??ETH/USDT</li>
+                          <li>??<strong>Xphere ??BSC:</strong> XP ??BNB/BUSD</li>
+                          <li>??<strong>Xphere ??Polygon:</strong> XP ??MATIC/USDC</li>
+                          <li>??<strong>Bitcoin Integration:</strong> XP ??BTC (via HTLC)</li>
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-3">🛡️ Security Features</h4>
+                        <h4 className="font-semibold mb-3">?���?Security Features</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• No counterparty risk</li>
-                          <li>• Cryptographic proof of funds</li>
-                          <li>• Automatic refund after timeout</li>
-                          <li>• Multi-signature support</li>
+                          <li>??No counterparty risk</li>
+                          <li>??Cryptographic proof of funds</li>
+                          <li>??Automatic refund after timeout</li>
+                          <li>??Multi-signature support</li>
                         </ul>
                       </div>
                     </div>
@@ -1627,21 +1628,21 @@ contract XpSwapHTLC {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-3">🚀 Launch Features</h4>
+                        <h4 className="font-semibold mb-3">?? Launch Features</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• <strong>Fair Launch:</strong> No pre-sales or allocations</li>
-                          <li>• <strong>Bonding Curves:</strong> Automatic price discovery</li>
-                          <li>• <strong>Rug Protection:</strong> Locked liquidity for 1 year</li>
-                          <li>• <strong>Community Voting:</strong> Feature upgrades via governance</li>
+                          <li>??<strong>Fair Launch:</strong> No pre-sales or allocations</li>
+                          <li>??<strong>Bonding Curves:</strong> Automatic price discovery</li>
+                          <li>??<strong>Rug Protection:</strong> Locked liquidity for 1 year</li>
+                          <li>??<strong>Community Voting:</strong> Feature upgrades via governance</li>
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-3">🛡️ Safety Mechanisms</h4>
+                        <h4 className="font-semibold mb-3">?���?Safety Mechanisms</h4>
                         <ul className="space-y-2 text-sm">
-                          <li>• Immutable smart contracts</li>
-                          <li>• Automatic liquidity locks</li>
-                          <li>• Maximum transaction limits</li>
-                          <li>• Honeypot detection system</li>
+                          <li>??Immutable smart contracts</li>
+                          <li>??Automatic liquidity locks</li>
+                          <li>??Maximum transaction limits</li>
+                          <li>??Honeypot detection system</li>
                         </ul>
                       </div>
                     </div>
@@ -1893,11 +1894,11 @@ const circulatingSupply = 15750000; // 75% circulating`}
                     <div>
                       <h4 className="font-semibold mb-2">Benefits</h4>
                       <ul className="space-y-1 text-sm">
-                        <li>• Instant settlement</li>
-                        <li>• No price slippage</li>
-                        <li>• Automatic fee discounts</li>
-                        <li>• Staking rewards eligible</li>
-                        <li>• Governance voting power</li>
+                        <li>??Instant settlement</li>
+                        <li>??No price slippage</li>
+                        <li>??Automatic fee discounts</li>
+                        <li>??Staking rewards eligible</li>
+                        <li>??Governance voting power</li>
                       </ul>
                     </div>
                   </div>

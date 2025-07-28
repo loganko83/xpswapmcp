@@ -19,6 +19,7 @@ import {
   BridgeTransaction
 } from "./bridge";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function CrossChainBridge() {
   const { wallet } = useWeb3Context();
   const { toast } = useToast();
@@ -142,7 +143,7 @@ export function CrossChainBridge() {
         throw new Error('Missing required parameters');
       }
 
-      const response = await fetch("/api/bridge/execute", {
+      const response = await fetch(getApiUrl("/api/bridge/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

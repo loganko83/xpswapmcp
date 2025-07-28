@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_TOKENS } from "@/lib/constants";
 import { getTokenIcon } from "@/lib/tokenUtils";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface LiquidityPool {
   id: number;
   tokenA: { symbol: string; name: string; address: string };
@@ -65,7 +66,7 @@ function AddLiquidity({ pool, isOpen, onClose }: AddLiquidityProps) {
         throw new Error("Wallet not connected");
       }
       
-      const response = await fetch("/api/add-liquidity", {
+      const response = await fetch(getApiUrl("/api/add-liquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -405,7 +406,7 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
 
   const removeLiquidityMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/remove-liquidity", {
+      const response = await fetch(getApiUrl("/api/remove-liquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

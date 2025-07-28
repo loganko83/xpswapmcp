@@ -7,6 +7,7 @@ import { useWeb3Context } from "@/contexts/Web3Context";
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { RemoveLiquidityProps } from "./LiquidityPoolTypes";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function RemoveLiquidityModal({ pool, isOpen, onClose }: RemoveLiquidityProps) {
   const { wallet } = useWeb3Context();
   const { toast } = useToast();
@@ -17,7 +18,7 @@ export function RemoveLiquidityModal({ pool, isOpen, onClose }: RemoveLiquidityP
 
   const removeLiquidityMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/remove-liquidity", {
+      const response = await fetch(getApiUrl("/api/remove-liquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

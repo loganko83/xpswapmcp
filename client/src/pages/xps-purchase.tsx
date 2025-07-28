@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { web3Service } from '@/lib/web3';
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface XPPrice {
   price: number;
   change24h: number;
@@ -32,7 +33,7 @@ export default function XPSPurchase() {
   const { data: xpPriceData } = useQuery<XPPrice>({
     queryKey: ['xp-price'],
     queryFn: async () => {
-      const response = await fetch('/api/xp-price');
+      const response = await fetch(getApiUrl("/api/xp-price');
       if (!response.ok) throw new Error('Failed to fetch XP price');
       return response.json();
     },

@@ -9,7 +9,8 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, X
 import { Activity, TrendingUp, TrendingDown, DollarSign, Users, Zap, RefreshCw, AlertCircle, Target, Eye, Radio } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-// 보안 강화된 유틸리티 함수
+import { getApiUrl } from "@/lib/apiUrl";
+// 보안 강화???�틸리티 ?�수
 const generateSecureId = (length: number = 16): string => {
   const array = new Uint8Array(Math.ceil(length / 2));
   crypto.getRandomValues(array);
@@ -78,7 +79,7 @@ export function RealTimeAnalyticsDashboard() {
   const { data: analyticsData, refetch } = useQuery({
     queryKey: ["/api/analytics/realtime", timeRange],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/realtime?range=${timeRange}`);
+      const response = await fetch(getApiUrl(`/api/analytics/realtime?range=${timeRange}`);
       if (!response.ok) throw new Error("Failed to fetch real-time analytics");
       return response.json();
     },
@@ -90,7 +91,7 @@ export function RealTimeAnalyticsDashboard() {
   const { data: liveTrades } = useQuery({
     queryKey: ["/api/analytics/live-trades"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/live-trades");
+      const response = await fetch(getApiUrl("/api/analytics/live-trades");
       if (!response.ok) throw new Error("Failed to fetch live trades");
       return response.json();
     },
@@ -102,7 +103,7 @@ export function RealTimeAnalyticsDashboard() {
   const { data: liquidityData } = useQuery({
     queryKey: ["/api/analytics/liquidity-flows"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/liquidity-flows");
+      const response = await fetch(getApiUrl("/api/analytics/liquidity-flows");
       if (!response.ok) throw new Error("Failed to fetch liquidity flows");
       return response.json();
     },

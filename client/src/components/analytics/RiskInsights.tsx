@@ -4,12 +4,13 @@ import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Target, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
+import { getApiUrl } from "@/lib/apiUrl";
 export function RiskInsights() {
   // Risk metrics
   const { data: riskMetrics } = useQuery({
     queryKey: ["/api/analytics/risk"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/risk");
+      const response = await fetch(getApiUrl("/api/analytics/risk");
       if (!response.ok) throw new Error("Failed to fetch risk metrics");
       return response.json();
     }

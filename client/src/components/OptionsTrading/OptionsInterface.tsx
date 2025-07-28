@@ -15,6 +15,7 @@ import {
   detectPriceManipulation 
 } from "@/utils/optionsSecurity";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface OptionContract {
   id: string;
   type: 'call' | 'put';
@@ -56,7 +57,7 @@ export function OptionsInterface() {
   const { data: optionContracts } = useQuery({
     queryKey: ["/api/options/contracts", selectedUnderlying],
     queryFn: async () => {
-      const response = await fetch(`/api/options/contracts?underlying=${selectedUnderlying}`);
+      const response = await fetch(getApiUrl(`/api/options/contracts?underlying=${selectedUnderlying}`);
       if (!response.ok) throw new Error("Failed to fetch option contracts");
       return response.json();
     }
@@ -67,7 +68,7 @@ export function OptionsInterface() {
     queryKey: ["/api/options/positions", wallet?.address],
     queryFn: async () => {
       if (!wallet?.address) return [];
-      const response = await fetch(`/api/options/positions?address=${wallet.address}`);
+      const response = await fetch(getApiUrl(`/api/options/positions?address=${wallet.address}`);
       if (!response.ok) throw new Error("Failed to fetch positions");
       return response.json();
     },
@@ -78,7 +79,7 @@ export function OptionsInterface() {
   const { data: optionAnalytics } = useQuery({
     queryKey: ["/api/options/analytics"],
     queryFn: async () => {
-      const response = await fetch("/api/options/analytics");
+      const response = await fetch(getApiUrl("/api/options/analytics");
       if (!response.ok) throw new Error("Failed to fetch option analytics");
       return response.json();
     }
@@ -92,12 +93,12 @@ export function OptionsInterface() {
 
     try {
       // Get current spot price and oracle data
-      const priceResponse = await fetch(`/api/price/${selectedUnderlying}`);
+      const priceResponse = await fetch(getApiUrl(`/api/price/${selectedUnderlying}`);
       const priceData = await priceResponse.json();
       const spotPrice = priceData.price;
       
       // Get liquidity data
-      const liquidityResponse = await fetch(`/api/options/liquidity/${selectedUnderlying}`);
+      const liquidityResponse = await fetch(getApiUrl(`/api/options/liquidity/${selectedUnderlying}`);
       const liquidityData = await liquidityResponse.json();
       const totalLiquidity = liquidityData.totalLiquidity || 100000; // Default fallback
       
@@ -140,7 +141,7 @@ export function OptionsInterface() {
       // Get anti-MEV parameters
       const antiMEVParams = generateAntiMEVParams(spotPrice, orderType === 'buy');
       
-      const response = await fetch("/api/options/trade", {
+      const response = await fetch(getApiUrl("/api/options/trade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -9,6 +9,7 @@ import { NetworkSelector } from "./NetworkSelector";
 import { TokenSelector } from "./TokenSelector";
 import { SupportedNetwork, BridgeToken, MultiChainBalance, BridgeData } from "./types";
 
+import { getApiUrl } from "@/lib/apiUrl";
 interface BridgeFormProps {
   networks: SupportedNetwork[];
   multiChainBalances: MultiChainBalance[];
@@ -46,7 +47,7 @@ export function BridgeForm({
         throw new Error('Missing required parameters');
       }
 
-      const response = await fetch("/api/bridge/quote", {
+      const response = await fetch(getApiUrl("/api/bridge/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
