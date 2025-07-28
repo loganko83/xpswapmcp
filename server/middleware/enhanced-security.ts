@@ -4,6 +4,7 @@ import { body, param, query, validationResult } from 'express-validator';
 import helmet from 'helmet';
 import cors from 'cors';
 import crypto from 'crypto';
+import Logger, { SecurityLogger, logSecurityEvent } from '../utils/logger-enhanced.js';
 
 // 🔒 Enhanced Security Configuration
 export const enhancedSecurityConfig = {
