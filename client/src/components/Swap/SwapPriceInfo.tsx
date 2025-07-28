@@ -23,6 +23,28 @@ export function SwapPriceInfo({
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Get market statistics
+  const { data: marketStats } = useQuery({
+    queryKey: ['market-stats'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/market-stats');
+        if (!response.ok) {
+          throw new Error('Failed to fetch market stats');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching market stats:', error);
+        return {
+          volume24h: "0",
+          totalValueLocked: "0",
+          activePairs: 0
+        };
+      }
+    },
+    refetchInterval: 30000,
+  });
+
   const fromTokenChange = priceChangeData?.[fromToken.symbol]?.change24h || 0;
   const toTokenChange = priceChangeData?.[toToken.symbol]?.change24h || 0;
 
@@ -110,19 +132,23 @@ export function SwapPriceInfo({
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-600">24h Volume:</span>
-              <span className="font-medium">$8,750</span>
+              <span className="font-medium">
+                ${marketStats?.volume24h ? parseFloat(marketStats.volume24h).toLocaleString() : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Liquidity:</span>
-              <span className="font-medium">$32.5K</span>
+              <span className="text-gray-600">TVL:</span>
+              <span className="font-medium">
+                ${marketStats?.totalValueLocked ? parseFloat(marketStats.totalValueLocked).toLocaleString() : '0'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Active Pairs:</span>
+              <span className="font-medium">{marketStats?.activePairs || 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Fee Tier:</span>
               <span className="font-medium">0.30%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Active:</span>
-              <span className="font-medium text-green-600">●</span>
             </div>
           </div>
         </div>

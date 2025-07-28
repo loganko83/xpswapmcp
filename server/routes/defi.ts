@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validateRequest } from "../middleware/validation";
 import { body, query } from "express-validator";
-import { BlockchainService } from "../services/blockchain";
+import { BlockchainService } from "../services/realBlockchain";
 
 const router = Router();
 const blockchainService = new BlockchainService();
