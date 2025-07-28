@@ -7,8 +7,8 @@ export const CHAIN_CONFIGS = {
     name: 'Ethereum',
     symbol: 'ETH',
     rpcUrls: [
-      'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
-      'https://eth-mainnet.alchemyapi.io/v2/YOUR_ALCHEMY_KEY',
+      import.meta.env.VITE_INFURA_API_URL || 'https://ethereum.publicnode.com',
+      import.meta.env.VITE_ALCHEMY_API_URL || 'https://rpc.ankr.com/eth',
       'https://ethereum.publicnode.com',
       'https://rpc.ankr.com/eth'
     ],
