@@ -1,7 +1,7 @@
 // Base URL for API calls
 export const API_BASE_URL = import.meta.env.PROD 
   ? '/xpswap/api' 
-  : 'http://localhost:5000/api';
+  : 'http://localhost:5001/api';
 
 // Helper function to get full API URL
 export function getApiUrl(path: string): string {
@@ -18,7 +18,7 @@ export function getApiUrl(path: string): string {
     if (import.meta.env.PROD) {
       return `${API_BASE_URL}/${cleanPath.slice(4)}`;
     } else {
-      return `http://localhost:5000/${cleanPath}`;
+      return `http://localhost:5001/${cleanPath}`;
     }
   }
   
