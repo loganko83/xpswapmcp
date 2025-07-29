@@ -67,39 +67,24 @@ export function CrossChainBridge() {
     queryKey: ["/api/bridge/supported-chains"],
     staleTime: 5 * 60 * 1000, // 5 minutes
     queryFn: async () => {
-      // Mock network data for now
-      return [
-        {
-          chainId: 20250217,
-          name: "Xphere Chain",
-          symbol: "XP",
-          logo: "/api/placeholder/32/32",
-          rpcUrl: "https://xphere-rpc.com",
-          blockExplorer: "https://explorer.xphere.io",
-          nativeCurrency: { name: "XP", symbol: "XP", decimals: 18 },
-          isConnected: true
-        },
-        {
-          chainId: 1,
-          name: "Ethereum",
-          symbol: "ETH",
-          logo: "/api/placeholder/32/32",
-          rpcUrl: "https://mainnet.infura.io",
-          blockExplorer: "https://etherscan.io",
-          nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
-          isConnected: false
-        },
-        {
-          chainId: 56,
-          name: "BNB Smart Chain",
-          symbol: "BNB",
-          logo: "/api/placeholder/32/32",
-          rpcUrl: "https://bsc-dataseed.binance.org",
-          blockExplorer: "https://bscscan.com",
-          nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-          isConnected: false
-        }
-      ];
+      const response = await fetch(getApiUrl("/api/bridge/networks"));
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to fetch supported networks");
+      }
+      const data = await response.json();
+      
+      // Map API response to SupportedNetwork format
+      return data.data.map((network: any) => ({
+        chainId: network.chainId,
+        name: network.name,
+        symbol: network.symbol,
+        logo: network.logo || "/api/placeholder/32/32",
+        rpcUrl: network.rpcUrl,
+        blockExplorer: network.blockExplorer,
+        nativeCurrency: network.nativeCurrency,
+        isConnected: network.chainId === 20250217 && wallet.isConnected
+      }));
     }
   });
 
@@ -109,19 +94,13 @@ export function CrossChainBridge() {
     enabled: !!wallet.address,
     refetchInterval: 10000, // Refresh every 10 seconds
     queryFn: async () => {
-      // Mock balance data for now
-      return [
-        {
-          chainId: 20250217,
-          chainName: "Xphere Chain",
-          nativeSymbol: "XP",
-          nativeBalance: "1000.5",
-          tokens: [
-            { symbol: "XPS", name: "XpSwap Token", balance: "5000.0", decimals: 18 },
-            { symbol: "USDT", name: "Tether USD", balance: "100.0", decimals: 6 }
-          ]
-        }
-      ];
+      const response = await fetch(getApiUrl(`/api/multichain/balances/${wallet.address}`));
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to fetch multichain balances");
+      }
+      const data = await response.json();
+      return data.data || [];
     }
   });
 
@@ -131,8 +110,13 @@ export function CrossChainBridge() {
     enabled: !!wallet.address,
     refetchInterval: 5000, // Refresh every 5 seconds
     queryFn: async () => {
-      // Mock history data for now
-      return [];
+      const response = await fetch(getApiUrl(`/api/bridge/history/${wallet.address}`));
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to fetch bridge history");
+      }
+      const data = await response.json();
+      return data.data || [];
     }
   });
 

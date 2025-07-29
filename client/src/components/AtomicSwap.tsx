@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWeb3Context } from "@/contexts/Web3Context";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getApiUrl } from "@/lib/apiUrl";
 
 interface AtomicSwapContract {
   id: string;
@@ -48,46 +50,6 @@ interface Token {
   balance: number;
 }
 
-const SUPPORTED_TOKENS: Token[] = [
-  { symbol: 'BTC', name: 'Bitcoin', network: 'Bitcoin', icon: '₿', balance: 0.125 },
-  { symbol: 'ETH', name: 'Ethereum', network: 'Ethereum', icon: 'Ξ', balance: 2.45 },
-  { symbol: 'XP', name: 'Xphere', network: 'Xphere', icon: '⚡', balance: 1250.0 },
-  { symbol: 'BNB', name: 'BNB Chain', network: 'BSC', icon: '💎', balance: 5.8 },
-  { symbol: 'MATIC', name: 'Polygon', network: 'Polygon', icon: '🔷', balance: 850.5 },
-  { symbol: 'AVAX', name: 'Avalanche', network: 'Avalanche', icon: '🔺', balance: 12.3 }
-];
-
-const MOCK_CONTRACTS: AtomicSwapContract[] = [
-  {
-    id: "0x123...abc",
-    initiator: "0x742d35Cc6e68B4aB8b7C8b8A8Bb7e8Cc9c3D2E1F",
-    participant: "0x456d35Cc6e68B4aB8b7C8b8A8Bb7e8Cc9c3D2E1F",
-    amount: 1.5,
-    token: "ETH",
-    hashedSecret: "0x7b227b502c9b86a4b6e8b7c8d9e0f1a2b3c4d5e6",
-    lockTime: 24,
-    status: "locked",
-    network: "Ethereum",
-    counterpartyNetwork: "Bitcoin",
-    createdAt: Date.now() - 3600000,
-    expiresAt: Date.now() + 82800000
-  },
-  {
-    id: "0x789...def",
-    initiator: "0x742d35Cc6e68B4aB8b7C8b8A8Bb7e8Cc9c3D2E1F",
-    participant: "0x987d35Cc6e68B4aB8b7C8b8A8Bb7e8Cc9c3D2E1F",
-    amount: 0.025,
-    token: "BTC",
-    hashedSecret: "0x8c338c612d9c86a4b6e8b7c8d9e0f1a2b3c4d5e6",
-    lockTime: 48,
-    status: "pending",
-    network: "Bitcoin",
-    counterpartyNetwork: "Xphere",
-    createdAt: Date.now() - 1800000,
-    expiresAt: Date.now() + 169200000
-  }
-];
-
 export function AtomicSwap() {
   const [activeTab, setActiveTab] = useState("create");
   const [fromToken, setFromToken] = useState<Token | null>(null);
@@ -97,12 +59,156 @@ export function AtomicSwap() {
   const [lockTime, setLockTime] = useState("24");
   const [secret, setSecret] = useState("");
   const [hashedSecret, setHashedSecret] = useState("");
-  const [contracts, setContracts] = useState<AtomicSwapContract[]>(MOCK_CONTRACTS);
-  const [isCreating, setIsCreating] = useState(false);
-  const [selectedContract, setSelectedContract] = useState<AtomicSwapContract | null>(null);
-
   const { toast } = useToast();
   const { wallet } = useWeb3Context();
+  const queryClient = useQueryClient();
+
+  // Fetch supported tokens from API
+  const { data: supportedTokens = [] } = useQuery<Token[]>({
+    queryKey: ["/api/atomic-swap/tokens"],
+    queryFn: async () => {
+      const response = await fetch(getApiUrl("/api/atomic-swap/tokens"));
+      if (!response.ok) {
+        throw new Error("Failed to fetch supported tokens");
+      }
+      const data = await response.json();
+      return data.data || [];
+    }
+  });
+
+  // Fetch atomic swap contracts
+  const { data: contracts = [] } = useQuery<AtomicSwapContract[]>({
+    queryKey: ["/api/atomic-swap/contracts", wallet.address],
+    enabled: !!wallet.address,
+    refetchInterval: 5000,
+    queryFn: async () => {
+      const response = await fetch(getApiUrl(`/api/atomic-swap/contracts/${wallet.address}`));
+      if (!response.ok) {
+        throw new Error("Failed to fetch contracts");
+      }
+      const data = await response.json();
+      return data.data || [];
+    }
+  });
+  
+  const [selectedContract, setSelectedContract] = useState<AtomicSwapContract | null>(null);
+
+  // Create atomic swap mutation
+  const createSwapMutation = useMutation({
+    mutationFn: async (data: {
+      fromToken: string;
+      toToken: string;
+      amount: string;
+      counterpartyAddress: string;
+      lockTime: number;
+      hashedSecret: string;
+    }) => {
+      const response = await fetch(getApiUrl("/api/atomic-swap/create"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          walletAddress: wallet.address
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create atomic swap");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/atomic-swap/contracts"] });
+      toast({
+        title: "Atomic Swap Created",
+        description: "Your atomic swap contract has been created successfully",
+      });
+      // Reset form
+      setAmount("");
+      setCounterpartyAddress("");
+      setSecret("");
+      setHashedSecret("");
+      setActiveTab("manage");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Creation Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Redeem contract mutation
+  const redeemMutation = useMutation({
+    mutationFn: async (contractId: string) => {
+      const response = await fetch(getApiUrl(`/api/atomic-swap/redeem/${contractId}`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: wallet.address,
+          secret: secret
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to redeem contract");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/atomic-swap/contracts"] });
+      toast({
+        title: "Contract Redeemed",
+        description: "Successfully redeemed the atomic swap contract",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Redemption Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Refund contract mutation
+  const refundMutation = useMutation({
+    mutationFn: async (contractId: string) => {
+      const response = await fetch(getApiUrl(`/api/atomic-swap/refund/${contractId}`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: wallet.address
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to refund contract");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/atomic-swap/contracts"] });
+      toast({
+        title: "Contract Refunded",
+        description: "Successfully refunded the atomic swap contract",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Refund Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
 
   // Generate random secret
   const generateSecret = () => {
@@ -117,7 +223,7 @@ export function AtomicSwap() {
   };
 
   const createAtomicSwap = async () => {
-    if (!fromToken || !toToken || !amount || !counterpartyAddress) {
+    if (!fromToken || !toToken || !amount || !counterpartyAddress || !hashedSecret) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -126,76 +232,30 @@ export function AtomicSwap() {
       return;
     }
 
-    setIsCreating(true);
-    
-    try {
-      // Simulate contract creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const newContract: AtomicSwapContract = {
-        id: "0x" + getSecureRandom().toString(16).slice(2, 10) + "...abc",
-        initiator: wallet?.address || "0x742d35Cc6e68B4aB8b7C8b8A8Bb7e8Cc9c3D2E1F",
-        participant: counterpartyAddress,
-        amount: parseFloat(amount),
-        token: fromToken.symbol,
-        hashedSecret,
-        lockTime: parseInt(lockTime),
-        status: "pending",
-        network: fromToken.network,
-        counterpartyNetwork: toToken.network,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + (parseInt(lockTime) * 3600000)
-      };
-
-      setContracts(prev => [newContract, ...prev]);
-      
-      toast({
-        title: "Atomic Swap Created",
-        description: `Contract ${newContract.id} created successfully`,
-      });
-
-      // Reset form
-      setAmount("");
-      setCounterpartyAddress("");
-      setSecret("");
-      setHashedSecret("");
-      setActiveTab("manage");
-      
-    } catch (error) {
-      toast({
-        title: "Creation Failed",
-        description: "Failed to create atomic swap contract",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreating(false);
-    }
+    createSwapMutation.mutate({
+      fromToken: fromToken.symbol,
+      toToken: toToken.symbol,
+      amount: amount,
+      counterpartyAddress: counterpartyAddress,
+      lockTime: parseInt(lockTime),
+      hashedSecret: hashedSecret
+    });
   };
 
   const redeemContract = async (contractId: string) => {
-    setContracts(prev => prev.map(contract => 
-      contract.id === contractId 
-        ? { ...contract, status: 'redeemed' as const }
-        : contract
-    ));
-    
-    toast({
-      title: "Contract Redeemed",
-      description: `Successfully redeemed contract ${contractId}`,
-    });
+    if (!secret) {
+      toast({
+        title: "Secret Required",
+        description: "Please enter the secret to redeem the contract",
+        variant: "destructive"
+      });
+      return;
+    }
+    redeemMutation.mutate(contractId);
   };
 
   const refundContract = async (contractId: string) => {
-    setContracts(prev => prev.map(contract => 
-      contract.id === contractId 
-        ? { ...contract, status: 'refunded' as const }
-        : contract
-    ));
-    
-    toast({
-      title: "Contract Refunded",
-      description: `Successfully refunded contract ${contractId}`,
-    });
+    refundMutation.mutate(contractId);
   };
 
   const getStatusBadge = (status: AtomicSwapContract['status']) => {
@@ -319,12 +379,12 @@ export function AtomicSwap() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>From Token</Label>
-                  <Select onValueChange={(value) => setFromToken(SUPPORTED_TOKENS.find(t => t.symbol === value) || null)}>
+                  <Select onValueChange={(value) => setFromToken(supportedTokens.find(t => t.symbol === value) || null)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select token to send" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SUPPORTED_TOKENS.map((token) => (
+                      {supportedTokens.map((token) => (
                         <SelectItem key={token.symbol} value={token.symbol}>
                           <div className="flex items-center space-x-2">
                             <span>{token.icon}</span>
@@ -344,12 +404,12 @@ export function AtomicSwap() {
 
                 <div className="space-y-2">
                   <Label>To Token</Label>
-                  <Select onValueChange={(value) => setToToken(SUPPORTED_TOKENS.find(t => t.symbol === value) || null)}>
+                  <Select onValueChange={(value) => setToToken(supportedTokens.find(t => t.symbol === value) || null)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select token to receive" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SUPPORTED_TOKENS.filter(t => t.symbol !== fromToken?.symbol).map((token) => (
+                      {supportedTokens.filter(t => t.symbol !== fromToken?.symbol).map((token) => (
                         <SelectItem key={token.symbol} value={token.symbol}>
                           <div className="flex items-center space-x-2">
                             <span>{token.icon}</span>
@@ -454,10 +514,10 @@ export function AtomicSwap() {
 
               <Button 
                 onClick={createAtomicSwap} 
-                disabled={isCreating || !fromToken || !toToken || !amount || !counterpartyAddress || !secret}
+                disabled={createSwapMutation.isPending || !fromToken || !toToken || !amount || !counterpartyAddress || !secret}
                 className="w-full"
               >
-                {isCreating ? (
+                {createSwapMutation.isPending ? (
                   <>
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                     Creating Contract...

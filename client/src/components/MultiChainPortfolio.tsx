@@ -146,41 +146,6 @@ export function MultiChainPortfolio() {
     },
     enabled: !!wallet.address && selectedTab === "analytics",
   });
-    }
-  };
-
-  const transactionHistory: TransactionHistory[] = [
-    {
-      id: "tx_001",
-      type: "swap",
-      timestamp: Date.now() - 3600000,
-      amount: "1,000 XP",
-      token: "XP → USDT",
-      status: "completed",
-      hash: "0x1234...abcd",
-      network: "xphere"
-    },
-    {
-      id: "tx_002",
-      type: "liquidity",
-      timestamp: Date.now() - 7200000,
-      amount: "500 USDT",
-      token: "XP/USDT LP",
-      status: "completed",
-      hash: "0x5678...efgh",
-      network: "xphere"
-    },
-    {
-      id: "tx_003",
-      type: "bridge",
-      timestamp: Date.now() - 10800000,
-      amount: "0.5 ETH",
-      token: "ETH",
-      status: "pending",
-      hash: "0x9abc...ijkl",
-      network: "ethereum"
-    }
-  ];
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -458,7 +423,7 @@ export function MultiChainPortfolio() {
 
             <TabsContent value="history" className="mt-6">
               <div className="space-y-4">
-                {transactionHistory.map((tx) => (
+                {(transactionHistory?.data || transactionHistory || []).map((tx) => (
                   <div key={tx.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow bg-white">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
