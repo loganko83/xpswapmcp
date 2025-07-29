@@ -107,6 +107,7 @@ export function MultiChainPortfolio() {
   const [selectedTab, setSelectedTab] = useState("overview");
   const [showTransactions, setShowTransactions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedTimeframe, setSelectedTimeframe] = useState("7d");
   
   const { wallet, isConnected } = useWeb3Context();
   const { toast } = useToast();

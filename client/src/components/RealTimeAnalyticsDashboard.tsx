@@ -10,7 +10,7 @@ import { Activity, TrendingUp, TrendingDown, DollarSign, Users, Zap, RefreshCw, 
 import { useQuery } from "@tanstack/react-query";
 
 import { getApiUrl } from "@/lib/apiUrl";
-// 보안 강화???�틸리티 ?�수
+// 보안 강화 유틸리티 함수
 const generateSecureId = (length: number = 16): string => {
   const array = new Uint8Array(Math.ceil(length / 2));
   crypto.getRandomValues(array);
@@ -21,6 +21,10 @@ const getSecureRandom = (): number => {
   const array = new Uint8Array(4);
   crypto.getRandomValues(array);
   return array[0] / 255;
+};
+
+const getSecureRandomInt = (min: number, max: number): number => {
+  return Math.floor(getSecureRandom() * (max - min + 1)) + min;
 };
 import { useTokenPrices } from "@/hooks/useTokenPrices";
 

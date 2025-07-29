@@ -17,6 +17,13 @@ const router = Router();
 router.get("/market-stats", 
   async (req, res) => {
     try {
+      // Check cache first
+      const cachedStats = cache.get(CACHE_KEYS.MARKET_STATS);
+      if (cachedStats) {
+        console.log("🚀 Market stats served from cache");
+        return res.json(cachedStats);
+      }
+      
       console.log("📡 Fetching market stats from blockchain");
       
       // Get blockchain service instance
@@ -77,7 +84,9 @@ router.get("/market-stats",
         ]
       };
       
-      // Middleware will handle caching automatically
+      // Cache the result
+      cache.set(CACHE_KEYS.MARKET_STATS, marketStats, CACHE_TTL.MARKET_STATS);
+      
       res.json(marketStats);
     } catch (error) {
       console.error("Failed to fetch market stats:", error);

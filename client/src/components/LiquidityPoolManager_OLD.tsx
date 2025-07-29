@@ -403,6 +403,8 @@ function RemoveLiquidity({ pool, isOpen, onClose }: RemoveLiquidityProps) {
   const [percentage, setPercentage] = useState("25");
   const [amountA, setAmountA] = useState("");
   const [amountB, setAmountB] = useState("");
+  
+  const { data: tokenPrices } = useTokenPrices([pool.tokenA.symbol, pool.tokenB.symbol]);
 
   const removeLiquidityMutation = useMutation({
     mutationFn: async () => {
