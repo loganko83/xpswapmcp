@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import tradingRoutes from './routes/trading';
 import defiRoutes from './routes/defi';
-import advancedRoutes from './routes/advanced';
+import advancedRoutes from './routes/advanced-refactored'; // Using refactored version
 import securityRoutes from './routes/security';
 import bridgeRoutes from './routes/bridge';
 import cacheRoutes from './routes/cache';

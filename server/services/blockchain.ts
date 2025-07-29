@@ -326,24 +326,81 @@ export class LegacyBlockchainService {
   // Options trading functions
   async getActiveOptions() {
     try {
+      const now = Date.now();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      const twoWeeks = 14 * 24 * 60 * 60 * 1000;
+      const oneMonth = 30 * 24 * 60 * 60 * 1000;
+
       return [
         {
-          id: "1",
+          id: "OPT-XP-1000-CALL-20250201",
           underlying: "XP",
-          strike: "1.5",
-          expiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
+          strike: "1.0000",
+          expiry: new Date(now + oneWeek).toISOString(),
           type: "CALL",
-          premium: "0.05",
-          openInterest: "10000"
+          premium: "0.0234",
+          openInterest: "10000",
+          available: "5000"
         },
         {
-          id: "2",
+          id: "OPT-XP-1200-CALL-20250201",
           underlying: "XP",
-          strike: "0.8",
-          expiry: Date.now() + 14 * 24 * 60 * 60 * 1000,
+          strike: "1.2000",
+          expiry: new Date(now + oneWeek).toISOString(),
+          type: "CALL",
+          premium: "0.0156",
+          openInterest: "8000",
+          available: "4000"
+        },
+        {
+          id: "OPT-XP-0800-PUT-20250201",
+          underlying: "XP",
+          strike: "0.8000",
+          expiry: new Date(now + twoWeeks).toISOString(),
           type: "PUT",
-          premium: "0.03",
-          openInterest: "5000"
+          premium: "0.0189",
+          openInterest: "5000",
+          available: "2500"
+        },
+        {
+          id: "OPT-XP-0900-PUT-20250215",
+          underlying: "XP",
+          strike: "0.9000",
+          expiry: new Date(now + twoWeeks).toISOString(),
+          type: "PUT",
+          premium: "0.0267",
+          openInterest: "7500",
+          available: "3000"
+        },
+        {
+          id: "OPT-XPS-0015-CALL-20250301",
+          underlying: "XPS",
+          strike: "0.0150",
+          expiry: new Date(now + oneMonth).toISOString(),
+          type: "CALL",
+          premium: "0.0012",
+          openInterest: "50000",
+          available: "25000"
+        },
+        {
+          id: "OPT-XPS-0020-CALL-20250301",
+          underlying: "XPS",
+          strike: "0.0200",
+          expiry: new Date(now + oneMonth).toISOString(),
+          type: "CALL",
+          premium: "0.0008",
+          openInterest: "40000",
+          available: "20000"
+        },
+        {
+          id: "OPT-XPS-0010-PUT-20250301",
+          underlying: "XPS",
+          strike: "0.0100",
+          expiry: new Date(now + oneMonth).toISOString(),
+          type: "PUT",
+          premium: "0.0006",
+          openInterest: "30000",
+          available: "15000"
         }
       ];
     } catch (error) {
@@ -552,5 +609,48 @@ export class LegacyBlockchainService {
         fees24h: "7020"
       }
     ];
+  }
+
+  // Perpetual/Futures trading functions
+  async getPerpetualMarkets() {
+    try {
+      return [
+        {
+          pair: "XP-USDT",
+          markPrice: "1.0234",
+          indexPrice: "1.0232",
+          fundingRate: "0.0100",
+          nextFundingTime: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+          maxLeverage: 100
+        },
+        {
+          pair: "XPS-USDT",
+          markPrice: "0.0156",
+          indexPrice: "0.0155",
+          fundingRate: "-0.0050",
+          nextFundingTime: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+          maxLeverage: 50
+        },
+        {
+          pair: "ETH-USDT",
+          markPrice: "3456.78",
+          indexPrice: "3455.23",
+          fundingRate: "0.0025",
+          nextFundingTime: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+          maxLeverage: 100
+        },
+        {
+          pair: "BTC-USDT",
+          markPrice: "95234.56",
+          indexPrice: "95230.12",
+          fundingRate: "0.0080",
+          nextFundingTime: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+          maxLeverage: 125
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching perpetual markets:", error);
+      throw error;
+    }
   }
 }
