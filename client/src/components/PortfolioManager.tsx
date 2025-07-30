@@ -14,7 +14,7 @@ import { PortfolioOverview } from "./portfolio/PortfolioOverview";
 import { PortfolioPositions } from "./portfolio/PortfolioPositions";
 import { PortfolioAnalytics } from "./portfolio/PortfolioAnalytics";
 import { 
-import { getApiUrl } from '../utils/config';
+import { getApiUrl } from '@/lib/config';
   PortfolioAsset, 
   PortfolioMetrics, 
   PortfolioPosition, 

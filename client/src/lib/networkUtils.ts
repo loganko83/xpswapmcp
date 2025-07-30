@@ -1,5 +1,5 @@
 import { SUPPORTED_NETWORKS } from './lifiService';
-import { getApiUrl } from '../utils/config';
+import { getApiUrl } from '@/lib/config';
 
 export interface NetworkConfig {
   chainId: number;

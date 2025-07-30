@@ -6,7 +6,7 @@ import { DollarSign, Activity, Zap, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { TradingMetrics, VolumeData, TimeframeType, MetricType, formatNumber, formatCurrency, getChangeColor } from "@/types/analytics";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { getApiUrl } from '../utils/config';
+import { getApiUrl } from '@/lib/config';
 
 interface MetricsOverviewProps {
   timeframe: TimeframeType;

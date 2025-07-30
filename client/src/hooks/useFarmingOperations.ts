@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { StakeParams, ClaimRewardsResponse, Farm, UserFarmData, APY_BY_LOCK_PERIOD } from "@/types/FarmingTypes";
-import { getApiUrl } from '../utils/config';
+import { getApiUrl } from '@/lib/config';
 
 export function useFarmingOperations() {
   const { wallet } = useWeb3();

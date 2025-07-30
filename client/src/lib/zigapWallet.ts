@@ -1,5 +1,20 @@
 import { ethers } from "ethers";
-import crypto from 'crypto';
+
+// 브라우저용 crypto API 사용
+const getCrypto = () => {
+  if (typeof window !== 'undefined' && window.crypto) {
+    return window.crypto;
+  }
+  throw new Error('Crypto API not available');
+};
+
+// 안전한 난수 생성 함수
+const getSecureRandom = () => {
+  const crypto = getCrypto();
+  const array = new Uint8Array(4);
+  crypto.getRandomValues(array);
+  return array[0] / 255;
+};
 
 // ZIGAP 지갑 관련 타입 정의
 declare global {
@@ -346,7 +361,7 @@ export class ZigapWalletService {
   async sendXP(to: string, amount: string): Promise<string> {
     if (this.isTestMode) {
       console.log(`🧪 Test mode: Sending ${amount} XP to ${to}`);
-      return `0x${crypto.randomBytes(32).toString("hex")}`; // 테스트 트랜잭션 해시
+      return `0x${Array.from(getCrypto().getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('')}`; // 테스트 트랜잭션 해시
     }
 
     if (!this.provider) {
@@ -383,7 +398,7 @@ export class ZigapWalletService {
   async sendXPS(to: string, amount: string): Promise<string> {
     if (this.isTestMode) {
       console.log(`🧪 Test mode: Sending ${amount} XPS to ${to}`);
-      return `0x${crypto.randomBytes(32).toString("hex")}`; // 테스트 트랜잭션 해시
+      return `0x${Array.from(getCrypto().getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('')}`; // 테스트 트랜잭션 해시
     }
 
     if (!this.provider) {

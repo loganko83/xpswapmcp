@@ -22,7 +22,7 @@ import { SUPPORTED_NETWORKS, lifiService, BridgeQuote } from "@/lib/lifiService"
 import { switchToNetwork, addNetworkToMetaMask, getNetworkByChainId, checkNetworkStatus } from "@/lib/networkUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Token } from "@/types";
-import { getApiUrl } from '../utils/config';
+import { getApiUrl } from '@/lib/config';
 
 interface NetworkOption {
   chainId: number;

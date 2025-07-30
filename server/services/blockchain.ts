@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { randomBytes } from 'crypto';
 
 // Xphere RPC URL from environment
 const RPC_URL = process.env.XPHERE_RPC_URL || "https://en-bkk.x-phere.com";
@@ -103,8 +104,8 @@ export class LegacyBlockchainService {
           reserve1: (5000000 * xpPrice).toFixed(0),
           totalSupply: "5000000",
           apr: this.calculateAPR("XP", "USDT", xpPrice).toFixed(1),
-          volume24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000000 + 1000000).toFixed(0),
-          fees24h: (parseFloat(((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000000 + 1000000).toFixed(0)) * 0.003).toFixed(0)
+          volume24h: ((randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000000 + 1000000).toFixed(0),
+          fees24h: (parseFloat(((randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000000 + 1000000).toFixed(0)) * 0.003).toFixed(0)
         },
         {
           id: 2,
@@ -115,8 +116,8 @@ export class LegacyBlockchainService {
           reserve1: (3500000 * xpPrice / ethPrice).toFixed(0),
           totalSupply: "59129",
           apr: this.calculateAPR("XP", "ETH", xpPrice, ethPrice).toFixed(1),
-          volume24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 500000).toFixed(0),
-          fees24h: (parseFloat(((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 500000).toFixed(0)) * 0.003).toFixed(0)
+          volume24h: ((randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 500000).toFixed(0),
+          fees24h: (parseFloat(((randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 500000).toFixed(0)) * 0.003).toFixed(0)
         },
         {
           id: 3,
@@ -234,7 +235,7 @@ export class LegacyBlockchainService {
       // In production, this would call the Router contract
       return {
         success: true,
-        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
+        txHash: `0x${randomBytes(8).toString("hex")}`,
         liquidity: params.amountA,
         shareOfPool: "0.05",
         estimatedAPR: "125.5"
@@ -250,7 +251,7 @@ export class LegacyBlockchainService {
     try {
       return {
         success: true,
-        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
+        txHash: `0x${randomBytes(8).toString("hex")}`,
         tokenA: "5000",
         tokenB: "5000",
         fee: "15"
@@ -266,7 +267,7 @@ export class LegacyBlockchainService {
     try {
       return {
         success: true,
-        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
+        txHash: `0x${randomBytes(8).toString("hex")}`,
         staked: params.amount,
         pendingRewards: "0"
       };
@@ -281,7 +282,7 @@ export class LegacyBlockchainService {
     try {
       return {
         success: true,
-        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
+        txHash: `0x${randomBytes(8).toString("hex")}`,
         unstaked: params.amount,
         rewards: "125.5"
       };
@@ -296,7 +297,7 @@ export class LegacyBlockchainService {
     try {
       return {
         success: true,
-        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
+        txHash: `0x${randomBytes(8).toString("hex")}`,
         rewards: "125.5",
         token: "XPS"
       };
@@ -512,7 +513,6 @@ export class LegacyBlockchainService {
 
       // Import deployment script
       const { deployToXphere } = await import('../../scripts/deploy-xphere.js');
-import crypto from 'crypto';
       
       // Deploy contracts
       const deployedContracts = await deployToXphere(privateKey);
@@ -561,7 +561,7 @@ import crypto from 'crypto';
   private calculateAPR(token0: string, token1: string, price0: number, price1?: number): number {
     // Calculate APR based on token pair and current market conditions
     const baseAPR = 80; // Base APR
-    const volatilityBonus = (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 50; // Random volatility bonus
+    const volatilityBonus = (randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 50; // Random volatility bonus
     
     // Higher APR for XP pairs due to early protocol incentives
     if (token0 === 'XP' || token1 === 'XP') {
