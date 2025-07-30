@@ -7,16 +7,22 @@
    - 로컬에서는 정상 작동하나 서버에서 표시 안 됨
    - API 프록시 설정 문제로 추정
    - 상세 내용: `doc/progress/progress_20250731_ticker_fix.md` 참조
+   - 디버깅 진행: `doc/progress/progress_20250731_debugging.md` 참조
 
 ### 확인된 문제
 - **증상**: https://trendy.storydot.kr/xpswap/ 에서 상단 티커가 표시되지 않음
-- **원인**: API URL이 localhost를 가리키거나 Apache 프록시 설정 문제
+- **원인**: Apache 프록시 설정에서 `/xpswap/api` → `localhost:5000/api` 매핑 누락 추정
 - **해결방안**: Apache 설정 확인 및 수정 필요
 
+### 테스트 결과
+- **로컬 API**: ✅ 정상 작동 (`http://localhost:5000/api/crypto-ticker`)
+- **서버 API**: ❓ 확인 필요 (`https://trendy.storydot.kr/xpswap/api/crypto-ticker`)
+
 ### 다음 작업
-1. 서버 SSH 접속하여 Apache 설정 확인
-2. API 프록시 경로 수정
-3. 서비스 재시작 및 테스트
+1. 브라우저에서 API 직접 테스트
+2. 서버 SSH 접속하여 Apache 설정 확인
+3. ProxyPass 설정 추가/수정
+4. 서비스 재시작 및 최종 테스트
 
 ---
 

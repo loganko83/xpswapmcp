@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPSwap API Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .status-pending { color: yellow; }
+        .status-success { color: #4ade80; }
+        .status-error { color: #f87171; }
+        pre {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XPSwap API Debug Tool</h1>
+        
+        <div class="test-section">
+            <h2>Environment</h2>
+            <p>Current URL: <span id="current-url"></span></p>
+            <p>Is Production: <span id="is-production"></span></p>
+        </div>
+
+        <div class="test-section">
+            <h2>API Tests</h2>
+            <button onclick="testApi('/api/health')">Test Health</button>
+            <button onclick="testApi('/api/crypto-ticker')">Test Crypto Ticker</button>
+            <button onclick="testApi('/api/xp-price')">Test XP Price</button>
+            <button onclick="testApi('/xpswap/api/crypto-ticker')">Test Full Path Ticker</button>
+            <button onclick="testLocalhost()">Test Localhost:5000</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Results</h2>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Display current environment
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('is-production').textContent = window.location.hostname !== 'localhost';
+
+        async function testApi(endpoint) {
+            const resultsDiv = document.getElementById('results');
+            const testId = Date.now();
+            
+            // Add test entry
+            const testDiv = document.createElement('div');
+            testDiv.id = `test-${testId}`;
+            testDiv.innerHTML = `
+                <h3>Testing: ${endpoint}</h3>
+                <p class="status-pending">Status: Pending...</p>
+                <pre>URL: ${window.location.origin}${endpoint}</pre>
+            `;
+            resultsDiv.appendChild(testDiv);
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${window.location.origin}${endpoint}`);
+                const endTime = Date.now();
+                const data = await response.text();
+                
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(data);
+                } catch {
+                    jsonData = data;
+                }
+
+                testDiv.querySelector('p').className = response.ok ? 'status-success' : 'status-error';
+                testDiv.querySelector('p').textContent = `Status: ${response.status} ${response.statusText} (${endTime - startTime}ms)`;
+                
+                const resultPre = document.createElement('pre');
+                resultPre.textContent = `Response Headers:
+${Array.from(response.headers.entries()).map(([k, v]) => `  ${k}: ${v}`).join('\n')}
+
+Response Body:
+${typeof jsonData === 'string' ? jsonData : JSON.stringify(jsonData, null, 2)}`;
+                testDiv.appendChild(resultPre);
+            } catch (error) {
+                testDiv.querySelector('p').className = 'status-error';
+                testDiv.querySelector('p').textContent = `Status: Error - ${error.message}`;
+                
+                const errorPre = document.createElement('pre');
+                errorPre.textContent = `Error: ${error.message}\n${error.stack}`;
+                testDiv.appendChild(errorPre);
+            }
+        }
+
+        async function testLocalhost() {
+            const resultsDiv = document.getElementById('results');
+            const testId = Date.now();
+            
+            // Add test entry
+            const testDiv = document.createElement('div');
+            testDiv.id = `test-${testId}`;
+            testDiv.innerHTML = `
+                <h3>Testing: Direct Localhost</h3>
+                <p class="status-pending">Status: Pending...</p>
+                <pre>URL: http://localhost:5000/api/crypto-ticker</pre>
+            `;
+            resultsDiv.appendChild(testDiv);
+
+            try {
+                const response = await fetch('http://localhost:5000/api/crypto-ticker');
+                const data = await response.json();
+                
+                testDiv.querySelector('p').className = 'status-success';
+                testDiv.querySelector('p').textContent = `Status: ${response.status} (Direct localhost access)`;
+                
+                const resultPre = document.createElement('pre');
+                resultPre.textContent = JSON.stringify(data, null, 2);
+                testDiv.appendChild(resultPre);
+            } catch (error) {
+                testDiv.querySelector('p').className = 'status-error';
+                testDiv.querySelector('p').textContent = `Status: Error - ${error.message}`;
+                
+                const errorPre = document.createElement('pre');
+                errorPre.textContent = `Note: This is expected to fail from production due to CORS/network restrictions`;
+                testDiv.appendChild(errorPre);
+            }
+        }
+    </script>
+</body>
+</html>
