@@ -229,11 +229,11 @@ function generateActiveThreats() {
   const severityLevels = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
   
   const threats = [];
-  const threatCount = Math.floor(Math.random() * 3) + 1; // 1-3 active threats
+  const threatCount = Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3) + 1; // 1-3 active threats
   
   for (let i = 0; i < threatCount; i++) {
-    const type = threatTypes[Math.floor(Math.random() * threatTypes.length)];
-    const severity = severityLevels[Math.floor(Math.random() * severityLevels.length)];
+    const type = threatTypes[Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * threatTypes.length)];
+    const severity = severityLevels[Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * severityLevels.length)];
     
     threats.push({
       id: `TH-${String(Date.now() + i).slice(-3)}`,
@@ -241,7 +241,7 @@ function generateActiveThreats() {
       value: generateThreatValue(type),
       severity,
       description: generateThreatDescription(type, severity),
-      timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000), // Within last 24 hours
+      timestamp: new Date(Date.now() - (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 24 * 60 * 60 * 1000), // Within last 24 hours
       source: 'Real-time Detection'
     });
   }
@@ -252,7 +252,7 @@ function generateActiveThreats() {
 function generateThreatValue(type: string): string {
   switch (type) {
     case 'IP_BLACKLIST':
-      return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+      return `${Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 256)}.${Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 256)}.${Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 256)}.${Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 256)}`;
     case 'SUSPICIOUS_PATTERN':
       return 'High frequency trading pattern';
     case 'MEV_ATTACK':

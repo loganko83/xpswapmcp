@@ -10,6 +10,7 @@ import { ArrowRight, ShoppingCart, DollarSign, Info, TrendingUp } from 'lucide-r
 import { useToast } from '@/hooks/use-toast';
 import { web3Service } from '@/lib/web3';
 import { useQuery } from '@tanstack/react-query';
+import { getApiUrl } from '../utils/config';
 
 interface XPPrice {
   price: number;
@@ -32,7 +33,7 @@ export default function XPSPurchase() {
   const { data: xpPriceData } = useQuery<XPPrice>({
     queryKey: ['xp-price'],
     queryFn: async () => {
-      const response = await fetch('/api/xp-price');
+      const response = await fetch(getApiUrl("/api/xp-price"));
       if (!response.ok) throw new Error('Failed to fetch XP price');
       return response.json();
     },
@@ -166,7 +167,7 @@ export default function XPSPurchase() {
       
       if (purchaseResult.success) {
         // Save purchase record to backend
-        const response = await fetch('/api/xps/purchase', {
+        const response = await fetch(getApiUrl("/api/xps/purchase"), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

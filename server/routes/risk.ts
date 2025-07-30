@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { ApiErrorResponse } from '../types/api-errors';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -10,25 +11,25 @@ router.get('/risk/portfolio-metrics', async (req: Request, res: Response) => {
     const metrics = [
       { 
         name: "Concentration Risk", 
-        value: Math.floor(Math.random() * 30 + 50), // 50-80%
+        value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30 + 50), // 50-80%
         status: "warning", 
         description: "Portfolio concentration in top assets" 
       },
       { 
         name: "Liquidity Risk", 
-        value: Math.floor(Math.random() * 20 + 70), // 70-90%
+        value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20 + 70), // 70-90%
         status: "safe", 
         description: "Available liquidity for position exits" 
       },
       { 
         name: "Volatility Risk", 
-        value: Math.floor(Math.random() * 40 + 30), // 30-70%
+        value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 40 + 30), // 30-70%
         status: "safe", 
         description: "Market volatility exposure" 
       },
       { 
         name: "Impermanent Loss", 
-        value: Math.floor(Math.random() * 30 + 10), // 10-40%
+        value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30 + 10), // 10-40%
         status: "warning", 
         description: "Potential IL in liquidity positions" 
       }
@@ -51,7 +52,7 @@ router.get('/risk/trend', async (req: Request, res: Response) => {
     for (let i = 6; i >= 0; i--) {
       trend.push({
         timestamp: now - (86400000 * i),
-        risk: Math.floor(Math.random() * 15 + 65) // 65-80 risk score
+        risk: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 15 + 65) // 65-80 risk score
       });
     }
 

@@ -126,7 +126,7 @@ export function RiskManagement() {
 
   const handleMitigateRisk = async (alertId: string) => {
     try {
-      const response = await fetch(`/api/risk/mitigate/${alertId}`, {
+      const response = await fetch(getApiUrl("/api/risk/mitigate/${alertId}"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userAddress: wallet.address }),

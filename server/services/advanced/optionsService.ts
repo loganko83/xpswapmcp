@@ -7,6 +7,7 @@ import {
   OptionMarket 
 } from '../../../shared/types/advanced';
 import { ApiError } from '../../utils/ApiError';
+import crypto from 'crypto';
 
 export class OptionsService {
   private blockchainService: BlockchainService;
@@ -45,8 +46,8 @@ export class OptionsService {
         type: opt.type,
         premium: opt.premium,
         openInterest: opt.openInterest,
-        volume24h: Math.floor(Math.random() * 100000).toString(),
-        iv: (20 + Math.random() * 80).toFixed(2)
+        volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100000).toString(),
+        iv: (20 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 80).toFixed(2)
       }));
     } catch (error) {
       throw new ApiError('Failed to fetch option markets', 500);
@@ -102,7 +103,7 @@ export class OptionsService {
       // In production, interact with smart contract
       const result: OptionTrade = {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         trade: {
           optionId,
           amount,
@@ -153,7 +154,7 @@ export class OptionsService {
 
       return {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         payout
       };
     } catch (error) {
@@ -168,11 +169,11 @@ export class OptionsService {
   ): Promise<{ success: boolean; txHash: string; proceeds: string }> {
     try {
       // In production, verify position ownership and close
-      const proceeds = (Math.random() * 0.1).toFixed(6);
+      const proceeds = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 0.1).toFixed(6);
 
       return {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         proceeds
       };
     } catch (error) {

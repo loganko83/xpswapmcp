@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
   // Risk Management API Endpoints
   
   // Get risk analysis
@@ -103,9 +105,9 @@
       
       const portfolioRisk = {
         user_address: address,
-        risk_score: Math.floor(Math.random() * 20) + 65, // 65-85
-        diversification_score: Math.floor(Math.random() * 25) + 60, // 60-85
-        liquidity_score: Math.floor(Math.random() * 15) + 80, // 80-95
+        risk_score: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20) + 65, // 65-85
+        diversification_score: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 25) + 60, // 60-85
+        liquidity_score: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 15) + 80, // 80-95
         positions_at_risk: 2,
         total_positions: 8,
         risk_breakdown: {
@@ -132,10 +134,10 @@
   app.get("/api/risk/market", async (req, res) => {
     try {
       const marketRisk = {
-        volatility_index: Math.floor(Math.random() * 20) + 15, // 15-35%
+        volatility_index: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20) + 15, // 15-35%
         market_sentiment: "neutral", // bullish, neutral, bearish
-        liquidity_depth: Math.floor(Math.random() * 20) + 70, // 70-90%
-        correlation_risk: Math.floor(Math.random() * 30) + 40, // 40-70%
+        liquidity_depth: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20) + 70, // 70-90%
+        correlation_risk: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30) + 40, // 40-70%
         systemic_risk_indicators: {
           defi_tvl_change: "-2.3%",
           stablecoin_depeg_risk: "low",
@@ -143,7 +145,7 @@
           oracle_reliability: 94
         },
         market_metrics: {
-          fear_greed_index: Math.floor(Math.random() * 40) + 40, // 40-80
+          fear_greed_index: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 40) + 40, // 40-80
           funding_rates: "0.015%",
           options_skew: "neutral",
           liquidation_risk: "medium"

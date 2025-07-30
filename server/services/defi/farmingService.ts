@@ -1,6 +1,7 @@
 import { BlockchainService } from "../realBlockchain";
 import { cache } from "../cache";
 import { Farm, FarmPosition } from "../../../shared/types/api";
+import crypto from 'crypto';
 
 export interface StakeParams {
   farmId: string;
@@ -214,7 +215,7 @@ export class FarmingService {
       }
 
       // Calculate rewards (mock)
-      const rewards = Math.floor(Math.random() * 1000).toString();
+      const rewards = Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000).toString();
 
       // Simulate transaction
       const txHash = this.generateTransactionHash();
@@ -244,7 +245,7 @@ export class FarmingService {
    */
   async calculatePendingRewards(farmId: string, walletAddress: string): Promise<string> {
     // Mock calculation
-    return Math.floor(Math.random() * 500).toString();
+    return Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 500).toString();
   }
 
   /**
@@ -290,7 +291,7 @@ export class FarmingService {
    */
   private generateTransactionHash(): string {
     return '0x' + Array.from({ length: 64 }, () => 
-      Math.floor(Math.random() * 16).toString(16)
+      Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 16).toString(16)
     ).join('');
   }
 }

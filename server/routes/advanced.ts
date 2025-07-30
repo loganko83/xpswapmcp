@@ -2,6 +2,7 @@ import { Router } from "express";
 import { validateRequest } from "../middleware/validation";
 import { body, query } from "express-validator";
 import { BlockchainService } from "../services/blockchain";
+import crypto from 'crypto';
 
 const router = Router();
 const blockchainService = new BlockchainService();
@@ -47,8 +48,8 @@ router.get("/options/markets", async (req, res) => {
       type: opt.type,
       premium: opt.premium,
       openInterest: opt.openInterest,
-      volume24h: Math.floor(Math.random() * 100000).toString(),
-      impliedVolatility: (Math.random() * 0.5 + 0.2).toFixed(2)
+      volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100000).toString(),
+      impliedVolatility: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 0.5 + 0.2).toFixed(2)
     }));
     
     res.json(markets);
@@ -73,7 +74,7 @@ router.post(
       // In production, this would interact with options contract
       const result = {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         optionId,
         quantity,
         action,
@@ -140,7 +141,7 @@ router.post(
       // In production, this would interact with perpetuals contract
       const result = {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         position: {
           pair,
           size,
@@ -258,13 +259,13 @@ router.post(
       // In production, this would execute the flash loan
       const result = {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         token,
         amount,
         fee: (parseFloat(amount) * 0.0009).toString(),
         profit: "125.50",
         gasUsed: "0.045",
-        blockNumber: Math.floor(Math.random() * 1000000) + 1000000
+        blockNumber: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000) + 1000000
       };
 
       res.json(result);

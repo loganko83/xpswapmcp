@@ -978,25 +978,25 @@ async function generateRealisticSwapHistory(wallet: string, limit: number) {
   const history = [];
   
   for (let i = 0; i < Math.min(limit, 5); i++) {
-    const pair = commonPairs[Math.floor(Math.random() * commonPairs.length)];
-    const hoursAgo = (i + 1) * 2 + Math.random() * 4; // Spread over recent hours
+    const pair = commonPairs[Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * commonPairs.length)];
+    const hoursAgo = (i + 1) * 2 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 4; // Spread over recent hours
     
     // Generate realistic amounts based on token type
     let amountIn: string;
     let amountOut: string;
     
     if (pair.from === "XP") {
-      amountIn = (Math.random() * 5000 + 500).toFixed(0);
+      amountIn = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000 + 500).toFixed(0);
       amountOut = (parseFloat(amountIn) * 0.016571759599689175).toFixed(6); // Current XP price
     } else if (pair.from === "USDT") {
-      amountIn = (Math.random() * 200 + 50).toFixed(2);
+      amountIn = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 200 + 50).toFixed(2);
       amountOut = (parseFloat(amountIn) / 0.016571759599689175).toFixed(0); // USDT to XP
     } else if (pair.from === "ETH") {
-      amountIn = (Math.random() * 0.5 + 0.1).toFixed(4);
+      amountIn = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 0.5 + 0.1).toFixed(4);
       amountOut = (parseFloat(amountIn) * 3500 / 0.016571759599689175).toFixed(0); // ETH to XP
     } else {
-      amountIn = (Math.random() * 1000 + 100).toFixed(2);
-      amountOut = (Math.random() * 2000 + 200).toFixed(4);
+      amountIn = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000 + 100).toFixed(2);
+      amountOut = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000 + 200).toFixed(4);
     }
     
     history.push({
@@ -1006,10 +1006,10 @@ async function generateRealisticSwapHistory(wallet: string, limit: number) {
       to: pair.to,
       amountIn,
       amountOut,
-      priceImpact: (Math.random() * 0.5 + 0.05).toFixed(2) + "%",
-      gasUsed: (Math.random() * 0.005 + 0.001).toFixed(3),
+      priceImpact: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 0.5 + 0.05).toFixed(2) + "%",
+      gasUsed: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 0.005 + 0.001).toFixed(3),
       timestamp: new Date(Date.now() - hoursAgo * 3600000).toISOString(),
-      status: Math.random() > 0.95 ? "pending" : "completed"
+      status: (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) > 0.95 ? "pending" : "completed"
     });
   }
   

@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
@@ -12,7 +14,7 @@ const XPHERE_RPC_URL = 'https://en-bkk.x-phere.com';
 const CHAIN_ID = 20250217;
 
 // 배포 지갑 정보
-const PRIVATE_KEY = '0xaff93b56a157064b2a8f7bd0b04c5ef9fed6859bccc13d228ecb0fef4d9eb352';
+const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || process.env.PRIVATE_KEY;
 
 // 컨트랙트 배포 순서
 const CONTRACTS_TO_DEPLOY = [

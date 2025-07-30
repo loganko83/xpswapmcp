@@ -13,7 +13,7 @@ global.ethereum = {
 Object.defineProperty(global.crypto, 'getRandomValues', {
   value: vi.fn().mockImplementation((arr) => {
     for (let i = 0; i < arr.length; i++) {
-      arr[i] = Math.floor(Math.random() * 256);
+      arr[i] = Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 256);
     }
     return arr;
   })

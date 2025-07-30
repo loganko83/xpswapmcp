@@ -6,6 +6,7 @@ import {
   ArbitrageOpportunity
 } from '../../../shared/types/advanced';
 import { ApiError } from '../../utils/ApiError';
+import crypto from 'crypto';
 
 export class FlashLoanService {
   private blockchainService: BlockchainService;
@@ -24,8 +25,8 @@ export class FlashLoanService {
       // Add liquidity availability and fee information
       return loans.map(loan => ({
         ...loan,
-        available: (Math.random() * 1000000).toFixed(2),
-        utilized: (Math.random() * 500000).toFixed(2),
+        available: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000).toFixed(2),
+        utilized: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 500000).toFixed(2),
         fee: '0.09', // 0.09% flash loan fee
         maxLoanAmount: '1000000'
       }));
@@ -114,7 +115,7 @@ export class FlashLoanService {
       // In production, execute flash loan on blockchain
       const result: FlashLoanExecution = {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         execution: {
           loanAmount: amount,
           fee: fee.toFixed(6),
@@ -140,21 +141,21 @@ export class FlashLoanService {
       const history: FlashLoanExecution[] = [];
       
       for (let i = 0; i < limit; i++) {
-        const loanAmount = (Math.random() * 100000).toFixed(2);
+        const loanAmount = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100000).toFixed(2);
         const fee = (parseFloat(loanAmount) * 0.0009).toFixed(6);
         
         history.push({
           success: true,
-          txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+          txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
           execution: {
             loanAmount,
             fee,
             totalRepayment: (parseFloat(loanAmount) + parseFloat(fee)).toFixed(6),
-            asset: ['USDT', 'USDC', 'DAI'][Math.floor(Math.random() * 3)],
-            targetContract: `0x${Math.random().toString(16).substr(2, 40)}`,
+            asset: ['USDT', 'USDC', 'DAI'][Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3)],
+            targetContract: `0x${crypto.randomBytes(8).toString("hex")}`,
             timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-            gasUsed: Math.floor(200000 + Math.random() * 100000).toString(),
-            profit: (Math.random() * 1000).toFixed(6)
+            gasUsed: Math.floor(200000 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100000).toString(),
+            profit: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000).toFixed(6)
           }
         });
       }
@@ -215,9 +216,9 @@ export class FlashLoanService {
 
     return [
       { dex: 'XpSwap', price: basePrice },
-      { dex: 'UniswapV3', price: basePrice * (1 + (Math.random() - 0.5) * 0.01) },
-      { dex: 'PancakeSwap', price: basePrice * (1 + (Math.random() - 0.5) * 0.01) },
-      { dex: 'SushiSwap', price: basePrice * (1 + (Math.random() - 0.5) * 0.01) }
+      { dex: 'UniswapV3', price: basePrice * (1 + ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) - 0.5) * 0.01) },
+      { dex: 'PancakeSwap', price: basePrice * (1 + ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) - 0.5) * 0.01) },
+      { dex: 'SushiSwap', price: basePrice * (1 + ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) - 0.5) * 0.01) }
     ];
   }
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { TrendingUp, TrendingDown, Activity, BarChart3, Maximize2 } from "lucide-react";
+import crypto from 'crypto';
 
 interface ChartDataPoint {
   time: string;
@@ -48,9 +49,9 @@ export function FuturesChart({
     
     for (let i = intervals.count; i >= 0; i--) {
       const timestamp = now - (i * intervals.interval);
-      const priceVariation = (Math.random() - 0.5) * 0.02; // ±1% variation
+      const priceVariation = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) - 0.5) * 0.02; // ±1% variation
       const price = basePrice * (1 + priceVariation * (i / intervals.count));
-      const volume = Math.random() * 100000 + 50000;
+      const volume = (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100000 + 50000;
 
       dataPoints.push({
         time: formatTime(timestamp, timeframe),

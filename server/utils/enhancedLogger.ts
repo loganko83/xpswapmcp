@@ -1,6 +1,7 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { ElasticsearchTransport } from 'winston-elasticsearch';
+import crypto from 'crypto';
 
 // Environment configuration
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -171,7 +172,7 @@ export class MetricsCollector {
 // Request logging middleware
 export const requestLogger = (req: any, res: any, next: any) => {
   const start = Date.now();
-  const requestId = Math.random().toString(36).substring(7);
+  const requestId = (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF).toString(36).substring(7);
   
   // Attach request ID to request
   req.requestId = requestId;

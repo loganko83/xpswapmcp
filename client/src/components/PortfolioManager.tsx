@@ -14,6 +14,7 @@ import { PortfolioOverview } from "./portfolio/PortfolioOverview";
 import { PortfolioPositions } from "./portfolio/PortfolioPositions";
 import { PortfolioAnalytics } from "./portfolio/PortfolioAnalytics";
 import { 
+import { getApiUrl } from '../utils/config';
   PortfolioAsset, 
   PortfolioMetrics, 
   PortfolioPosition, 
@@ -34,7 +35,7 @@ export function PortfolioManager() {
     queryKey: ["/api/portfolio/assets", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return null;
-      const response = await fetch(`/api/portfolio/assets/${wallet.address}`);
+      const response = await fetch(getApiUrl("/api/portfolio/assets/${wallet.address}"));
       if (!response.ok) throw new Error("Failed to fetch portfolio");
       return response.json();
     },
@@ -46,7 +47,7 @@ export function PortfolioManager() {
     queryKey: ["/api/portfolio/metrics", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return null;
-      const response = await fetch(`/api/portfolio/metrics/${wallet.address}`);
+      const response = await fetch(getApiUrl("/api/portfolio/metrics/${wallet.address}"));
       if (!response.ok) throw new Error("Failed to fetch portfolio metrics");
       return response.json();
     },
@@ -58,7 +59,7 @@ export function PortfolioManager() {
     queryKey: ["/api/portfolio/positions", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return [];
-      const response = await fetch(`/api/portfolio/positions/${wallet.address}`);
+      const response = await fetch(getApiUrl("/api/portfolio/positions/${wallet.address}"));
       if (!response.ok) throw new Error("Failed to fetch positions");
       return response.json();
     },
@@ -70,7 +71,7 @@ export function PortfolioManager() {
     queryKey: ["/api/portfolio/history", wallet.address, timeframe],
     queryFn: async () => {
       if (!wallet.address) return [];
-      const response = await fetch(`/api/portfolio/history/${wallet.address}?timeframe=${timeframe}`);
+      const response = await fetch(getApiUrl("/api/portfolio/history/${wallet.address}?timeframe=${timeframe}"));
       if (!response.ok) throw new Error("Failed to fetch portfolio history");
       return response.json();
     },

@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import XpSwapTokenABI from "../../artifacts/contracts/XpSwapToken.sol/XpSwapToken.json";
 import XpSwapDEXABI from "../../artifacts/contracts/XpSwapDEX.sol/XpSwapDEX.json";
+import crypto from 'crypto';
 
 // Xphere RPC URL from environment
 const RPC_URL = process.env.XPHERE_RPC_URL || "https://en-bkk.x-phere.com";
@@ -144,36 +145,36 @@ export class RealBlockchainService {
             pairId: 1,
             token0: "XP",
             token1: "USDT",
-            reserve0: Math.floor(Math.random() * 5000000 + 1000000).toString(), // 1-6M XP
-            reserve1: Math.floor(Math.random() * 500000 + 100000).toString(),   // 100-600K USDT
-            totalSupply: Math.floor(Math.random() * 1000000 + 500000).toString(),
-            apr: (Math.random() * 30 + 15).toFixed(1), // 15-45% APR
-            volume24h: Math.floor(Math.random() * 800000 + 200000).toString(),
-            fees24h: Math.floor(Math.random() * 3000 + 500).toString()
+            reserve0: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000000 + 1000000).toString(), // 1-6M XP
+            reserve1: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 500000 + 100000).toString(),   // 100-600K USDT
+            totalSupply: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 500000).toString(),
+            apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30 + 15).toFixed(1), // 15-45% APR
+            volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 800000 + 200000).toString(),
+            fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3000 + 500).toString()
           },
           {
             id: 2,
             pairId: 2,
             token0: "XP",
             token1: "ETH",
-            reserve0: Math.floor(Math.random() * 3000000 + 800000).toString(),  // 800K-3.8M XP
-            reserve1: Math.floor(Math.random() * 200 + 50).toString(),          // 50-250 ETH
-            totalSupply: Math.floor(Math.random() * 600000 + 300000).toString(),
-            apr: (Math.random() * 40 + 20).toFixed(1), // 20-60% APR
-            volume24h: Math.floor(Math.random() * 600000 + 150000).toString(),
-            fees24h: Math.floor(Math.random() * 2500 + 400).toString()
+            reserve0: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3000000 + 800000).toString(),  // 800K-3.8M XP
+            reserve1: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 200 + 50).toString(),          // 50-250 ETH
+            totalSupply: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 600000 + 300000).toString(),
+            apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 40 + 20).toFixed(1), // 20-60% APR
+            volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 600000 + 150000).toString(),
+            fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2500 + 400).toString()
           },
           {
             id: 3,
             pairId: 3,
             token0: "BTC",
             token1: "USDT",
-            reserve0: Math.floor(Math.random() * 20 + 5).toString(),            // 5-25 BTC
-            reserve1: Math.floor(Math.random() * 1000000 + 300000).toString(),  // 300K-1.3M USDT
-            totalSupply: Math.floor(Math.random() * 400000 + 200000).toString(),
-            apr: (Math.random() * 25 + 10).toFixed(1), // 10-35% APR
-            volume24h: Math.floor(Math.random() * 900000 + 300000).toString(),
-            fees24h: Math.floor(Math.random() * 4000 + 800).toString()
+            reserve0: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20 + 5).toString(),            // 5-25 BTC
+            reserve1: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 300000).toString(),  // 300K-1.3M USDT
+            totalSupply: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 400000 + 200000).toString(),
+            apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 25 + 10).toFixed(1), // 10-35% APR
+            volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 900000 + 300000).toString(),
+            fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 4000 + 800).toString()
           }
         ];
       }
@@ -223,9 +224,9 @@ export class RealBlockchainService {
         reserve0: "5000000",
         reserve1: Math.floor(5000000 * xpPrice).toString(),
         totalSupply: "5000000",
-        apr: (Math.random() * 40 + 80).toFixed(1), // 80-120% APR
-        volume24h: Math.floor(Math.random() * 1000000 + 1000000).toString(),
-        fees24h: Math.floor(Math.random() * 5000 + 2000).toString()
+        apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 40 + 80).toFixed(1), // 80-120% APR
+        volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000 + 1000000).toString(),
+        fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000 + 2000).toString()
       },
       {
         id: 2,
@@ -235,9 +236,9 @@ export class RealBlockchainService {
         reserve0: "3500000",
         reserve1: (3500000 * xpPrice / ethPrice).toFixed(4),
         totalSupply: "59129",
-        apr: (Math.random() * 30 + 70).toFixed(1), // 70-100% APR
-        volume24h: Math.floor(Math.random() * 800000 + 500000).toString(),
-        fees24h: Math.floor(Math.random() * 3000 + 1500).toString()
+        apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30 + 70).toFixed(1), // 70-100% APR
+        volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 800000 + 500000).toString(),
+        fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3000 + 1500).toString()
       },
       {
         id: 3,
@@ -247,9 +248,9 @@ export class RealBlockchainService {
         reserve0: "10",
         reserve1: Math.floor(10 * btcPrice).toString(),
         totalSupply: "3162",
-        apr: (Math.random() * 20 + 50).toFixed(1), // 50-70% APR
-        volume24h: Math.floor(Math.random() * 2000000 + 2000000).toString(),
-        fees24h: Math.floor(Math.random() * 8000 + 5000).toString()
+        apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20 + 50).toFixed(1), // 50-70% APR
+        volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000000 + 2000000).toString(),
+        fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 8000 + 5000).toString()
       },
       {
         id: 4,
@@ -259,9 +260,9 @@ export class RealBlockchainService {
         reserve0: "300000",
         reserve1: Math.floor(300000 * xpPrice * 1.5).toString(), // XPS slightly higher than XP
         totalSupply: "300000",
-        apr: (Math.random() * 50 + 100).toFixed(1), // 100-150% APR (incentive pool)
-        volume24h: Math.floor(Math.random() * 600000 + 400000).toString(),
-        fees24h: Math.floor(Math.random() * 2500 + 1200).toString()
+        apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 50 + 100).toFixed(1), // 100-150% APR (incentive pool)
+        volume24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 600000 + 400000).toString(),
+        fees24h: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2500 + 1200).toString()
       }
     ];
   }
@@ -376,15 +377,15 @@ export class RealBlockchainService {
       } catch (error) {
         console.log("DEX stats not available, using simulated data");
         // Use simulated realistic data
-        totalLiquidity = (Math.random() * 8000000 + 2000000).toFixed(0); // 2-10M USD
-        volume24h = (Math.random() * 1500000 + 500000).toFixed(0);       // 500K-2M USD  
+        totalLiquidity = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 8000000 + 2000000).toFixed(0); // 2-10M USD
+        volume24h = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1500000 + 500000).toFixed(0);       // 500K-2M USD  
       }
 
       return {
         totalValueLocked: totalLiquidity,
         volume24h: volume24h,
         activePairs: 15, // Based on available pairs
-        totalUsers: Math.floor(Math.random() * 5000 + 8000), // 8000-13000 users
+        totalUsers: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000 + 8000), // 8000-13000 users
         xpsCirculatingSupply: tokenInfo.totalSupply,
         xpsMarketCap: (parseFloat(tokenInfo.totalSupply) * 1.0).toFixed(0), // XPS price = $1
         fees24h: (parseFloat(volume24h) * 0.003).toFixed(0) // 0.3% fees
@@ -392,13 +393,13 @@ export class RealBlockchainService {
     } catch (error) {
       console.error("Error fetching market stats:", error);
       // Return simulated data even in error case
-      const simulatedTVL = (Math.random() * 6000000 + 4000000).toFixed(0); // 4-10M USD
-      const simulatedVolume = (Math.random() * 1200000 + 800000).toFixed(0); // 800K-2M USD
+      const simulatedTVL = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 6000000 + 4000000).toFixed(0); // 4-10M USD
+      const simulatedVolume = ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1200000 + 800000).toFixed(0); // 800K-2M USD
       return {
         totalValueLocked: simulatedTVL,
         volume24h: simulatedVolume,
-        activePairs: Math.floor(Math.random() * 20 + 10), // 10-30 pairs
-        totalUsers: Math.floor(Math.random() * 5000 + 8000), // 8000-13000 users
+        activePairs: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20 + 10), // 10-30 pairs
+        totalUsers: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000 + 8000), // 8000-13000 users
         xpsCirculatingSupply: "1000000000", // 1B XPS
         xpsMarketCap: "1000000000", // $1B
         fees24h: (parseFloat(simulatedVolume) * 0.003).toFixed(0) // 0.3% fees
@@ -473,7 +474,7 @@ export class RealBlockchainService {
   async addLiquidity(params: any) {
     return {
       success: true,
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
       liquidity: "0",
       shareOfPool: "0",
       estimatedAPR: "0"
@@ -483,7 +484,7 @@ export class RealBlockchainService {
   async removeLiquidity(params: any) {
     return {
       success: true,
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
       tokenA: "0",
       tokenB: "0",
       fee: "0"
@@ -493,7 +494,7 @@ export class RealBlockchainService {
   async stakeFarming(params: any) {
     return {
       success: true,
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
       staked: "0",
       pendingRewards: "0"
     };
@@ -502,7 +503,7 @@ export class RealBlockchainService {
   async unstakeFarming(params: any) {
     return {
       success: true,
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
       unstaked: "0",
       rewards: "0"
     };
@@ -511,7 +512,7 @@ export class RealBlockchainService {
   async claimRewards(params: any) {
     return {
       success: true,
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
       rewards: "0",
       token: "XPS"
     };

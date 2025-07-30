@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import crypto from 'crypto';
 
 // ZIGAP 지갑 관련 타입 정의
 declare global {
@@ -345,7 +346,7 @@ export class ZigapWalletService {
   async sendXP(to: string, amount: string): Promise<string> {
     if (this.isTestMode) {
       console.log(`🧪 Test mode: Sending ${amount} XP to ${to}`);
-      return "0x" + Math.random().toString(16).substr(2, 64); // 테스트 트랜잭션 해시
+      return `0x${crypto.randomBytes(32).toString("hex")}`; // 테스트 트랜잭션 해시
     }
 
     if (!this.provider) {
@@ -382,7 +383,7 @@ export class ZigapWalletService {
   async sendXPS(to: string, amount: string): Promise<string> {
     if (this.isTestMode) {
       console.log(`🧪 Test mode: Sending ${amount} XPS to ${to}`);
-      return "0x" + Math.random().toString(16).substr(2, 64); // 테스트 트랜잭션 해시
+      return `0x${crypto.randomBytes(32).toString("hex")}`; // 테스트 트랜잭션 해시
     }
 
     if (!this.provider) {

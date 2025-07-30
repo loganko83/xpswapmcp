@@ -6,6 +6,7 @@ import { DollarSign, Activity, Zap, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { TradingMetrics, VolumeData, TimeframeType, MetricType, formatNumber, formatCurrency, getChangeColor } from "@/types/analytics";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { getApiUrl } from '../utils/config';
 
 interface MetricsOverviewProps {
   timeframe: TimeframeType;
@@ -18,7 +19,7 @@ export function MetricsOverview({ timeframe, selectedMetric, onMetricChange }: M
   const { data: metrics } = useQuery({
     queryKey: ["/api/analytics/metrics", timeframe],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/metrics?timeframe=${timeframe}`);
+      const response = await fetch(getApiUrl("/api/analytics/metrics?timeframe=${timeframe}"));
       if (!response.ok) throw new Error("Failed to fetch metrics");
       return response.json();
     }
@@ -28,7 +29,7 @@ export function MetricsOverview({ timeframe, selectedMetric, onMetricChange }: M
   const { data: volumeData = [] } = useQuery({
     queryKey: ["/api/analytics/volume", timeframe],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/volume?timeframe=${timeframe}`);
+      const response = await fetch(getApiUrl("/api/analytics/volume?timeframe=${timeframe}"));
       if (!response.ok) throw new Error("Failed to fetch volume data");
       return response.json();
     }

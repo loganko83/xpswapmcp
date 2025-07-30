@@ -91,7 +91,7 @@ export default function TradingPage() {
   const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ["/api/trading/chart", selectedPair, timeFrame],
     queryFn: async () => {
-      const response = await fetch(`/api/trading/chart?pair=${selectedPair}&timeframe=${timeFrame}`);
+      const response = await fetch(getApiUrl("/api/trading/chart?pair=${selectedPair}&timeframe=${timeFrame}"));
       if (!response.ok) throw new Error("Failed to fetch chart data");
       return response.json();
     },
@@ -102,7 +102,7 @@ export default function TradingPage() {
   const { data: orderBook, isLoading: orderBookLoading } = useQuery({
     queryKey: ["/api/trading/orderbook", selectedPair],
     queryFn: async () => {
-      const response = await fetch(`/api/trading/orderbook?pair=${selectedPair}`);
+      const response = await fetch(getApiUrl("/api/trading/orderbook?pair=${selectedPair}"));
       if (!response.ok) throw new Error("Failed to fetch order book");
       return response.json();
     },
@@ -113,7 +113,7 @@ export default function TradingPage() {
   const { data: recentTrades, isLoading: tradesLoading } = useQuery({
     queryKey: ["/api/trading/trades", selectedPair],
     queryFn: async () => {
-      const response = await fetch(`/api/trading/trades?pair=${selectedPair}`);
+      const response = await fetch(getApiUrl("/api/trading/trades?pair=${selectedPair}"));
       if (!response.ok) throw new Error("Failed to fetch recent trades");
       return response.json();
     },

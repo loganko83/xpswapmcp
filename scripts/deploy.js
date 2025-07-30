@@ -1,7 +1,8 @@
+require('dotenv').config();
 const SmartContractDeployer = require('./SmartContractDeployer');
 
 async function main() {
-    const privateKey = '0xaff93b56a157064b2a8f7bd0b04c5ef9fed6859bccc13d228ecb0fef4d9eb352';
+    const privateKey = process.env.DEPLOYER_PRIVATE_KEY || process.env.PRIVATE_KEY;
     const rpcUrl = 'https://en-bkk.x-phere.com';
     
     const deployer = new SmartContractDeployer(privateKey, rpcUrl);

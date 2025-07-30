@@ -141,7 +141,7 @@ export default function PoolPage() {
     queryKey: ["lp-rewards", wallet.address],
     queryFn: async () => {
       if (!wallet.address) return [];
-      const response = await fetch(`/api/lp-rewards?userAddress=${wallet.address}`);
+      const response = await fetch(getApiUrl("/api/lp-rewards?userAddress=${wallet.address}"));
       if (!response.ok) throw new Error("Failed to fetch LP rewards");
       return response.json();
     },

@@ -7,6 +7,7 @@ import {
   FundingRate
 } from '../../../shared/types/advanced';
 import { ApiError } from '../../utils/ApiError';
+import crypto from 'crypto';
 
 export class FuturesService {
   private blockchainService: BlockchainService;
@@ -39,8 +40,8 @@ export class FuturesService {
       
       return perpetuals.map(perp => ({
         ...perp,
-        volume24h: (Math.random() * 1000000).toFixed(2),
-        openInterest: (Math.random() * 500000).toFixed(2),
+        volume24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000).toFixed(2),
+        openInterest: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 500000).toFixed(2),
         fundingRate: this.fundingRates.get(perp.pair)?.rate || '0.0000',
         nextFundingTime: this.fundingRates.get(perp.pair)?.nextFundingTime || new Date().toISOString()
       }));
@@ -114,7 +115,7 @@ export class FuturesService {
 
       const result: FuturesTrade = {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         position: {
           id: Date.now().toString(),
           wallet,
@@ -163,7 +164,7 @@ export class FuturesService {
 
       return {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         realizedPnl: pnl
       };
     } catch (error) {
@@ -197,7 +198,7 @@ export class FuturesService {
 
       return {
         success: true,
-        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        txHash: `0x${crypto.randomBytes(8).toString("hex")}`,
         newMargin
       };
     } catch (error) {
@@ -215,7 +216,7 @@ export class FuturesService {
       for (let i = 0; i < limit; i++) {
         history.push({
           pair,
-          rate: ((Math.random() - 0.5) * 0.02).toFixed(4),
+          rate: (((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) - 0.5) * 0.02).toFixed(4),
           nextFundingTime: new Date(baseTime - i * 8 * 60 * 60 * 1000).toISOString()
         });
       }

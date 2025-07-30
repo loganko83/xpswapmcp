@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { ApiErrorResponse } from '../types/api-errors';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -10,73 +11,73 @@ router.get('/portfolio/multichain/:address', async (req: Request, res: Response)
     
     // Simulate real portfolio data based on address
     const portfolioData = {
-      totalValue: Math.floor(Math.random() * 10000) + 10000,
-      totalChange24h: (Math.random() * 20 - 10).toFixed(2),
+      totalValue: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 10000) + 10000,
+      totalChange24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20 - 10).toFixed(2),
       tokens: [
         {
           symbol: "XP",
           name: "Xphere Token",
-          balance: (Math.random() * 200000 + 50000).toFixed(2),
-          value: Math.floor(Math.random() * 5000) + 5000,
-          change24h: (Math.random() * 30 - 15).toFixed(1),
+          balance: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 200000 + 50000).toFixed(2),
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000) + 5000,
+          change24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30 - 15).toFixed(1),
           network: "xphere"
         },
         {
           symbol: "ETH",
           name: "Ethereum",
-          balance: (Math.random() * 5 + 1).toFixed(3),
-          value: Math.floor(Math.random() * 3000) + 2000,
-          change24h: (Math.random() * 10 - 5).toFixed(1),
+          balance: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5 + 1).toFixed(3),
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3000) + 2000,
+          change24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 10 - 5).toFixed(1),
           network: "ethereum"
         },
         {
           symbol: "USDT",
           name: "Tether USD",
-          balance: (Math.random() * 5000 + 1000).toFixed(2),
-          value: Math.floor(Math.random() * 5000) + 1000,
-          change24h: (Math.random() * 0.2 - 0.1).toFixed(1),
+          balance: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000 + 1000).toFixed(2),
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000) + 1000,
+          change24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 0.2 - 0.1).toFixed(1),
           network: "ethereum"
         },
         {
           symbol: "BNB",
           name: "BNB",
-          balance: (Math.random() * 10 + 1).toFixed(2),
-          value: Math.floor(Math.random() * 2000) + 500,
-          change24h: (Math.random() * 8 - 4).toFixed(1),
+          balance: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 10 + 1).toFixed(2),
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000) + 500,
+          change24h: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 8 - 4).toFixed(1),
           network: "bsc"
         }
       ],
       networks: {
         xphere: { 
-          value: Math.floor(Math.random() * 5000) + 5000, 
-          percentage: 45 + Math.random() * 20 
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000) + 5000, 
+          percentage: 45 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20 
         },
         ethereum: { 
-          value: Math.floor(Math.random() * 4000) + 3000, 
-          percentage: 30 + Math.random() * 15 
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 4000) + 3000, 
+          percentage: 30 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 15 
         },
         bsc: { 
-          value: Math.floor(Math.random() * 2000) + 500, 
-          percentage: 5 + Math.random() * 10 
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000) + 500, 
+          percentage: 5 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 10 
         }
       },
       stakingRewards: {
-        earned: (Math.random() * 100).toFixed(2),
-        pending: (Math.random() * 50).toFixed(2),
-        apr: (Math.random() * 100 + 50).toFixed(1)
+        earned: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100).toFixed(2),
+        pending: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 50).toFixed(2),
+        apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100 + 50).toFixed(1)
       },
       liquidityPositions: [
         {
           pool: "XP/USDT",
-          value: Math.floor(Math.random() * 3000) + 1000,
-          rewards: (Math.random() * 20).toFixed(2),
-          apr: (Math.random() * 150 + 50).toFixed(1)
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3000) + 1000,
+          rewards: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20).toFixed(2),
+          apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 150 + 50).toFixed(1)
         },
         {
           pool: "ETH/USDT",
-          value: Math.floor(Math.random() * 2000) + 500,
-          rewards: (Math.random() * 15).toFixed(2),
-          apr: (Math.random() * 100 + 30).toFixed(1)
+          value: Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 2000) + 500,
+          rewards: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 15).toFixed(2),
+          apr: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 100 + 30).toFixed(1)
         }
       ]
     };
@@ -97,15 +98,15 @@ router.get('/portfolio/transactions/:address', async (req: Request, res: Respons
     // Simulate transaction history
     const transactions = Array.from({ length: Number(limit) }, (_, i) => ({
       id: `tx_${Date.now()}_${i}`,
-      type: ['swap', 'bridge', 'stake', 'liquidity'][Math.floor(Math.random() * 4)],
+      type: ['swap', 'bridge', 'stake', 'liquidity'][Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 4)],
       from: address,
-      to: `0x${Math.random().toString(16).substr(2, 40)}`,
-      amount: (Math.random() * 1000).toFixed(2),
-      token: ['XP', 'ETH', 'USDT', 'BNB'][Math.floor(Math.random() * 4)],
-      network: ['xphere', 'ethereum', 'bsc'][Math.floor(Math.random() * 3)],
+      to: `0x${crypto.randomBytes(8).toString("hex")}`,
+      amount: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000).toFixed(2),
+      token: ['XP', 'ETH', 'USDT', 'BNB'][Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 4)],
+      network: ['xphere', 'ethereum', 'bsc'][Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3)],
       timestamp: Date.now() - (i * 3600000),
       status: 'completed',
-      txHash: `0x${Math.random().toString(16).substr(2, 64)}`
+      txHash: `0x${crypto.randomBytes(8).toString("hex")}`
     }));
 
     res.json({
@@ -130,14 +131,14 @@ router.get('/portfolio/analytics/:address', async (req: Request, res: Response) 
     const analytics = {
       performance: Array.from({ length: dataPoints }, (_, i) => ({
         timestamp: Date.now() - (i * 3600000),
-        value: 10000 + Math.random() * 5000,
-        pnl: (Math.random() * 1000 - 500).toFixed(2)
+        value: 10000 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 5000,
+        pnl: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000 - 500).toFixed(2)
       })).reverse(),
       metrics: {
-        totalReturn: (Math.random() * 30 - 10).toFixed(2),
-        sharpeRatio: (Math.random() * 3).toFixed(2),
-        maxDrawdown: (Math.random() * 20).toFixed(2),
-        winRate: (50 + Math.random() * 30).toFixed(1)
+        totalReturn: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30 - 10).toFixed(2),
+        sharpeRatio: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 3).toFixed(2),
+        maxDrawdown: ((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 20).toFixed(2),
+        winRate: (50 + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 30).toFixed(1)
       }
     };
 

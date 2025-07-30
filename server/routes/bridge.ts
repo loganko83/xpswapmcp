@@ -6,10 +6,10 @@ const router = Router();
 // Bridge utility functions
 const BridgeUtils = {
   generateTxHash: (): string => {
-    return '0x' + Math.random().toString(16).slice(2, 66);
+    return '0x' + (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF).toString(16).slice(2, 66);
   },
   getSecureRandomFloat: (): number => {
-    return Math.random();
+    return (crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF);
   }
 };
 

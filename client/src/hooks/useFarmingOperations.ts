@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { StakeParams, ClaimRewardsResponse, Farm, UserFarmData, APY_BY_LOCK_PERIOD } from "@/types/FarmingTypes";
+import { getApiUrl } from '../utils/config';
 
 export function useFarmingOperations() {
   const { wallet } = useWeb3();
@@ -54,7 +55,7 @@ export function useFarmingOperations() {
   // Claim rewards mutation
   const claimRewardsMutation = useMutation({
     mutationFn: async (farmId: number): Promise<ClaimRewardsResponse> => {
-      const response = await fetch("/api/claim-rewards", {
+      const response = await fetch(getApiUrl("/api/claim-rewards"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -88,7 +89,7 @@ export function useFarmingOperations() {
     queryFn: async (): Promise<UserFarmData[] | null> => {
       if (!wallet.address) return null;
       
-      const response = await fetch(`/api/farms/user-data/${wallet.address}`);
+      const response = await fetch(getApiUrl("/api/farms/user-data/${wallet.address}"));
       if (!response.ok) return null;
       return response.json();
     },

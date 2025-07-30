@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
@@ -134,7 +136,7 @@ async function deployContract(wallet, contractName) {
     console.error(`Deployment error for ${contractName}:`, error.message);
     
     // Return a mock address if deployment fails but we want to continue
-    const mockAddress = '0x' + Math.random().toString(16).substr(2, 40);
+    const mockAddress = '0x' + crypto.randomBytes(8).toString("hex");
     console.log(`⚠️  Using mock address for ${contractName}: ${mockAddress}`);
     return mockAddress;
   }

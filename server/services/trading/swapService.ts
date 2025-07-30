@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { cache } from "../cache";
 import web3Service from "../web3";
 import { BlockchainService } from "../realBlockchain";
+import crypto from 'crypto';
 
 export interface SwapQuoteRequest {
   fromToken: string;
@@ -139,7 +140,7 @@ export class SwapService {
     // Simulate transaction confirmation after 2 seconds
     setTimeout(() => {
       transaction.status = "confirmed";
-      transaction.blockNumber = Math.floor(Math.random() * 1000000) + 1000000;
+      transaction.blockNumber = Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 1000000) + 1000000;
       cache.set(`tx_${txHash}`, transaction, 3600);
     }, 2000);
 
@@ -255,7 +256,7 @@ export class SwapService {
    */
   private generateTransactionHash(): string {
     return '0x' + Array.from({ length: 64 }, () => 
-      Math.floor(Math.random() * 16).toString(16)
+      Math.floor((crypto.randomBytes(4).readUInt32BE(0) / 0xFFFFFFFF) * 16).toString(16)
     ).join('');
   }
 }
