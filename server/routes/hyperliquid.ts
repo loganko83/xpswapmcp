@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db.js';
 import { v4 as uuidv4 } from 'uuid';
-import { crypto } from 'crypto';
+import crypto from 'crypto';
 
 const router = Router();
 
