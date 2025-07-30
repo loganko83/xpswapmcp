@@ -10,21 +10,25 @@ import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
 import web3Service from "../services/web3";
 import { BlockchainService } from "../services/realBlockchain.js";
 import { ApiErrorResponse } from "../types/api-errors";
+import { logger } from "../utils/logger";
 
 const router = Router();
 
 // Market data with cache
 router.get("/market-stats", 
   async (req, res) => {
+    const timer = logger.startTimer('market-stats-api', 'api');
+    
     try {
       // Check cache first
       const cachedStats = cache.get(CACHE_KEYS.MARKET_STATS);
       if (cachedStats) {
-        console.log("🚀 Market stats served from cache");
+        logger.info("Market stats served from cache", "api", { cached: true });
+        logger.endTimer(timer, 'market-stats-api', 'api');
         return res.json(cachedStats);
       }
       
-      console.log("📡 Fetching market stats from blockchain");
+      logger.info("Fetching market stats from blockchain", "api", { cached: false });
       
       // Get blockchain service instance
       const blockchainService = new BlockchainService();

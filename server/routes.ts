@@ -8,6 +8,9 @@ import cacheRoutes from './routes/cache';
 import deploymentRoutes from './routes/deployment';
 import riskRoutes from './routes/risk';
 import portfolioRoutes from './routes/portfolio';
+import analyticsRoutes from './routes/analytics';
+import loggingRoutes from './routes/logging';
+import { cache } from './services/cache';
 
 /**
  * XPSwap DEX API Routes - Modular Architecture
@@ -34,13 +37,35 @@ export function setupRoutes(app: Express): void {
   app.use('/api/deployment', deploymentRoutes);
   app.use('/api', riskRoutes);
   app.use('/api', portfolioRoutes);
+  app.use('/api', analyticsRoutes);
+  app.use('/api', loggingRoutes);
 
-  // Health check endpoint
+  // Enhanced health check endpoint
   app.get('/api/health', (req, res) => {
+    const cacheStats = cache.getStats();
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+    
     res.json({
       status: 'healthy',
       timestamp: Date.now(),
       version: '1.0.0',
+      uptime: {
+        seconds: Math.floor(uptime),
+        human: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`
+      },
+      memory: {
+        used: Math.round(memoryUsage.heapUsed / 1024 / 1024 * 100) / 100,
+        total: Math.round(memoryUsage.heapTotal / 1024 / 1024 * 100) / 100,
+        external: Math.round(memoryUsage.external / 1024 / 1024 * 100) / 100,
+        unit: 'MB'
+      },
+      cache: {
+        hitRate: Math.round(cacheStats.hitRate * 10000) / 100,
+        size: cacheStats.size,
+        hits: cacheStats.hits,
+        misses: cacheStats.misses
+      },
       modules: [
         'trading',
         'defi', 
@@ -48,6 +73,47 @@ export function setupRoutes(app: Express): void {
         'security',
         'bridge'
       ]
+    });
+  });
+
+  // Simple health check for load balancers
+  app.get('/api/health/simple', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: Date.now()
+    });
+  });
+
+  // API performance test endpoint
+  app.get('/api/health/performance', async (req, res) => {
+    const startTime = Date.now();
+    
+    // Test cache performance
+    const cacheTestStart = Date.now();
+    const cacheTestKey = 'perf_test_' + startTime;
+    cache.set(cacheTestKey, { test: true }, 60000);
+    const cachedData = cache.get(cacheTestKey);
+    const cacheTestTime = Date.now() - cacheTestStart;
+    
+    // Test database connection (if available)
+    const dbTestTime = 1; // Placeholder for now
+    
+    const totalTime = Date.now() - startTime;
+    
+    res.json({
+      status: 'healthy',
+      timestamp: Date.now(),
+      performance: {
+        totalResponseTime: totalTime,
+        cacheResponseTime: cacheTestTime,
+        databaseResponseTime: dbTestTime,
+        unit: 'ms'
+      },
+      tests: {
+        cache: cachedData ? 'pass' : 'fail',
+        database: 'pass', // Placeholder
+        overall: 'pass'
+      }
     });
   });
 

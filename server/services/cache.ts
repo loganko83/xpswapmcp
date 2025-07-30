@@ -84,13 +84,16 @@ export const CACHE_KEYS = {
 };
 
 // Cache TTL (in milliseconds)
+// Longer TTL for development, shorter for production
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 export const CACHE_TTL = {
-  XP_PRICE: 30 * 1000,        // 30 seconds
-  MARKET_STATS: 60 * 1000,    // 1 minute
-  TOKEN_LIST: 5 * 60 * 1000,  // 5 minutes
-  POOL_DATA: 30 * 1000,       // 30 seconds
-  FARM_DATA: 60 * 1000,       // 1 minute
-  USER_BALANCE: 10 * 1000     // 10 seconds
+  XP_PRICE: isDevelopment ? 5 * 60 * 1000 : 30 * 1000,        // 5 minutes (dev) / 30 seconds (prod)
+  MARKET_STATS: isDevelopment ? 10 * 60 * 1000 : 60 * 1000,   // 10 minutes (dev) / 1 minute (prod)
+  TOKEN_LIST: 30 * 60 * 1000,  // 30 minutes
+  POOL_DATA: isDevelopment ? 5 * 60 * 1000 : 30 * 1000,       // 5 minutes (dev) / 30 seconds (prod)
+  FARM_DATA: isDevelopment ? 10 * 60 * 1000 : 60 * 1000,      // 10 minutes (dev) / 1 minute (prod)
+  USER_BALANCE: isDevelopment ? 60 * 1000 : 10 * 1000         // 1 minute (dev) / 10 seconds (prod)
 };
 
 // Export singleton instance
