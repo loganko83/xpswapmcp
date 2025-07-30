@@ -10,6 +10,7 @@ import riskRoutes from './routes/risk';
 import portfolioRoutes from './routes/portfolio';
 import analyticsRoutes from './routes/analytics';
 import loggingRoutes from './routes/logging';
+import hyperliquidRoutes from './routes/hyperliquid';
 import { cache } from './services/cache';
 
 /**
@@ -39,6 +40,7 @@ export function setupRoutes(app: Express): void {
   app.use('/api', portfolioRoutes);
   app.use('/api', analyticsRoutes);
   app.use('/api', loggingRoutes);
+  app.use('/api/hyperliquid', hyperliquidRoutes); // Hyperliquid-style perpetual trading
 
   // Enhanced health check endpoint
   app.get('/api/health', (req, res) => {

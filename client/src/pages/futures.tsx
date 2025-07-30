@@ -1,5 +1,5 @@
-import { PerpetualFuturesInterface } from "@/components/OptionsTrading/PerpetualFuturesInterface";
+import { HyperliquidInterface } from "@/components/OptionsTrading/HyperliquidInterface";
 
 export default function FuturesPage() {
-  return <PerpetualFuturesInterface />;
+  return <HyperliquidInterface />;
 }

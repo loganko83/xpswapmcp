@@ -17,12 +17,21 @@ import {
   Target,
   Zap,
   AlertTriangle,
-  Info
+  Info,
+  Settings,
+  Maximize,
+  MoreHorizontal,
+  Bookmark,
+  Eye,
+  EyeOff,
+  Grid3X3,
+  LineChart,
+  CandlestickChart
 } from "lucide-react";
 import { useWeb3Context } from "@/contexts/Web3Context";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { createChart, ColorType } from 'lightweight-charts';
+import { createChart, ColorType, LineStyle, PriceScaleMode } from 'lightweight-charts';
 import { getTokenIcon } from "@/lib/tokenUtils";
 import { getApiUrl } from "@/lib/apiUrl";
 
@@ -60,6 +69,14 @@ interface OrderBook {
   bids: OrderBookEntry[];
 }
 
+interface MarketTrade {
+  id: string;
+  price: number;
+  amount: number;
+  side: 'buy' | 'sell';
+  timestamp: number;
+}
+
 export default function TradingPage() {
   const { wallet, connectWallet } = useWeb3Context();
   const { toast } = useToast();
@@ -70,11 +87,21 @@ export default function TradingPage() {
   
   const [selectedPair, setSelectedPair] = useState("XPS-XP");
   const [timeFrame, setTimeFrame] = useState("1h");
+  const [chartType, setChartType] = useState("candlestick"); // candlestick, line, area
   const [orderType, setOrderType] = useState("market");
   const [side, setSide] = useState("buy");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
   const [slippage, setSlippage] = useState("0.5");
+  const [showOrderBook, setShowOrderBook] = useState(true);
+  const [showTrades, setShowTrades] = useState(true);
+  const [leverage, setLeverage] = useState("1");
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
+
+  // Layout states
+  const [isChartMaximized, setIsChartMaximized] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState("orderbook");
 
   // Fetch trading pairs
   const { data: tradingPairs, isLoading: pairsLoading } = useQuery({
@@ -91,7 +118,7 @@ export default function TradingPage() {
   const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ["/api/trading/chart", selectedPair, timeFrame],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/trading/chart?pair=${selectedPair}&timeframe=${timeFrame}"));
+      const response = await fetch(getApiUrl(`/api/trading/chart?pair=${selectedPair}&timeframe=${timeFrame}`));
       if (!response.ok) throw new Error("Failed to fetch chart data");
       return response.json();
     },
@@ -102,7 +129,7 @@ export default function TradingPage() {
   const { data: orderBook, isLoading: orderBookLoading } = useQuery({
     queryKey: ["/api/trading/orderbook", selectedPair],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/trading/orderbook?pair=${selectedPair}"));
+      const response = await fetch(getApiUrl(`/api/trading/orderbook?pair=${selectedPair}`));
       if (!response.ok) throw new Error("Failed to fetch order book");
       return response.json();
     },
@@ -113,51 +140,92 @@ export default function TradingPage() {
   const { data: recentTrades, isLoading: tradesLoading } = useQuery({
     queryKey: ["/api/trading/trades", selectedPair],
     queryFn: async () => {
-      const response = await fetch(getApiUrl("/api/trading/trades?pair=${selectedPair}"));
+      const response = await fetch(getApiUrl(`/api/trading/trades?pair=${selectedPair}`));
       if (!response.ok) throw new Error("Failed to fetch recent trades");
       return response.json();
     },
     refetchInterval: 2000
   });
 
-  // Initialize chart
+  // Initialize chart with Hyperliquid-style theme
   useEffect(() => {
     if (chartContainerRef.current && !chart) {
       const newChart = createChart(chartContainerRef.current, {
         width: chartContainerRef.current.clientWidth,
-        height: 400,
+        height: isChartMaximized ? 600 : 450,
         layout: {
-          background: { type: ColorType.Solid, color: 'transparent' },
-          textColor: '#d1d5db',
+          background: { type: ColorType.Solid, color: '#0a0a0a' },
+          textColor: '#e4e4e7',
+          fontSize: 12,
+          fontFamily: 'Inter, system-ui, sans-serif',
         },
         grid: {
-          vertLines: { color: '#374151' },
-          horzLines: { color: '#374151' },
+          vertLines: { 
+            color: '#262626',
+            style: LineStyle.Dotted,
+            visible: true,
+          },
+          horzLines: { 
+            color: '#262626',
+            style: LineStyle.Dotted,
+            visible: true,
+          },
         },
         crosshair: {
           mode: 1,
+          vertLine: {
+            color: '#71717a',
+            width: 1,
+            style: LineStyle.Dashed,
+          },
+          horzLine: {
+            color: '#71717a',
+            width: 1,
+            style: LineStyle.Dashed,
+          },
         },
         rightPriceScale: {
-          borderColor: '#374151',
+          borderColor: '#262626',
+          mode: PriceScaleMode.Normal,
+          entireTextOnly: false,
+          visible: true,
+          borderVisible: false,
+          scaleMargins: {
+            top: 0.1,
+            bottom: 0.2,
+          },
         },
         timeScale: {
-          borderColor: '#374151',
+          borderColor: '#262626',
           timeVisible: true,
           secondsVisible: false,
+          borderVisible: false,
+          rightOffset: 5,
+        },
+        watermark: {
+          visible: true,
+          fontSize: 48,
+          horzAlign: 'center',
+          vertAlign: 'center',
+          color: 'rgba(255, 255, 255, 0.03)',
+          text: 'XPSwap',
         },
       });
 
+      // Add candlestick series with Hyperliquid colors
       const candlestickSeries = newChart.addCandlestickSeries({
-        upColor: '#10b981',
-        downColor: '#ef4444',
-        borderDownColor: '#ef4444',
-        borderUpColor: '#10b981',
-        wickDownColor: '#ef4444',
-        wickUpColor: '#10b981',
+        upColor: '#00d4aa',
+        downColor: '#ff6b6b',
+        borderDownColor: '#ff6b6b',
+        borderUpColor: '#00d4aa',
+        wickDownColor: '#ff6b6b',
+        wickUpColor: '#00d4aa',
+        priceScaleId: 'right',
       });
 
+      // Add volume series
       const volumeSeries = newChart.addHistogramSeries({
-        color: '#6b7280',
+        color: '#71717a',
         priceFormat: {
           type: 'volume',
         },
@@ -176,13 +244,14 @@ export default function TradingPage() {
       const handleResize = () => {
         newChart.applyOptions({
           width: chartContainerRef.current?.clientWidth || 800,
+          height: isChartMaximized ? 600 : 450,
         });
       };
 
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
-  }, [chart]);
+  }, [chart, isChartMaximized]);
 
   // Update chart data
   useEffect(() => {
@@ -198,7 +267,7 @@ export default function TradingPage() {
       const volumeData = chartData.map((d: ChartData) => ({
         time: d.time,
         value: d.volume,
-        color: d.close > d.open ? '#10b981' : '#ef4444',
+        color: d.close > d.open ? 'rgba(0, 212, 170, 0.6)' : 'rgba(255, 107, 107, 0.6)',
       }));
 
       candlestickSeries.setData(candleData);
@@ -234,7 +303,7 @@ export default function TradingPage() {
         description: "Your trade is being processed on the blockchain...",
       });
 
-      // First execute the trade via API (which validates and processes the order)
+      // Execute the trade via API
       const response = await fetch(getApiUrl("/api/trading/execute"), {
         method: "POST",
         headers: {
@@ -247,6 +316,9 @@ export default function TradingPage() {
           amount: parseFloat(amount),
           price: orderType === "limit" ? parseFloat(price) : undefined,
           slippage: parseFloat(slippage),
+          leverage: parseFloat(leverage),
+          stopLoss: stopLoss ? parseFloat(stopLoss) : undefined,
+          takeProfit: takeProfit ? parseFloat(takeProfit) : undefined,
           userAddress: wallet.address,
         }),
       });
@@ -275,7 +347,6 @@ export default function TradingPage() {
             }
           } catch (web3Error: any) {
             console.warn("Limit order placement failed, using AMM execution:", web3Error);
-            // Fallback to regular AMM execution
           }
         }
 
@@ -319,6 +390,8 @@ export default function TradingPage() {
         // Clear form
         setAmount("");
         setPrice("");
+        setStopLoss("");
+        setTakeProfit("");
         
         // Refresh data
         setTimeout(() => {
@@ -344,19 +417,19 @@ export default function TradingPage() {
 
   if (!wallet.isConnected) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-black p-4">
         <div className="max-w-2xl mx-auto pt-20">
-          <Card className="bg-card backdrop-blur-lg border-border">
+          <Card className="bg-zinc-900 backdrop-blur-lg border-zinc-800">
             <CardContent className="p-8 text-center">
               <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Activity className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 bg-gradient-to-r from-emerald-500/20 to-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Activity className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">지갑 연결 필요</h2>
-                <p className="text-muted-foreground">고급 거래 기능을 사용하려면 지갑을 연결해주세요</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Wallet Connection Required</h2>
+                <p className="text-zinc-400">Connect your wallet to access professional trading features</p>
               </div>
-              <Button onClick={connectWallet} className="bg-primary hover:bg-primary/90">
-                지갑 연결
+              <Button onClick={connectWallet} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                Connect Wallet
               </Button>
             </CardContent>
           </Card>
@@ -366,98 +439,142 @@ export default function TradingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Advanced Trading</h1>
-            <p className="text-muted-foreground">Professional-grade trading with advanced charts and order types</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Select value={selectedPair} onValueChange={setSelectedPair}>
-              <SelectTrigger className="w-48 bg-background border-border text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {tradingPairs?.map((pair: TradingPair) => (
-                  <SelectItem key={pair.id} value={pair.id}>
-                    <div className="flex items-center gap-2">
-                      <img src={getTokenIcon(pair.symbol.split('-')[0])} alt="" className="w-4 h-4" />
-                      {pair.symbol}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="min-h-screen bg-black text-white">
+      {/* Header - Hyperliquid style */}
+      <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-lg">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <h1 className="text-xl font-semibold text-white">Advanced Trading</h1>
+              <div className="flex items-center gap-4">
+                <Select value={selectedPair} onValueChange={setSelectedPair}>
+                  <SelectTrigger className="w-40 bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    {tradingPairs?.map((pair: TradingPair) => (
+                      <SelectItem key={pair.id} value={pair.id} className="text-white hover:bg-zinc-700">
+                        <div className="flex items-center gap-2">
+                          <img src={getTokenIcon(pair.symbol.split('-')[0])} alt="" className="w-4 h-4" />
+                          {pair.symbol}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedPairData && (
+                  <div className="flex items-center gap-4">
+                    <span className="text-xl font-mono text-white">
+                      ${selectedPairData.price.toFixed(6)}
+                    </span>
+                    <Badge 
+                      variant={selectedPairData.change24h >= 0 ? "default" : "destructive"}
+                      className={selectedPairData.change24h >= 0 ? "bg-emerald-600 text-white" : "bg-red-600 text-white"}
+                    >
+                      {selectedPairData.change24h >= 0 ? "+" : ""}{selectedPairData.change24h.toFixed(2)}%
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsChartMaximized(!isChartMaximized)}
+                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+              >
+                <Maximize className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Trading Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Main Trading Interface */}
+      <div className="max-w-7xl mx-auto p-4">
+        <div className={`grid gap-4 ${isChartMaximized ? 'grid-cols-1' : 'grid-cols-4'}`}>
           {/* Chart Section */}
-          <div className="lg:col-span-3">
-            <Card className="bg-card backdrop-blur-lg border-border">
-              <CardHeader className="pb-2">
+          <div className={isChartMaximized ? 'col-span-1' : 'col-span-3'}>
+            <Card className="bg-zinc-900 border-zinc-800">
+              <CardHeader className="pb-2 border-b border-zinc-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <img src={getTokenIcon(selectedPair.split('-')[0])} alt="" className="w-6 h-6" />
-                      <h3 className="text-lg font-semibold text-foreground">{selectedPair}</h3>
+                      <img src={getTokenIcon(selectedPair.split('-')[0])} alt="" className="w-5 h-5" />
+                      <span className="font-mono text-sm text-zinc-400">{selectedPair}</span>
                     </div>
-                    {selectedPairData && (
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold text-foreground">
-                          ${selectedPairData.price.toFixed(6)}
-                        </span>
-                        <Badge variant={selectedPairData.change24h >= 0 ? "default" : "destructive"}>
-                          {selectedPairData.change24h >= 0 ? "+" : ""}{selectedPairData.change24h.toFixed(2)}%
-                        </Badge>
-                      </div>
-                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Select value={timeFrame} onValueChange={setTimeFrame}>
-                      <SelectTrigger className="w-20 bg-background border-border text-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1m">1m</SelectItem>
-                        <SelectItem value="5m">5m</SelectItem>
-                        <SelectItem value="15m">15m</SelectItem>
-                        <SelectItem value="1h">1h</SelectItem>
-                        <SelectItem value="4h">4h</SelectItem>
-                        <SelectItem value="1d">1d</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {/* Chart Type Selector */}
+                    <div className="flex items-center bg-zinc-800 rounded-md p-1">
+                      <Button
+                        variant={chartType === "candlestick" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setChartType("candlestick")}
+                        className="h-7 px-2"
+                      >
+                        <CandlestickChart className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant={chartType === "line" ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setChartType("line")}
+                        className="h-7 px-2"
+                      >
+                        <LineChart className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    
+                    {/* Timeframe Selector */}
+                    <div className="flex items-center bg-zinc-800 rounded-md p-1">
+                      {["1m", "5m", "15m", "1h", "4h", "1d"].map((tf) => (
+                        <Button
+                          key={tf}
+                          variant={timeFrame === tf ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setTimeFrame(tf)}
+                          className="h-7 px-2 text-xs"
+                        >
+                          {tf}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div ref={chartContainerRef} className="w-full h-96" />
+              <CardContent className="p-0">
+                <div ref={chartContainerRef} className="w-full" />
               </CardContent>
             </Card>
 
-            {/* Market Stats */}
-            {selectedPairData && (
-              <Card className="bg-card backdrop-blur-lg border-border mt-4">
+            {/* Market Stats - Hyperliquid style */}
+            {selectedPairData && !isChartMaximized && (
+              <Card className="bg-zinc-900 border-zinc-800 mt-4">
                 <CardContent className="p-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">24h High</p>
-                      <p className="text-lg font-semibold text-green-600">${selectedPairData.high24h.toFixed(6)}</p>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-1">24h High</p>
+                      <p className="text-sm font-mono text-emerald-400">${selectedPairData.high24h.toFixed(6)}</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">24h Low</p>
-                      <p className="text-lg font-semibold text-red-600">${selectedPairData.low24h.toFixed(6)}</p>
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-1">24h Low</p>
+                      <p className="text-sm font-mono text-red-400">${selectedPairData.low24h.toFixed(6)}</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">24h Volume</p>
-                      <p className="text-lg font-semibold text-foreground">${selectedPairData.volume24h.toLocaleString()}</p>
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-1">24h Volume</p>
+                      <p className="text-sm font-mono text-white">${selectedPairData.volume24h.toLocaleString()}</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Liquidity</p>
-                      <p className="text-lg font-semibold text-blue-600">${selectedPairData.liquidity.toLocaleString()}</p>
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-1">Liquidity</p>
+                      <p className="text-sm font-mono text-blue-400">${selectedPairData.liquidity.toLocaleString()}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -465,143 +582,243 @@ export default function TradingPage() {
             )}
           </div>
 
-          {/* Trading Panel */}
-          <div className="space-y-4">
-            {/* Order Form */}
-            <Card className="bg-card backdrop-blur-lg border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">Place Order</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Tabs value={side} onValueChange={setSide}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="buy" className="text-green-400">Buy</TabsTrigger>
-                    <TabsTrigger value="sell" className="text-red-400">Sell</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+          {/* Right Panel */}
+          {!isChartMaximized && (
+            <div className="space-y-4">
+              {/* Trading Panel */}
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardHeader className="pb-3 border-b border-zinc-800">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm text-white">Place Order</CardTitle>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Settings className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  {/* Buy/Sell Tabs */}
+                  <Tabs value={side} onValueChange={setSide}>
+                    <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
+                      <TabsTrigger value="buy" className="text-emerald-400 data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
+                        Buy
+                      </TabsTrigger>
+                      <TabsTrigger value="sell" className="text-red-400 data-[state=active]:bg-red-600 data-[state=active]:text-white">
+                        Sell
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
 
-                <div className="space-y-2">
-                  <Label className="text-foreground">Order Type</Label>
-                  <Select value={orderType} onValueChange={setOrderType}>
-                    <SelectTrigger className="bg-background border-border text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="market">Market</SelectItem>
-                      <SelectItem value="limit">Limit</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {orderType === "limit" && (
+                  {/* Order Type */}
                   <div className="space-y-2">
-                    <Label className="text-foreground">Price</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-zinc-400">Order Type</Label>
+                    </div>
+                    <Tabs value={orderType} onValueChange={setOrderType}>
+                      <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
+                        <TabsTrigger value="market" className="text-xs">Market</TabsTrigger>
+                        <TabsTrigger value="limit" className="text-xs">Limit</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+
+                  {/* Leverage */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-zinc-400">Leverage</Label>
+                      <span className="text-xs text-white">{leverage}x</span>
+                    </div>
+                    <Select value={leverage} onValueChange={setLeverage}>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white text-xs h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectItem value="1">1x</SelectItem>
+                        <SelectItem value="2">2x</SelectItem>
+                        <SelectItem value="5">5x</SelectItem>
+                        <SelectItem value="10">10x</SelectItem>
+                        <SelectItem value="20">20x</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Price (for limit orders) */}
+                  {orderType === "limit" && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-zinc-400">Price</Label>
+                      <Input
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="0.00"
+                        className="bg-zinc-800 border-zinc-700 text-white text-xs h-8"
+                      />
+                    </div>
+                  )}
+
+                  {/* Amount */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-zinc-400">Size</Label>
                     <Input
                       type="number"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
                       placeholder="0.00"
-                      className="bg-background border-border text-foreground"
+                      className="bg-zinc-800 border-zinc-700 text-white text-xs h-8"
+                    />
+                    <div className="flex gap-1">
+                      {["25%", "50%", "75%", "Max"].map((pct) => (
+                        <Button
+                          key={pct}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-6 text-xs bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                        >
+                          {pct}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Advanced Options */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-zinc-400">Stop Loss</Label>
+                    <Input
+                      type="number"
+                      value={stopLoss}
+                      onChange={(e) => setStopLoss(e.target.value)}
+                      placeholder="Optional"
+                      className="bg-zinc-800 border-zinc-700 text-white text-xs h-8"
                     />
                   </div>
-                )}
 
-                <div className="space-y-2">
-                  <Label className="text-foreground">Amount</Label>
-                  <Input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
-                    className="bg-background border-border text-foreground"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-zinc-400">Take Profit</Label>
+                    <Input
+                      type="number"
+                      value={takeProfit}
+                      onChange={(e) => setTakeProfit(e.target.value)}
+                      placeholder="Optional"
+                      className="bg-zinc-800 border-zinc-700 text-white text-xs h-8"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-foreground">Slippage (%)</Label>
-                  <Select value={slippage} onValueChange={setSlippage}>
-                    <SelectTrigger className="bg-background border-border text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0.1">0.1%</SelectItem>
-                      <SelectItem value="0.5">0.5%</SelectItem>
-                      <SelectItem value="1.0">1.0%</SelectItem>
-                      <SelectItem value="3.0">3.0%</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  {/* Slippage */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-zinc-400">Slippage</Label>
+                    <Select value={slippage} onValueChange={setSlippage}>
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white text-xs h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectItem value="0.1">0.1%</SelectItem>
+                        <SelectItem value="0.5">0.5%</SelectItem>
+                        <SelectItem value="1.0">1.0%</SelectItem>
+                        <SelectItem value="3.0">3.0%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <Button 
-                  onClick={handleTrade}
-                  className={`w-full ${
-                    side === "buy" 
-                      ? "bg-green-600 hover:bg-green-700" 
-                      : "bg-red-600 hover:bg-red-700"
-                  }`}
-                >
-                  {side === "buy" ? "Buy" : "Sell"} {selectedPair.split('-')[0]}
-                </Button>
-              </CardContent>
-            </Card>
+                  {/* Trade Button */}
+                  <Button 
+                    onClick={handleTrade}
+                    className={`w-full h-10 font-medium ${
+                      side === "buy" 
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white" 
+                        : "bg-red-600 hover:bg-red-700 text-white"
+                    }`}
+                  >
+                    {side === "buy" ? "Buy" : "Sell"} {selectedPair.split('-')[0]}
+                  </Button>
+                </CardContent>
+              </Card>
 
-            {/* Order Book */}
-            <Card className="bg-card backdrop-blur-lg border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">Order Book</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {/* Asks */}
-                  <div className="space-y-1">
-                    <p className="text-xs text-red-600 mb-2">Asks</p>
-                    {orderBook?.asks?.slice(0, 5).map((ask: OrderBookEntry, index: number) => (
-                      <div key={index} className="flex justify-between text-xs">
-                        <span className="text-red-600">{ask.price.toFixed(6)}</span>
-                        <span className="text-muted-foreground">{ask.amount.toFixed(2)}</span>
+              {/* Right Panel Tabs */}
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardHeader className="pb-2 border-b border-zinc-800">
+                  <Tabs value={rightPanelTab} onValueChange={setRightPanelTab}>
+                    <TabsList className="grid w-full grid-cols-3 bg-zinc-800">
+                      <TabsTrigger value="orderbook" className="text-xs">Book</TabsTrigger>
+                      <TabsTrigger value="trades" className="text-xs">Trades</TabsTrigger>
+                      <TabsTrigger value="positions" className="text-xs">Positions</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </CardHeader>
+                <CardContent className="p-3">
+                  {rightPanelTab === "orderbook" && (
+                    <div className="space-y-2">
+                      {/* Order Book Header */}
+                      <div className="flex justify-between text-xs text-zinc-500 mb-2">
+                        <span>Price</span>
+                        <span>Size</span>
+                        <span>Total</span>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {/* Spread */}
-                  <div className="py-2 text-center border-t border-b border-border">
-                    <span className="text-xs text-muted-foreground">Spread</span>
-                  </div>
-                  
-                  {/* Bids */}
-                  <div className="space-y-1">
-                    <p className="text-xs text-green-600 mb-2">Bids</p>
-                    {orderBook?.bids?.slice(0, 5).map((bid: OrderBookEntry, index: number) => (
-                      <div key={index} className="flex justify-between text-xs">
-                        <span className="text-green-600">{bid.price.toFixed(6)}</span>
-                        <span className="text-muted-foreground">{bid.amount.toFixed(2)}</span>
+                      
+                      {/* Asks */}
+                      <div className="space-y-1">
+                        {orderBook?.asks?.slice(0, 8).reverse().map((ask: OrderBookEntry, index: number) => (
+                          <div key={index} className="flex justify-between text-xs hover:bg-zinc-800 px-1 py-0.5 rounded">
+                            <span className="text-red-400 font-mono">{ask.price.toFixed(6)}</span>
+                            <span className="text-zinc-300 font-mono">{ask.amount.toFixed(2)}</span>
+                            <span className="text-zinc-500 font-mono">{ask.total.toFixed(2)}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Trades */}
-            <Card className="bg-card backdrop-blur-lg border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">Recent Trades</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  {recentTrades?.slice(0, 10).map((trade: any, index: number) => (
-                    <div key={index} className="flex justify-between text-xs">
-                      <span className={trade.side === "buy" ? "text-green-600" : "text-red-600"}>
-                        {trade.price.toFixed(6)}
-                      </span>
-                      <span className="text-muted-foreground">{trade.amount.toFixed(2)}</span>
-                      <span className="text-muted-foreground">{new Date(trade.timestamp).toLocaleTimeString()}</span>
+                      
+                      {/* Spread */}
+                      <div className="py-2 text-center border-t border-b border-zinc-800">
+                        <span className="text-xs text-zinc-500 font-mono">
+                          {orderBook?.asks?.[0] && orderBook?.bids?.[0] 
+                            ? `${(orderBook.asks[0].price - orderBook.bids[0].price).toFixed(6)} (${((orderBook.asks[0].price - orderBook.bids[0].price) / orderBook.bids[0].price * 100).toFixed(2)}%)`
+                            : 'Spread'
+                          }
+                        </span>
+                      </div>
+                      
+                      {/* Bids */}
+                      <div className="space-y-1">
+                        {orderBook?.bids?.slice(0, 8).map((bid: OrderBookEntry, index: number) => (
+                          <div key={index} className="flex justify-between text-xs hover:bg-zinc-800 px-1 py-0.5 rounded">
+                            <span className="text-emerald-400 font-mono">{bid.price.toFixed(6)}</span>
+                            <span className="text-zinc-300 font-mono">{bid.amount.toFixed(2)}</span>
+                            <span className="text-zinc-500 font-mono">{bid.total.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  )}
+
+                  {rightPanelTab === "trades" && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-zinc-500 mb-2">
+                        <span>Price</span>
+                        <span>Size</span>
+                        <span>Time</span>
+                      </div>
+                      {recentTrades?.slice(0, 20).map((trade: MarketTrade, index: number) => (
+                        <div key={index} className="flex justify-between text-xs hover:bg-zinc-800 px-1 py-0.5 rounded">
+                          <span className={`font-mono ${trade.side === "buy" ? "text-emerald-400" : "text-red-400"}`}>
+                            {trade.price.toFixed(6)}
+                          </span>
+                          <span className="text-zinc-300 font-mono">{trade.amount.toFixed(2)}</span>
+                          <span className="text-zinc-500 text-xs">
+                            {new Date(trade.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {rightPanelTab === "positions" && (
+                    <div className="text-center py-8">
+                      <p className="text-xs text-zinc-500">No open positions</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
