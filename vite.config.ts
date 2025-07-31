@@ -7,8 +7,12 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// 환경에 따른 BASE_PATH 설정
+const isDevelopment = process.env.NODE_ENV === 'development';
+const basePath = isDevelopment ? '/' : '/xpswap/';
+
 export default defineConfig({
-  base: '/xpswap/',
+  base: basePath,
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -42,8 +46,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // React와 관련 라이브러리를 별도 청크로 분리
-          if (id.includes('react') || id.includes('react-dom')) {
+          // React와 관련 라이브러리를 별도 청크로 분리 (React 18 호환성 개선)
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
             return 'react';
           }
           // 라우팅 관련
@@ -66,8 +70,8 @@ export default defineConfig({
           if (id.includes('ethers') || id.includes('web3')) {
             return 'web3';
           }
-          // node_modules 일반 청크
-          if (id.includes('node_modules')) {
+          // node_modules 일반 청크 (React 제외)
+          if (id.includes('node_modules') && !id.includes('react')) {
             return 'vendor';
           }
         },

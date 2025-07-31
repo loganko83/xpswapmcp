@@ -11,6 +11,12 @@ import path from "path";
 const app = express();
 const BASE_PATH = process.env.BASE_PATH || '';
 
+// Log environment configuration
+console.log('🚀 XPSwap Server Starting...');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('BASE_PATH:', BASE_PATH);
+console.log('PORT:', process.env.PORT || 5000);
+
 // 🛡️ Apply Enhanced Security Middleware First (Before any other middleware)
 applyEnhancedSecurity(app);
 

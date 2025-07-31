@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../db.js';
+import { db, sqliteDb } from '../db.js';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 
@@ -437,7 +437,7 @@ router.get('/analytics', async (req, res) => {
 const initializeHyperliquidTables = () => {
   try {
     // Orders table
-    db.exec(`
+    sqliteDb.exec(`
       CREATE TABLE IF NOT EXISTS hyperliquid_orders (
         order_id TEXT PRIMARY KEY,
         address TEXT NOT NULL,
@@ -458,7 +458,7 @@ const initializeHyperliquidTables = () => {
     `);
     
     // Positions table
-    db.exec(`
+    sqliteDb.exec(`
       CREATE TABLE IF NOT EXISTS hyperliquid_positions (
         position_id TEXT PRIMARY KEY,
         address TEXT NOT NULL,
@@ -477,7 +477,7 @@ const initializeHyperliquidTables = () => {
     `);
     
     // Trades table
-    db.exec(`
+    sqliteDb.exec(`
       CREATE TABLE IF NOT EXISTS hyperliquid_trades (
         trade_id TEXT PRIMARY KEY,
         order_id TEXT NOT NULL,

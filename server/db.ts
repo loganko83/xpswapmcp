@@ -24,6 +24,9 @@ sqlite.pragma('temp_store = MEMORY');
 
 export const db = drizzle(sqlite, { schema });
 
+// Export raw SQLite instance for direct SQL operations
+export const sqliteDb = sqlite;
+
 console.log('✅ SQLite connection established');
 
 // Database health check function

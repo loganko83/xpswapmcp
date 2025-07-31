@@ -1,7 +1,7 @@
-// Base URL for API calls
+// Base URL for API calls - 환경에 따라 자동 설정
 export const API_BASE_URL = import.meta.env.PROD 
-  ? '/xpswap/api' 
-  : 'http://localhost:5000/api';
+  ? '/xpswap/api'  // 프로덕션: Apache 프록시를 통해 /xpswap/api -> PM2 서버
+  : '/api';        // 개발: Vite 프록시를 통해 /api -> localhost:5000
 
 // Helper function to get full API URL
 export function getApiUrl(path: string): string {
@@ -15,13 +15,10 @@ export function getApiUrl(path: string): string {
   
   // For API paths, prepend base URL
   if (cleanPath.startsWith('api/')) {
-    if (import.meta.env.PROD) {
-      return `${API_BASE_URL}/${cleanPath.slice(4)}`;
-    } else {
-      return `http://localhost:5000/${cleanPath}`;
-    }
+    const apiPath = cleanPath.slice(4); // Remove 'api/' prefix
+    return `${API_BASE_URL}/${apiPath}`;
   }
   
-  // Default case
-  return path;
+  // If path doesn't start with 'api/', assume it's an API path
+  return `${API_BASE_URL}/${cleanPath}`;
 }
