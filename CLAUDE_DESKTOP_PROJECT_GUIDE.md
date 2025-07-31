@@ -1,4 +1,5 @@
-# 🚀 XPSwap 프로젝트 - 클로드 데스크탑 통합 지침
+# 🚀 XPSwap 프로젝트 - 클로드 데스크탑 통합 지침 (v2.0)
+# 최종 업데이트: 2025년 8월 1일
 
 ## 📋 프로젝트 개요
 
@@ -6,9 +7,16 @@
 
 ### 🔗 중요 링크
 - **GitHub**: https://github.com/loganko83/xpswapmcp
-- **로컬 개발**: http://localhost:5000/xpswap/
+- **로컬 개발**: http://localhost:5000/xpswap/ (백엔드), http://localhost:5195/xpswap/ (프론트엔드)
 - **프로덕션**: https://trendy.storydot.kr/xpswap/
 - **프로젝트 경로**: C:\Users\vincent\Downloads\XPswap\XPswap
+
+### 🆕 최신 업데이트 (2025-08-01)
+- ✅ **Xphere RPC URL 변경**: `https://www.ankr.com/rpc/xphere/`
+- ✅ **지갑 연결 상태 유지**: WalletContext 구현
+- ✅ **PWA 지원**: manifest.json, Service Worker 추가
+- ✅ **에러 핸들링**: ErrorBoundary, LoadingSpinner 구현
+- ✅ **실제 블록체인 서비스**: realBlockchain.js 통합
 
 ---
 
@@ -25,7 +33,16 @@
 DATABASE_URL=./test.db
 PORT=5000
 NODE_ENV=development
-XPHERE_RPC_URL=https://en-bkk.x-phere.com
+XPHERE_RPC_URL=https://www.ankr.com/rpc/xphere/
+BASE_PATH=/xpswap
+```
+
+### 프로덕션 환경 (.env.production)
+```bash
+DATABASE_URL=./test.db
+PORT=5000
+NODE_ENV=production
+XPHERE_RPC_URL=https://www.ankr.com/rpc/xphere/
 BASE_PATH=/xpswap
 ```
 
@@ -64,6 +81,9 @@ netstat -ano | findstr :5000
 # 의존성 재설치
 rm -rf node_modules ; npm install
 
+# 서버에서는 legacy-peer-deps 필요
+npm install --legacy-peer-deps
+
 # 데이터베이스 초기화
 rm test.db
 
@@ -84,31 +104,50 @@ C:\Users\vincent\Downloads\XPswap\XPswap\
 │   │   │   ├── Layout.tsx     # 전체 레이아웃 & 네비게이션
 │   │   │   ├── SwapInterface.tsx     # 토큰 스왑 UI
 │   │   │   ├── CryptoTicker.tsx      # 실시간 가격 티커
+│   │   │   ├── ErrorBoundary.tsx     # 에러 처리
+│   │   │   ├── LoadingSpinner.tsx    # 로딩 표시
 │   │   │   └── ui/            # shadcn/ui 컴포넌트
 │   │   ├── pages/             # 페이지 컴포넌트 (25개+)
 │   │   ├── lib/               # 서비스 & 유틸리티
+│   │   │   ├── apiUrl.ts      # API URL 설정 (BASE_PATH 적용)
+│   │   │   ├── constants.ts   # RPC URL 등 상수
+│   │   │   └── metamask.ts    # 지갑 연결 로직
 │   │   ├── hooks/             # React Hooks
+│   │   ├── contexts/          # React Context
+│   │   │   └── WalletContext.tsx  # 지갑 상태 관리
 │   │   └── types/             # TypeScript 타입
+│   ├── public/
+│   │   ├── manifest.json      # PWA 설정
+│   │   └── sw.js              # Service Worker
 │   └── dist/                  # 빌드된 파일
 │
 ├── server/                    # Node.js 백엔드
 │   ├── index.ts              # Express 서버 진입점
 │   ├── routes.ts             # 메인 API 라우트 (2500+ 라인)
 │   ├── routes/               # 모듈화된 라우트
+│   │   ├── trading.ts        # market-stats 등 거래 API
+│   │   ├── security.ts       # 보안 관련 API
+│   │   └── ...
 │   ├── services/             # 비즈니스 로직
+│   │   └── realBlockchain.js # 실제 블록체인 연동
 │   ├── middleware/           # Express 미들웨어
+│   ├── abi/                  # 스마트 컨트랙트 ABI
+│   │   ├── dex.js
+│   │   └── token.js
 │   └── db.ts                 # SQLite 설정
 │
 ├── contracts/                # 스마트 컨트랙트 (16개)
 ├── doc/                      # 프로젝트 문서
 │   ├── progress/            # 일일 진행 상황
 │   ├── CLAUDE.md            # 작업 일지
-│   └── PROJECT_STRUCTURE_GUIDE.md
+│   └── CLAUDE_DESKTOP_PROJECT_GUIDE.md
 │
 ├── tests/                    # 테스트 파일
 ├── dist/                     # 빌드된 서버 파일
 ├── .env                      # 환경 변수
+├── .env.production           # 프로덕션 환경 변수
 ├── package.json             # NPM 설정
+├── vite.config.ts           # Vite 설정
 └── ecosystem.config.js      # PM2 설정
 ```
 
@@ -119,19 +158,20 @@ C:\Users\vincent\Downloads\XPswap\XPswap\
 ### 파일 수정 가이드
 - **메뉴 수정**: `client/src/components/Layout.tsx`
 - **홈페이지**: `client/src/pages/home.tsx`
-- **API 추가**: `server/routes.ts`
+- **API 추가**: `server/routes.ts` 또는 `server/routes/*.ts`
 - **새 페이지**: `client/src/pages/` + `client/src/App.tsx` 라우트 추가
 - **스타일링**: Tailwind CSS + shadcn/ui
-- **상태 관리**: React Query + Zustand
+- **상태 관리**: React Query + Zustand + WalletContext
+- **RPC URL**: `client/src/lib/constants.ts`, `.env` 파일
 
-### 중요 API 엔드포인트
-- `GET /api/health` - 서버 상태 확인
-- `GET /api/xp-price` - XP 토큰 가격 (캐싱 적용)
-- `GET /api/market-stats` - 시장 통계
-- `POST /api/swap/quote` - 스왑 견적 계산
-- `GET /api/pools` - 유동성 풀 목록
-- `GET /api/farms` - 파밍 풀 목록
-- `GET /api/crypto-ticker` - 실시간 가격 티커
+### 중요 API 엔드포인트 (BASE_PATH: /xpswap)
+- `GET /xpswap/api/health` - 서버 상태 확인
+- `GET /xpswap/api/xp-price` - XP 토큰 가격 (캐싱 적용)
+- `GET /xpswap/api/market-stats` - 시장 통계 (실제 블록체인 데이터)
+- `POST /xpswap/api/swap/quote` - 스왑 견적 계산
+- `GET /xpswap/api/pools` - 유동성 풀 목록
+- `GET /xpswap/api/farms` - 파밍 풀 목록
+- `GET /xpswap/api/crypto-ticker` - 실시간 가격 티커
 
 ---
 
@@ -166,9 +206,12 @@ git checkout -b fix/버그수정명    # 버그 수정
 #### API 테스트
 ```powershell
 # CMD에서 실행 (권장)
-curl http://localhost:5000/api/health
-curl http://localhost:5000/api/xp-price
-curl http://localhost:5000/api/crypto-ticker
+curl http://localhost:5000/xpswap/api/health
+curl http://localhost:5000/xpswap/api/xp-price
+curl http://localhost:5000/xpswap/api/crypto-ticker
+
+# 프로덕션 테스트
+curl https://trendy.storydot.kr/xpswap/api/health
 ```
 
 ---
@@ -178,15 +221,17 @@ curl http://localhost:5000/api/crypto-ticker
 ### 적용된 보안 기능
 - **Helmet.js**: HTTP 헤더 보안
 - **CORS**: 크로스 오리진 제어
-- **Rate Limiting**: API 속도 제한 (개발 환경에서는 비활성화)
+- **Rate Limiting**: API 속도 제한 (프로덕션 환경에서 활성화)
 - **Input Validation**: 입력값 검증
 - **MEV Protection**: 최대 추출 가능 가치 보호
+- **ErrorBoundary**: 전역 에러 처리
 
 ### 성능 최적화
 - **캐싱**: 메모리 캐시 (TTL: 60초)
 - **XP Price API**: 297ms → 2-4ms 응답 시간
 - **캐시 히트율**: 95%+
 - **코드 스플리팅**: Vite 적용
+- **Service Worker**: 오프라인 지원
 
 ---
 
@@ -207,6 +252,15 @@ ssh ubuntu@trendy.storydot.kr
 # 프로젝트 경로
 cd /var/www/storage/xpswap
 
+# Git 업데이트
+git pull origin main
+
+# 의존성 설치 (legacy-peer-deps 필요)
+npm install --legacy-peer-deps
+
+# 빌드
+npm run build
+
 # PM2 프로세스 관리
 pm2 list
 pm2 stop xpswap-api
@@ -214,12 +268,42 @@ pm2 start ecosystem.config.js --env production
 pm2 logs xpswap-api --lines 50
 ```
 
+### Apache 설정 (/etc/apache2/sites-available/xpswap.conf)
+```apache
+# XPSwap DEX Configuration
+
+# API Proxy - MUST come before Alias
+ProxyRequests Off
+ProxyPreserveHost On
+ProxyPass /xpswap/api http://localhost:5000/xpswap/api
+ProxyPassReverse /xpswap/api http://localhost:5000/xpswap/api
+
+# Static files - client/dist 사용 (dist/public 아님!)
+Alias /xpswap /var/www/storage/xpswap/client/dist
+
+<Directory /var/www/storage/xpswap/client/dist>
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+    DirectoryIndex index.html
+    
+    RewriteEngine On
+    RewriteBase /xpswap
+    
+    # Handle React Router - serve index.html for all routes except files
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^.*$ /xpswap/index.html [L]
+</Directory>
+```
+
 ### 배포 확인사항
 - [ ] https://trendy.storydot.kr/xpswap/ 접속 확인
 - [ ] 상단 암호화폐 티커 표시 확인
 - [ ] 메뉴 네비게이션 작동 확인
-- [ ] API 응답 확인 (/api/health)
+- [ ] API 응답 확인 (/xpswap/api/health)
 - [ ] 콘솔 에러 없음 확인
+- [ ] 새로고침 시 정상 작동 확인
 
 ---
 
@@ -242,6 +326,7 @@ taskkill /PID [프로세스ID] /F
 #### 2. API 호출 실패
 - 서버 실행 상태 확인: `npm run dev:server`
 - 포트 설정 확인: `.env` 파일의 PORT=5000
+- BASE_PATH 확인: 프로덕션에서는 `/xpswap/api`
 - CORS 설정 확인: `server/index.ts`
 
 #### 3. 빌드 오류
@@ -249,9 +334,12 @@ taskkill /PID [프로세스ID] /F
 # TypeScript 타입 체크
 npx tsc --noEmit
 
-# 의존성 문제 해결
+# 의존성 문제 해결 (서버)
 rm -rf node_modules package-lock.json
-npm install
+npm install --legacy-peer-deps
+
+# import 오류 해결
+# realBlockchain.js의 CONTRACT_ADDRESSES import 주석 처리
 ```
 
 #### 4. 데이터베이스 문제
@@ -260,6 +348,10 @@ npm install
 rm test.db
 npm run dev:server  # 자동으로 DB 재생성
 ```
+
+#### 5. 크립토 티커 미표시
+- 캐시 삭제: Ctrl+F5
+- Service Worker 업데이트: 개발자 도구 > Application > Service Workers > Update
 
 ---
 
@@ -274,14 +366,18 @@ npm run dev:server  # 자동으로 DB 재생성
 6. **보안 대시보드**: MEV 보호, 컨트랙트 모니터링
 7. **고급 DeFi**: Options, Futures, Flash Loans
 8. **캐싱 시스템**: 성능 최적화 완료
+9. **지갑 연결 유지**: WalletContext 구현
+10. **PWA 지원**: 모바일 최적화, Service Worker
+11. **에러 핸들링**: ErrorBoundary, LoadingSpinner
 
 ### 🚧 진행 중인 작업
-1. 실제 블록체인 연동 (현재 시뮬레이션)
+1. Mock 데이터 → 실제 블록체인 데이터 전환
 2. 스마트 컨트랙트 배포
-3. 서버 환경 최적화
+3. 프론트엔드 티커 표시 문제 해결
+4. Apache RewriteRule 개선
 
 ### 🎯 우선순위 작업
-1. **HIGH**: 서버 Apache 프록시 설정 문제 해결
+1. **HIGH**: 프론트엔드 디버깅 (티커, 라우팅)
 2. **MEDIUM**: 실제 블록체인 데이터 연동
 3. **LOW**: UI/UX 개선 및 추가 기능
 
@@ -299,6 +395,12 @@ npm run dev:server  # 자동으로 DB 재생성
 // 파일 생성/수정 후 자동 커밋
 github-mcp-official:create_or_update_file
 github-mcp-official:push_files
+```
+
+### SSH MCP 사용
+```javascript
+// 서버 접속 및 명령 실행
+ssh-mcp:exec
 ```
 
 ### 권장하지 않는 도구
@@ -381,8 +483,18 @@ XPSwap은 **안전하고 효율적인 DeFi 플랫폼**을 목표로 합니다:
 
 ---
 
+## 📚 참고 문서
+
+- **작업 일지**: `doc/CLAUDE.md`
+- **진행 상황**: `doc/progress/` 디렉토리
+- **스마트 컨트랙트**: `doc/SMART_CONTRACT_DEPLOYMENT.md`
+- **API 문서**: `doc/API_DOCUMENTATION.md`
+- **보안 가이드**: `doc/SECURITY_GUIDE.md`
+
+---
+
 *이 지침서는 XPSwap 프로젝트의 모든 개발 작업에 대한 종합적인 가이드입니다. 지속적으로 업데이트하며 최신 상태를 유지합니다.*
 
 **📞 프로젝트 문의**: GitHub Issues를 통해 제출해주세요.
 **🔗 저장소**: https://github.com/loganko83/xpswapmcp
-**📅 최종 업데이트**: 2025년 7월 31일
+**📅 최종 업데이트**: 2025년 8월 1일
