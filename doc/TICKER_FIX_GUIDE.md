@@ -1,176 +1,221 @@
 # XPSwap 티커 문제 해결 가이드
 
+## 🚨 현재 문제
+
+1. **상단 티커가 표시되지 않음** - API 연결 문제
+2. **메뉴 새로고침 시 WordPress로 이동** - 라우팅 문제
+
 ## 🔍 문제 진단
 
-### 1. 브라우저 테스트
-1. **API 디버그 페이지 접속**
-   - https://trendy.storydot.kr/xpswap/debug.html
-   - 각 API 엔드포인트 테스트
-   - 응답 시간 및 상태 확인
-
-2. **직접 API 접속**
-   - https://trendy.storydot.kr/xpswap/api/crypto-ticker
-   - 브라우저 개발자 도구 > Network 탭 확인
-   - 응답 상태 및 헤더 확인
-
-### 2. 서버 접속 및 확인
+### 1. API 접근성 테스트
 
 ```bash
-# SSH 접속
-ssh ubuntu@trendy.storydot.kr
+# 로컬에서 API 테스트
+curl http://localhost:5000/api/crypto-ticker
+curl http://localhost:5000/api/health
+curl http://localhost:5000/api/xp-price
 
-# 1. PM2 프로세스 상태 확인
-pm2 list
-pm2 logs xpswap-api --lines 100
-
-# 2. 로컬 API 테스트
-curl -v http://localhost:5000/api/health
-curl -v http://localhost:5000/api/crypto-ticker
-
-# 3. Apache 설정 확인
-sudo cat /etc/apache2/sites-available/000-default-le-ssl.conf | grep -A 20 -B 5 xpswap
+# 외부에서 API 테스트
+curl https://trendy.storydot.kr/xpswap/api/crypto-ticker
+curl https://trendy.storydot.kr/xpswap/api/health
 ```
 
-## 🛠️ 해결 방법
-
-### Option 1: Apache ProxyPass 추가
+### 2. Apache 설정 확인
 
 ```bash
-# Apache 설정 편집
-sudo nano /etc/apache2/sites-available/000-default-le-ssl.conf
+# 현재 설정 확인
+grep -n "xpswap" /etc/apache2/sites-available/000-default-le-ssl.conf
+
+# 필요한 설정이 있는지 확인
+grep "ProxyPass.*xpswap" /etc/apache2/sites-available/000-default-le-ssl.conf
 ```
 
-다음 내용을 `<VirtualHost *:443>` 블록 내에 추가:
+## ✅ 해결 방법
+
+### Step 1: Apache ProxyPass 설정 추가
 
 ```apache
-# XPSwap 정적 파일 (이미 있을 수 있음)
-Alias /xpswap /var/www/storage/html_backup/xpswap
-<Directory /var/www/storage/html_backup/xpswap>
-    Options Indexes FollowSymLinks
-    AllowOverride None
-    Require all granted
-</Directory>
+# /etc/apache2/sites-available/000-default-le-ssl.conf
+# </VirtualHost> 태그 바로 위에 추가
 
-# XPSwap API 프록시 (중요!)
-ProxyPass /xpswap/api http://localhost:5000/api
-ProxyPassReverse /xpswap/api http://localhost:5000/api
-ProxyPreserveHost On
-
-# CORS 헤더 (필요시)
-<Location /xpswap/api>
-    Header always set Access-Control-Allow-Origin "*"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
-</Location>
+    # XPSwap API Proxy
+    ProxyPass /xpswap/api http://localhost:5000/api
+    ProxyPassReverse /xpswap/api http://localhost:5000/api
+    
+    # XPSwap Static Files (이미 설정됨)
+    ProxyPass /xpswap http://localhost:5000/xpswap
+    ProxyPassReverse /xpswap http://localhost:5000/xpswap
 ```
 
-### Option 2: 심볼릭 링크 재설정 (빌드 파일 위치 확인)
+### Step 2: React Router 설정 수정
 
-```bash
-# 현재 심볼릭 링크 확인
-ls -la /var/www/storage/html_backup/xpswap
-
-# 올바른 경로로 재설정 (필요시)
-sudo rm /var/www/storage/html_backup/xpswap
-sudo ln -s /var/www/storage/xpswap/client/dist /var/www/storage/html_backup/xpswap
+```javascript
+// client/src/main.tsx
+// BrowserRouter에 basename 추가
+<BrowserRouter basename="/xpswap">
+  <App />
+</BrowserRouter>
 ```
 
-### Option 3: PM2 환경 변수 확인
+### Step 3: API Base URL 설정
 
-```bash
-# PM2 설정 확인
-cd /var/www/storage/xpswap
-cat ecosystem.config.js
+```javascript
+// client/src/lib/api.ts
+const API_BASE_URL = import.meta.env.PROD 
+  ? '/xpswap/api' 
+  : 'http://localhost:5000/api';
 
-# 환경 변수 확인
-cat .env.production
-
-# PM2 재시작
-pm2 restart xpswap-api
+export const fetchCryptoTicker = async () => {
+  const response = await fetch(`${API_BASE_URL}/crypto-ticker`);
+  return response.json();
+};
 ```
 
-## 🔄 서비스 재시작
+### Step 4: .htaccess 추가 (React 라우팅용)
+
+```apache
+# client/public/.htaccess
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /xpswap/
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /xpswap/index.html [L]
+</IfModule>
+```
+
+## 🛠️ 빠른 수정 스크립트
 
 ```bash
-# Apache 모듈 활성화 (필요시)
-sudo a2enmod proxy
-sudo a2enmod proxy_http
+#!/bin/bash
+# fix-xpswap-ticker.sh
+
+echo "🔧 XPSwap 티커 수정 시작..."
+
+# 1. Apache 모듈 확인
+echo "1. Apache 모듈 활성화..."
+sudo a2enmod proxy proxy_http rewrite
 sudo a2enmod headers
 
-# Apache 설정 테스트
-sudo apache2ctl configtest
+# 2. 환경변수 설정
+echo "2. 환경변수 확인..."
+cd /var/www/storage/xpswap
+if [ ! -f .env.production ]; then
+    cat > .env.production << EOF
+NODE_ENV=production
+PORT=5000
+BASE_PATH=/xpswap
+DATABASE_URL=./test.db
+EOF
+fi
 
-# Apache 재시작
+# 3. PM2 재시작
+echo "3. PM2 재시작..."
+pm2 restart xpswap-api
+
+# 4. Apache 재시작
+echo "4. Apache 재시작..."
 sudo systemctl restart apache2
 
-# PM2 재시작
-pm2 restart xpswap-api
+# 5. 테스트
+echo "5. API 테스트..."
+sleep 3
+echo -n "Local API: "
+curl -s http://localhost:5000/api/health && echo " ✅" || echo " ❌"
+echo -n "Public API: "
+curl -s https://trendy.storydot.kr/xpswap/api/health && echo " ✅" || echo " ❌"
+
+echo "✅ 완료! Apache 설정을 수동으로 확인해주세요."
 ```
 
-## ✅ 최종 확인
+## 🧪 테스트 방법
 
-1. **API 테스트**
-   ```bash
-   # 서버에서
-   curl https://trendy.storydot.kr/xpswap/api/crypto-ticker
-   
-   # 외부에서 (로컬 PC)
-   curl https://trendy.storydot.kr/xpswap/api/crypto-ticker
-   ```
+### 1. 브라우저 콘솔에서 테스트
 
-2. **브라우저 확인**
-   - https://trendy.storydot.kr/xpswap/ 접속
-   - 상단 티커 표시 확인
-   - 개발자 도구 > Console 에러 확인
+```javascript
+// F12 -> Console에서 실행
+fetch('/xpswap/api/crypto-ticker')
+  .then(res => res.json())
+  .then(data => console.log('Ticker Data:', data))
+  .catch(err => console.error('Error:', err));
+```
+
+### 2. 티커 컴포넌트 디버깅
+
+```javascript
+// CryptoTicker.tsx에 디버그 로그 추가
+useEffect(() => {
+  console.log('Fetching ticker data...');
+  fetch(`${API_BASE_URL}/crypto-ticker`)
+    .then(res => {
+      console.log('Response status:', res.status);
+      return res.json();
+    })
+    .then(data => {
+      console.log('Ticker data received:', data);
+      setTickers(data);
+    })
+    .catch(err => {
+      console.error('Ticker fetch error:', err);
+    });
+}, []);
+```
+
+## 📊 모니터링
+
+### 실시간 로그 확인
+
+```bash
+# PM2 로그
+pm2 logs xpswap-api --lines 100
+
+# Apache 에러 로그
+sudo tail -f /var/log/apache2/error.log | grep xpswap
+
+# Apache 액세스 로그
+sudo tail -f /var/log/apache2/access.log | grep xpswap/api
+```
+
+### API 응답 시간 측정
+
+```bash
+# 응답 시간 측정
+time curl -s https://trendy.storydot.kr/xpswap/api/crypto-ticker > /dev/null
+
+# 반복 테스트
+for i in {1..10}; do
+  time curl -s https://trendy.storydot.kr/xpswap/api/crypto-ticker > /dev/null
+  sleep 1
+done
+```
+
+## 🔄 롤백 방법
+
+문제가 발생한 경우:
+
+```bash
+# 1. Apache 설정 롤백
+sudo cp /etc/apache2/sites-available/000-default-le-ssl.conf.backup /etc/apache2/sites-available/000-default-le-ssl.conf
+sudo systemctl restart apache2
+
+# 2. 이전 빌드로 롤백
+cd /var/www/storage/xpswap
+rm -rf client/dist
+mv client/dist_backup client/dist
+pm2 restart xpswap-api
+```
 
 ## 📝 체크리스트
 
-- [ ] PM2 프로세스 정상 작동
-- [ ] 로컬 API 응답 정상
+- [ ] Apache proxy_module 활성화
 - [ ] Apache ProxyPass 설정 추가
-- [ ] Apache 모듈 활성화
-- [ ] Apache 재시작
-- [ ] 브라우저 캐시 삭제
-- [ ] 티커 정상 표시 확인
-
-## 🚨 주의사항
-
-1. **Apache 설정 변경 시**
-   - 반드시 `configtest` 실행
-   - 문법 오류 확인 후 재시작
-
-2. **캐시 문제**
-   - 브라우저 캐시 삭제 (Ctrl+F5)
-   - CloudFlare 캐시 퍼지 (필요시)
-
-3. **디버그 파일**
-   - `/xpswap/debug.html` 파일은 테스트 후 삭제 권장
-   - 보안상 프로덕션에서는 제거
-
-## 💡 디버깅 팁
-
-1. **로그 실시간 모니터링**
-   ```bash
-   # PM2 로그
-   pm2 logs xpswap-api --lines 100
-   
-   # Apache 로그
-   sudo tail -f /var/log/apache2/error.log
-   sudo tail -f /var/log/apache2/access.log
-   ```
-
-2. **네트워크 확인**
-   ```bash
-   # 5000 포트 확인
-   sudo netstat -tlnp | grep 5000
-   ```
-
-3. **프로세스 상태**
-   ```bash
-   # Node.js 프로세스
-   ps aux | grep node
-   ```
+- [ ] .env.production 파일 확인
+- [ ] PM2 프로세스 실행 중
+- [ ] API Health Check 성공
+- [ ] 티커 데이터 로드 확인
+- [ ] 라우팅 새로고침 문제 해결
 
 ---
-
-이 가이드를 따라 순서대로 진행하면 티커 문제를 해결할 수 있습니다.
+작성일: 2025년 7월 31일

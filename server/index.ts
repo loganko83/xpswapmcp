@@ -9,6 +9,7 @@ import { applyEnhancedSecurity } from "./middleware/enhanced-security";
 import path from "path";
 
 const app = express();
+const BASE_PATH = process.env.BASE_PATH || '';
 
 // 🛡️ Apply Enhanced Security Middleware First (Before any other middleware)
 applyEnhancedSecurity(app);
@@ -34,7 +35,7 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    if (path.startsWith("/api") || path.startsWith(`${BASE_PATH}/api`)) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
@@ -53,7 +54,13 @@ app.use((req, res, next) => {
 
 (async () => {
   // Setup modular routes
-  setupRoutes(app);
+  if (BASE_PATH) {
+    const router = express.Router();
+    setupRoutes(router);
+    app.use(BASE_PATH, router);
+  } else {
+    setupRoutes(app);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

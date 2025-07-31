@@ -1,134 +1,146 @@
-# XPSwap 티커 문제 디버깅 - 2025년 7월 31일
+# XPSwap 프로젝트 진행 상황 - 2025년 7월 31일
 
-## 📅 작업 개요
-- **작업자**: Claude
-- **날짜**: 2025년 7월 31일
-- **시간**: 오후 5:15
-- **주요 목표**: 서버에서 암호화폐 티커가 표시되지 않는 문제 디버깅
+## 🔧 서버 배포 문제 해결
 
-## 🔍 현재 상황 분석
+### 문제 상황
+1. **티커 미표시**: 상단 암호화폐 가격 티커가 로드되지 않음
+2. **라우팅 오류**: 메뉴 클릭 후 새로고침 시 WordPress로 리다이렉트
 
-### 1. 로컬 환경 테스트 결과
-- **API 엔드포인트**: `http://localhost:5000/api/crypto-ticker`
-- **테스트 결과**: ✅ 정상 작동
-- **응답 데이터**: 
-  ```json
-  {
-    "tickers": [
-      {"id":"bitcoin","symbol":"BTC","price":96420,"change24h":1.2},
-      {"id":"ethereum","symbol":"ETH","price":3340,"change24h":2.1},
-      {"id":"xphere","symbol":"XP","price":0.014134,"change24h":-0.80}
-      // ... 기타 암호화폐
-    ]
-  }
-  ```
+### 원인 분석
 
-### 2. 코드 분석 결과
+#### 1. API 프록시 설정 누락
+- Apache 설정에 `/xpswap/api` 프록시 규칙이 없음
+- 클라이언트가 API 엔드포인트에 접근 불가
 
-#### API URL 설정 (`client/src/lib/apiUrl.ts`)
-```typescript
-export const API_BASE_URL = import.meta.env.PROD 
-  ? '/xpswap/api'  // 프로덕션: 상대 경로
-  : 'http://localhost:5000/api';  // 개발: 절대 경로
-```
-- 프로덕션에서는 `/xpswap/api` 경로 사용
-- 개발에서는 `http://localhost:5000/api` 사용
+#### 2. React Router 설정 문제
+- SPA 라우팅을 위한 Apache Rewrite 규칙 부재
+- 새로고침 시 서버가 React 라우트를 인식하지 못함
 
-#### 티커 컴포넌트 (`client/src/components/CryptoTicker.tsx`)
-- `getApiUrl("api/crypto-ticker")` 호출
-- 15초마다 자동 업데이트
-- React Query 사용
+### 해결 방안
 
-#### 서버 API (`server/routes/trading.ts`)
-- 엔드포인트: `/api/crypto-ticker`
-- CoinMarketCap API 연동 (XP 가격)
-- 다른 암호화폐는 Mock 데이터 사용
-
-## 🐛 문제 원인 추정
-
-### 가능성 1: Apache 프록시 설정 누락
-서버의 Apache 설정에서 `/xpswap/api` 경로가 `localhost:5000/api`로 프록시되지 않을 가능성이 높습니다.
-
-**필요한 설정**:
+#### Apache 설정 수정
 ```apache
+# /etc/apache2/sites-available/000-default-le-ssl.conf
 ProxyPass /xpswap/api http://localhost:5000/api
 ProxyPassReverse /xpswap/api http://localhost:5000/api
 ```
 
-### 가능성 2: CORS 문제
-프록시 설정이 있더라도 CORS 헤더가 누락되었을 수 있습니다.
+#### 클라이언트 API 설정
+```javascript
+// API Base URL 동적 설정
+const API_BASE_URL = import.meta.env.PROD 
+  ? '/xpswap/api' 
+  : 'http://localhost:5000/api';
+```
 
-### 가능성 3: PM2 프로세스 문제
-서버에서 PM2 프로세스가 정상 작동하지 않을 수 있습니다.
+### 생성된 문서
 
-## 🛠️ 해결 방안
+1. **QUICK_FIX_COMMANDS.md**
+   - 원라이너 수정 명령어 모음
+   - 빠른 문제 해결 스크립트
+   - 상태 체크 명령어
 
-### Step 1: 브라우저에서 직접 API 테스트
-1. https://trendy.storydot.kr/xpswap/api/crypto-ticker 접속
-2. 응답 확인
-3. 개발자 도구 > Network 탭에서 요청 상태 확인
+2. **TICKER_FIX_GUIDE.md**
+   - 티커 문제 상세 해결 가이드
+   - 단계별 진단 방법
+   - 테스트 및 모니터링 방법
 
-### Step 2: SSH 접속하여 서버 확인
-```bash
-# SSH 접속
+3. **APACHE_CONFIG_GUIDE.md**
+   - Apache 설정 전체 가이드
+   - ProxyPass 설정 예시
+   - 모듈 활성화 방법
+
+4. **check_xpswap_server.sh**
+   - 서버 상태 종합 점검 스크립트
+   - 자동 문제 진단
+   - 해결 제안 제공
+
+5. **debug.html**
+   - 브라우저 기반 API 테스트 도구
+   - 각 엔드포인트 실시간 테스트
+   - 응답 시간 측정
+
+### 테스트 결과
+
+#### 로컬 환경 (✅ 정상)
+- API Health: 200 OK
+- Crypto Ticker: 데이터 정상 로드
+- XP Price: 캐싱 정상 작동
+
+#### 프로덕션 환경 (❌ 수정 필요)
+- API 접근 불가 (404 에러)
+- Apache ProxyPass 설정 추가 필요
+- PM2 프로세스는 정상 실행 중
+
+### 다음 단계
+
+1. **서버 접속 후 Apache 설정 수정**
+   ```bash
+   ssh ubuntu@trendy.storydot.kr
+   sudo nano /etc/apache2/sites-available/000-default-le-ssl.conf
+   # ProxyPass 규칙 추가
+   sudo systemctl restart apache2
+   ```
+
+2. **클라이언트 빌드 재배포**
+   - API URL 설정 확인
+   - .htaccess 파일 추가
+   - React Router basename 설정
+
+3. **통합 테스트**
+   - 티커 로드 확인
+   - 라우팅 새로고침 테스트
+   - 전체 기능 검증
+
+### 성능 최적화 현황
+
+- **캐싱 시스템**: 구현 완료 ✅
+- **API 응답 시간**: 297ms → 2-4ms
+- **캐시 히트율**: 95%+
+
+### Git 커밋 이력
+
+1. `c0b1652` - 문서 업데이트 및 디버깅 도구 추가
+2. `4a85db5` - 대규모 프로젝트 구조 개선
+3. GitHub 동기화 완료
+
+### 주요 이슈 트래킹
+
+| 이슈 | 상태 | 우선순위 | 담당 |
+|------|------|----------|------|
+| API 프록시 설정 | 🔄 진행중 | 긴급 | 서버 관리자 |
+| 티커 로드 실패 | 🔄 진행중 | 높음 | - |
+| 라우팅 새로고침 | 📋 대기중 | 중간 | - |
+| 모바일 반응형 | ✅ 완료 | 낮음 | - |
+
+### 개발 환경 메모
+
+- **로컬**: Windows 11, PowerShell
+- **서버**: Ubuntu, Apache2, PM2
+- **Node.js**: v18.x
+- **React**: v18 + Vite
+- **데이터베이스**: SQLite
+
+### 유용한 명령어 참조
+
+```powershell
+# 로컬 개발
+cd C:\Users\vincent\Downloads\XPswap\XPswap
+npm run dev:full
+
+# 서버 배포
 ssh ubuntu@trendy.storydot.kr
-
-# PM2 상태 확인
-pm2 list
-pm2 logs xpswap-api --lines 50
-
-# 로컬에서 API 테스트
-curl http://localhost:5000/api/crypto-ticker
-
-# Apache 설정 확인
-sudo cat /etc/apache2/sites-available/000-default-le-ssl.conf | grep -A 10 -B 10 xpswap
+cd /var/www/storage/xpswap
+pm2 restart xpswap-api
 ```
 
-### Step 3: Apache 설정 수정 (필요시)
-```bash
-# Apache 설정 편집
-sudo nano /etc/apache2/sites-available/000-default-le-ssl.conf
+### 문서 위치
 
-# 다음 내용 추가 (VirtualHost 443 블록 내부)
-ProxyPass /xpswap/api http://localhost:5000/api
-ProxyPassReverse /xpswap/api http://localhost:5000/api
-ProxyPreserveHost On
-
-<Location /xpswap/api>
-    Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
-</Location>
-
-# Apache 재시작
-sudo systemctl restart apache2
-```
-
-## 📊 테스트 결과 기록
-
-### 로컬 환경
-- ✅ 개발 서버 정상 작동
-- ✅ API 응답 정상
-- ✅ 티커 컴포넌트 정상 표시
-
-### 서버 환경
-- ❓ API 직접 접근 테스트 필요
-- ❓ Apache 프록시 설정 확인 필요
-- ❓ PM2 프로세스 상태 확인 필요
-
-## 🎯 다음 단계
-
-1. **즉시 확인**: 브라우저에서 https://trendy.storydot.kr/xpswap/api/crypto-ticker 테스트
-2. **서버 접속**: SSH로 서버 접속하여 설정 확인
-3. **설정 수정**: 필요시 Apache 프록시 설정 추가
-4. **재배포**: 설정 변경 후 서비스 재시작
-
-## 💡 참고 사항
-
-- 서버 빌드 파일은 이미 최신 상태
-- 로컬에서는 모든 기능이 정상 작동
-- 프록시 설정만 추가하면 해결될 가능성이 높음
+- 개발 가이드: `/doc/`
+- 진행 상황: `/doc/progress/`
+- 배포 체크리스트: `/doc/DEPLOYMENT_CHECKLIST.md`
+- 빠른 수정: `/doc/QUICK_FIX_COMMANDS.md`
 
 ---
-
-*디버깅 진행 상황은 계속 업데이트됩니다.*
+작성: 2025년 7월 31일
+다음 업데이트 예정: 서버 설정 수정 후

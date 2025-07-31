@@ -1,22 +1,40 @@
 # CLAUDE 작업 일지
 
-## 2025-07-31 작업 내용 (티커 문제 해결)
+## 2025-07-31 작업 내용 (서버 문제 해결)
 
-### 진행 중인 작업
-1. 🔧 서버 티커 표시 문제 해결
-   - 로컬에서는 정상 작동하나 서버에서 표시 안 됨
-   - API 프록시 설정 문제로 추정
-   - 상세 내용: `doc/progress/progress_20250731_ticker_fix.md` 참조
-   - 디버깅 진행: `doc/progress/progress_20250731_debugging.md` 참조
+### 🚨 진행 중인 작업
+1. **서버 배포 문제 해결**
+   - 문제 1: 상단 티커 표시 안 됨
+   - 문제 2: 메뉴 새로고침 시 WordPress로 리다이렉트
+   - 문제 3: API 엔드포인트 접근 불가
+   - 해결 문서: `doc/progress/progress_20250731_server_fix.md` 생성
 
-### 확인된 문제
-- **증상**: https://trendy.storydot.kr/xpswap/ 에서 상단 티커가 표시되지 않음
-- **원인**: Apache 프록시 설정에서 `/xpswap/api` → `localhost:5000/api` 매핑 누락 추정
-- **해결방안**: Apache 설정 확인 및 수정 필요
+### 📋 작업 내역
+1. **디버깅 도구 생성**
+   - `client/public/debug.html` - API 테스트 도구 생성
+   - 모든 API 엔드포인트 자동 테스트 기능
+   - 로컬/프로덕션 환경 자동 감지
 
-### 테스트 결과
-- **로컬 API**: ✅ 정상 작동 (`http://localhost:5000/api/crypto-ticker`)
-- **서버 API**: ❓ 확인 필요 (`https://trendy.storydot.kr/xpswap/api/crypto-ticker`)
+2. **Apache 설정 문제 분석**
+   - ProxyPass 설정 누락 확인
+   - React Router 설정 필요
+   - 해결방안 문서화 완료
+
+### 🔍 확인된 문제
+- **원인 1**: Apache에서 `/xpswap/api` → `localhost:5000/api` 프록시 설정 누락
+- **원인 2**: React Router와 Apache 설정 충돌로 새로고침 시 404 발생
+- **원인 3**: 서버 환경변수 BASE_PATH 설정 확인 필요
+
+### 📝 테스트 방법
+- **디버그 페이지**: https://trendy.storydot.kr/xpswap/debug.html
+- **직접 API 테스트**: https://trendy.storydot.kr/xpswap/api/crypto-ticker
+- **메인 페이지**: https://trendy.storydot.kr/xpswap/
+
+### 🛠️ 다음 작업
+1. SSH 접속하여 Apache 설정 수정
+2. ProxyPass 규칙 추가
+3. React Router 지원 설정 추가
+4. 서비스 재시작 및 테스트
 
 ### 다음 작업
 1. 브라우저에서 API 직접 테스트
