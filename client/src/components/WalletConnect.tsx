@@ -19,7 +19,7 @@ import {
   WifiOff,
   Loader2
 } from "lucide-react";
-import { useWeb3Context } from "@/contexts/Web3Context";
+import { useWallet } from "@/contexts/WalletContext";
 import { MobileMetaMaskHandler } from "./MobileMetaMaskHandler";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +29,7 @@ interface WalletConnectProps {
 }
 
 export function WalletConnect({ isOpen, onClose }: WalletConnectProps) {
-  const { wallet, connectWallet, disconnectWallet, isConnecting, error, isXphereNetwork, switchToXphere } = useWeb3Context();
+  const { wallet, connectWallet, disconnectWallet, isConnecting, error, isXphereNetwork, switchToXphere } = useWallet();
   const { toast } = useToast();
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
   const [showMobileHandler, setShowMobileHandler] = useState(false);

@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, BrowserProvider } from 'ethers';
 
 // Xphere Network Configuration
 export const XPHERE_NETWORK = {
@@ -9,7 +9,7 @@ export const XPHERE_NETWORK = {
     symbol: 'XP',
     decimals: 18,
   },
-  rpcUrls: ['https://en-bkk.x-phere.com'], // Actual Xphere RPC URL
+  rpcUrls: ['https://www.ankr.com/rpc/xphere/'], // Updated Xphere RPC URL
   blockExplorerUrls: ['https://explorer.x-phere.com'], // Actual Xphere Explorer URL
 };
 
@@ -173,12 +173,12 @@ export const connectMetaMask = async (): Promise<{ account: string; chainId: str
 };
 
 // Get provider
-export const getMetaMaskProvider = (): ethers.providers.Web3Provider | null => {
+export const getMetaMaskProvider = (): BrowserProvider | null => {
   if (!isMetaMaskInstalled()) {
     return null;
   }
 
-  return new ethers.providers.Web3Provider(window.ethereum);
+  return new BrowserProvider(window.ethereum);
 };
 
 // Listen for account changes

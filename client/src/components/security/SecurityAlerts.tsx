@@ -23,21 +23,31 @@ export function SecurityAlerts({ alerts, onResolveAlert }: SecurityAlertsProps) 
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case "low": return <AlertCircle className="w-4 h-4 text-blue-500" />;
-      case "medium": return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-      case "high": return <XCircle className="w-4 h-4 text-orange-500" />;
-      case "critical": return <XCircle className="w-4 h-4 text-red-500" />;
-      default: return <AlertCircle className="w-4 h-4 text-gray-500" />;
+      case "low": 
+        return <AlertCircle className="w-4 h-4 text-blue-500" />;
+      case "medium": 
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+      case "high": 
+        return <XCircle className="w-4 h-4 text-orange-500" />;
+      case "critical": 
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default: 
+        return <AlertCircle className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "low": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "medium": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "high": return "bg-orange-100 text-orange-800 border-orange-200";
-      case "critical": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "low": 
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "medium": 
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "high": 
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "critical": 
+        return "bg-red-100 text-red-800 border-red-200";
+      default: 
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -75,7 +85,7 @@ export function SecurityAlerts({ alerts, onResolveAlert }: SecurityAlertsProps) 
           </Button>
         </CardHeader>
         <CardContent className="space-y-3">
-          {alerts?.slice(0, 5).map((alert: SecurityAlert) => (
+          {Array.isArray(alerts) ? alerts.slice(0, 5).map((alert: SecurityAlert) => (
             <div key={alert.id} className="p-3 bg-black/20 rounded-lg border border-white/10">
               <div className="flex items-start gap-3">
                 {getSeverityIcon(alert.severity)}
@@ -106,7 +116,7 @@ export function SecurityAlerts({ alerts, onResolveAlert }: SecurityAlertsProps) 
                 )}
               </div>
             </div>
-          ))}
+          )) : null}
         </CardContent>
       </Card>
 

@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, BrowserProvider } from 'ethers';
 import { XPHERE_NETWORK } from './constants';
 
 // Advanced XpSwap Contract ABIs
@@ -242,7 +242,7 @@ export class AMMAlgorithms {
  * Advanced Contract Service for interacting with XpSwap smart contracts
  */
 export class AdvancedContractService {
-  private provider: ethers.providers.Web3Provider | null = null;
+  private provider: BrowserProvider | null = null;
   private signer: ethers.Signer | null = null;
   private contracts: Map<string, ethers.Contract> = new Map();
 
@@ -251,7 +251,7 @@ export class AdvancedContractService {
       throw new Error('MetaMask not installed');
     }
 
-    this.provider = new ethers.providers.Web3Provider(window.ethereum);
+    this.provider = new BrowserProvider(window.ethereum);
     await this.provider.send("eth_requestAccounts", []);
     this.signer = this.provider.getSigner();
 

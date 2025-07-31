@@ -202,6 +202,181 @@ export class FlashLoanService {
     }
   }
 
+  async getAvailablePools(): Promise<any[]> {
+    try {
+      return [
+        {
+          token: "XP Token",
+          symbol: "XP",
+          available: 1000000,
+          fee: 0.0009, // 0.09%
+          maxAmount: 2000000,
+          utilizationRate: 0.65
+        },
+        {
+          token: "XPS Token", 
+          symbol: "XPS",
+          available: 850000,
+          fee: 0.0009,
+          maxAmount: 1500000,
+          utilizationRate: 0.43
+        },
+        {
+          token: "Tether USD",
+          symbol: "USDT", 
+          available: 5000000,
+          fee: 0.0005, // 0.05%
+          maxAmount: 10000000,
+          utilizationRate: 0.72
+        },
+        {
+          token: "Ethereum",
+          symbol: "ETH",
+          available: 2500,
+          fee: 0.0009,
+          maxAmount: 5000,
+          utilizationRate: 0.58
+        }
+      ];
+    } catch (error) {
+      throw new ApiError('Failed to fetch flash loan pools', 500);
+    }
+  }
+
+  async getTemplates(): Promise<any[]> {
+    try {
+      return [
+        {
+          id: "arbitrage-basic",
+          name: "Basic Arbitrage",
+          description: "Simple arbitrage between two DEXs with price difference",
+          category: "Arbitrage",
+          code: `// Basic Arbitrage Template
+function executeArbitrage(loanAmount, fromToken, toToken) {
+  // 1. Buy from DEX A at lower price
+  const amountOut = swapOnDexA(fromToken, toToken, loanAmount);
+  
+  // 2. Sell on DEX B at higher price  
+  const finalAmount = swapOnDexB(toToken, fromToken, amountOut);
+  
+  // 3. Repay flash loan + fee
+  const repayAmount = loanAmount * 1.0009;
+  require(finalAmount > repayAmount, "Not profitable");
+  
+  return finalAmount - repayAmount; // Profit
+}`,
+          estimatedGas: 280000,
+          difficulty: 'beginner' as const
+        },
+        {
+          id: "liquidation-compound",
+          name: "Compound Liquidation",
+          description: "Liquidate undercollateralized positions on Compound",
+          category: "Liquidation",
+          code: `// Compound Liquidation Template
+function liquidatePosition(borrower, collateralToken, borrowToken, amount) {
+  // 1. Flash loan the borrow token
+  // 2. Liquidate the position
+  compound.liquidateBorrow(borrower, amount, collateralToken);
+  
+  // 3. Sell collateral for borrow token
+  const collateralReceived = getCollateralAmount();
+  const proceeds = sellCollateral(collateralToken, borrowToken, collateralReceived);
+  
+  // 4. Repay flash loan
+  const repayAmount = amount * 1.0009;
+  require(proceeds > repayAmount, "Liquidation not profitable");
+  
+  return proceeds - repayAmount;
+}`,
+          estimatedGas: 350000,
+          difficulty: 'intermediate' as const
+        },
+        {
+          id: "leverage-farming",
+          name: "Leveraged Yield Farming",
+          description: "Use flash loans to increase yield farming positions",
+          category: "DeFi",
+          code: `// Leveraged Farming Template
+function leveragedFarm(initialAmount, leverageRatio) {
+  const loanAmount = initialAmount * (leverageRatio - 1);
+  
+  // 1. Flash loan additional funds
+  // 2. Add to liquidity pool
+  const lpTokens = addLiquidity(initialAmount + loanAmount);
+  
+  // 3. Stake LP tokens for rewards
+  stakeLPTokens(lpTokens);
+  
+  // 4. Calculate required collateral for loan
+  // This template requires ongoing management
+  // and position monitoring
+}`,
+          estimatedGas: 450000,
+          difficulty: 'advanced' as const
+        },
+        {
+          id: "multi-dex-arbitrage", 
+          name: "Multi-DEX Arbitrage",
+          description: "Complex arbitrage across multiple DEXs and chains",
+          category: "Arbitrage",
+          code: `// Multi-DEX Arbitrage Template  
+function multiDexArbitrage(token, routes) {
+  let currentAmount = loanAmount;
+  let currentToken = token;
+  
+  // Execute swap route across multiple DEXs
+  for (const route of routes) {
+    currentAmount = executeSwap(
+      route.dex,
+      currentToken, 
+      route.outputToken,
+      currentAmount
+    );
+    currentToken = route.outputToken;
+  }
+  
+  // Ensure we end with original token
+  require(currentToken === token, "Invalid route");
+  
+  const repayAmount = loanAmount * 1.0009;
+  require(currentAmount > repayAmount, "Route not profitable");
+  
+  return currentAmount - repayAmount;
+}`,
+          estimatedGas: 420000,
+          difficulty: 'advanced' as const
+        }
+      ];
+    } catch (error) {
+      throw new ApiError('Failed to fetch flash loan templates', 500);
+    }
+  }
+
+  async getAnalytics(): Promise<any> {
+    try {
+      return {
+        volume24h: 12850000,
+        totalLoans: 45230,
+        successRate: 94.7,
+        avgProfit: 147.85,
+        topStrategies: [
+          { name: "Arbitrage", count: 28450, profit: 2.3 },
+          { name: "Liquidation", count: 12340, profit: 4.1 }, 
+          { name: "Leverage", count: 4440, profit: 1.8 }
+        ],
+        dailyStats: Array.from({ length: 7 }, (_, i) => ({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          volume: Math.floor(1500000 + Math.random() * 500000),
+          loans: Math.floor(4000 + Math.random() * 2000),
+          avgProfit: Math.floor(120 + Math.random() * 60)
+        }))
+      };
+    } catch (error) {
+      throw new ApiError('Failed to fetch flash loan analytics', 500);
+    }
+  }
+
   private async fetchDexPrices(fromAsset: string, toAsset: string): Promise<Array<{ dex: string; price: number }>> {
     // Mock DEX prices with slight variations
     const basePrices = {

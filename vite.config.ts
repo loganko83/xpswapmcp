@@ -15,7 +15,7 @@ export default defineConfig({
   base: basePath,
   plugins: [
     react(),
-    runtimeErrorOverlay(),
+    // runtimeErrorOverlay(), // 임시 비활성화
     // 번들 분석기 추가 (프로덕션 빌드 시에만)
     process.env.ANALYZE === 'true' && visualizer({
       filename: 'dist/bundle-analysis.html',
@@ -46,15 +46,17 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // React와 관련 라이브러리를 별도 청크로 분리 (React 18 호환성 개선)
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react';
+          // React와 React 의존 라이브러리를 같은 청크로 그룹화
+          if (id.includes('node_modules/react/') || 
+              id.includes('node_modules/react-dom/') || 
+              id.includes('lucide-react')) {
+            return 'react-vendor';
           }
           // 라우팅 관련
           if (id.includes('wouter')) {
             return 'router';
           }
-          // UI 라이브러리
+          // UI 라이브러리 (React 의존성)
           if (id.includes('@radix-ui')) {
             return 'ui';
           }
@@ -62,8 +64,8 @@ export default defineConfig({
           if (id.includes('lightweight-charts')) {
             return 'charts';
           }
-          // 유틸리티 라이브러리
-          if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('lucide-react')) {
+          // 순수 유틸리티 라이브러리 (React 의존성 없음)
+          if (id.includes('clsx') || id.includes('tailwind-merge')) {
             return 'utils';
           }
           // DeFi/Web3 관련
@@ -71,7 +73,9 @@ export default defineConfig({
             return 'web3';
           }
           // node_modules 일반 청크 (React 제외)
-          if (id.includes('node_modules') && !id.includes('react')) {
+          if (id.includes('node_modules') && 
+              !id.includes('react') && 
+              !id.includes('lucide-react')) {
             return 'vendor';
           }
         },

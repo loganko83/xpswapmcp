@@ -17,7 +17,7 @@ export const XPHERE_NETWORK = {
     symbol: "XP",
     decimals: 18
   },
-  rpcUrls: ["https://en-bkk.x-phere.com"],
+  rpcUrls: ["https://www.ankr.com/rpc/xphere/"],
   blockExplorerUrls: ["https://explorer.x-phere.com"]
 };
 

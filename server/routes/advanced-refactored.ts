@@ -220,12 +220,39 @@ router.get(
 
 // ===== FLASH LOAN ROUTES =====
 
-// Get available flash loans
+// Get available flash loan pools
+router.get(
+  "/flashloans/pools",
+  asyncHandler(async (req, res) => {
+    const pools = await flashLoanService.getAvailablePools();
+    res.json(pools);
+  })
+);
+
+// Get available flash loans (backwards compatibility)
 router.get(
   "/flashloans/available",
   asyncHandler(async (req, res) => {
     const loans = await flashLoanService.getAvailableLoans();
     res.json(loans);
+  })
+);
+
+// Get flash loan templates
+router.get(
+  "/flashloans/templates",
+  asyncHandler(async (req, res) => {
+    const templates = await flashLoanService.getTemplates();
+    res.json(templates);
+  })
+);
+
+// Get flash loan analytics
+router.get(
+  "/flashloans/analytics",
+  asyncHandler(async (req, res) => {
+    const analytics = await flashLoanService.getAnalytics();
+    res.json(analytics);
   })
 );
 

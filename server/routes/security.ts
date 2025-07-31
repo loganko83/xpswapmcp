@@ -1,5 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { getEnhancedSecurityStatus, cryptoManager } from '../middleware/enhanced-security';
+import * as crypto from 'crypto';
 
 const router = Router();
 

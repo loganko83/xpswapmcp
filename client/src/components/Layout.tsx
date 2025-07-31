@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { WalletConnect } from "@/components/WalletConnect";
-import { useWeb3Context } from "@/contexts/Web3Context";
+import { useWallet } from "@/contexts/WalletContext";
 import { useLocation } from "wouter";
 import { CryptoTicker } from "@/components/CryptoTicker";
 import { Header } from "@/components/layout/Header";
@@ -13,7 +13,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { wallet, isConnecting, connectWallet, disconnectWallet } = useWeb3Context();
+  const { wallet, isConnecting, connectWallet, disconnectWallet } = useWallet();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
@@ -73,10 +73,6 @@ export function Layout({ children }: LayoutProps) {
       <WalletConnect 
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
-        wallet={wallet}
-        isConnecting={isConnecting}
-        onConnect={connectWallet}
-        onDisconnect={disconnectWallet}
       />
     </div>
   );

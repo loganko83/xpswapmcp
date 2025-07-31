@@ -6,6 +6,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Web3Provider } from "@/contexts/Web3Context";
+import { WalletProvider } from "@/contexts/WalletContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageLoader } from "@/components/LoadingSpinner";
 import { Layout } from "@/components/Layout";
 
 // Lazy load pages for code splitting
@@ -38,14 +41,7 @@ function RouterComponent() {
   return (
     <Router base="/xpswap">
       <Layout>
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-sm text-muted-foreground">페이지를 로딩하는 중...</p>
-            </div>
-          </div>
-        }>
+        <Suspense fallback={<PageLoader />}>
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/swap" component={SwapPage} />
@@ -80,16 +76,20 @@ function RouterComponent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="xpswap-ui-theme">
-        <TooltipProvider>
-          <Web3Provider>
-            <RouterComponent />
-            <Toaster />
-          </Web3Provider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="system" storageKey="xpswap-ui-theme">
+          <TooltipProvider>
+            <Web3Provider>
+              <WalletProvider>
+                <RouterComponent />
+                <Toaster />
+              </WalletProvider>
+            </Web3Provider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

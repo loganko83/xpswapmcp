@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Menu, Wallet, X } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
-import { useWeb3Context } from "@/contexts/Web3Context";
+import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "wouter";
 
 interface HeaderProps {
@@ -13,7 +13,7 @@ interface HeaderProps {
 
 export function Header({ isMobileMenuOpen, setIsMobileMenuOpen, onWalletClick }: HeaderProps) {
   const { theme, setTheme } = useTheme();
-  const { wallet, isConnecting } = useWeb3Context();
+  const { wallet, isConnecting } = useWallet();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
