@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { fileURLToPath } from 'url';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -15,7 +14,6 @@ export default defineConfig({
   base: basePath,
   plugins: [
     react(),
-    // runtimeErrorOverlay(), // 임시 비활성화
     // 번들 분석기 추가 (프로덕션 빌드 시에만)
     process.env.ANALYZE === 'true' && visualizer({
       filename: 'dist/bundle-analysis.html',
@@ -23,14 +21,7 @@ export default defineConfig({
       gzipSize: true,
       brotliSize: true,
     }),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
+    // Replit 플러그인들 완전 제거 - 프로덕션 환경에서 React 충돌 방지
   ].filter(Boolean),
   resolve: {
     alias: {
