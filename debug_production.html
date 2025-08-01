@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XPSwap Production Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .test-button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 XPSwap Production Debug Test</h1>
+        <p>이 페이지는 XPSwap 프로덕션 환경의 문제를 진단합니다.</p>
+        
+        <div class="test-section">
+            <h3>📋 자동 테스트 실행</h3>
+            <button class="test-button" onclick="runAllTests()">모든 테스트 실행</button>
+            <button class="test-button" onclick="clearResults()">결과 초기화</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(title, content, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<h4>${title}</h4><pre>${content}</pre>`;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+        }
+        
+        async function testAPI(endpoint, description) {
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.text();
+                const status = response.ok ? 'success' : 'error';
+                const content = `Status: ${response.status}\nResponse: ${data.substring(0, 500)}${data.length > 500 ? '...' : ''}`;
+                addResult(`API Test: ${description}`, content, status);
+                return response.ok;
+            } catch (error) {
+                addResult(`API Test: ${description}`, `Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testResourceLoading() {
+            const resources = [
+                { url: '/xpswap/assets/index-TmnicXAN.js', type: 'JavaScript' },
+                { url: '/xpswap/assets/index-BbhpJQqm.css', type: 'CSS' },
+                { url: '/xpswap/manifest.json', type: 'Manifest' },
+                { url: '/xpswap/sw.js', type: 'Service Worker' }
+            ];
+            
+            for (const resource of resources) {
+                try {
+                    const response = await fetch(resource.url);
+                    const status = response.ok ? 'success' : 'error';
+                    const content = `URL: ${resource.url}\nStatus: ${response.status}\nContent-Type: ${response.headers.get('content-type') || 'N/A'}`;
+                    addResult(`Resource Test: ${resource.type}`, content, status);
+                } catch (error) {
+                    addResult(`Resource Test: ${resource.type}`, `Error loading ${resource.url}: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        function testWordPressInterference() {
+            const wpResources = [
+                '/wp-content/themes/trendy-news/style.css',
+                '/wp-content/plugins/test/test.js',
+                '/wp-includes/js/jquery/jquery.min.js'
+            ];
+            
+            wpResources.forEach(async (url) => {
+                try {
+                    const response = await fetch(url);
+                    const status = response.status === 404 ? 'success' : 'error';
+                    const message = response.status === 404 ? 
+                        `✅ WordPress 리소스가 차단됨: ${url}` : 
+                        `❌ WordPress 리소스가 로드됨: ${url} (Status: ${response.status})`;
+                    addResult('WordPress 간섭 테스트', message, status);
+                } catch (error) {
+                    addResult('WordPress 간섭 테스트', `✅ WordPress 리소스 접근 차단됨: ${url}`, 'success');
+                }
+            });
+        }
+        
+        function testDOMAndReact() {
+            const rootElement = document.getElementById('root');
+            if (!rootElement) {
+                addResult('DOM 테스트', '❌ Root element not found', 'error');
+                return;
+            }
+            
+            const hasReactContent = rootElement.children.length > 0;
+            const content = `Root element exists: ✅\nHas children: ${hasReactContent ? '✅' : '❌'}\nChildren count: ${rootElement.children.length}\nInner HTML length: ${rootElement.innerHTML.length}`;
+            
+            addResult('React DOM 테스트', content, hasReactContent ? 'success' : 'error');
+        }
+        
+        function testServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    const content = `Service Worker 지원: ✅\n등록된 SW 개수: ${registrations.length}\n등록된 SW: ${registrations.map(r => r.scope).join(', ')}`;
+                    addResult('Service Worker 테스트', content, registrations.length > 0 ? 'success' : 'info');
+                });
+            } else {
+                addResult('Service Worker 테스트', 'Service Worker 지원 안됨', 'error');
+            }
+        }
+        
+        function testConsoleErrors() {
+            const errors = [];
+            const originalError = console.error;
+            console.error = function(...args) {
+                errors.push(args.join(' '));
+                originalError.apply(console, arguments);
+            };
+            
+            setTimeout(() => {
+                const content = errors.length > 0 ? 
+                    `발견된 오류:\n${errors.join('\n')}` : 
+                    '콘솔 오류 없음 ✅';
+                addResult('콘솔 오류 테스트', content, errors.length > 0 ? 'error' : 'success');
+            }, 2000);
+        }
+        
+        async function runAllTests() {
+            clearResults();
+            addResult('테스트 시작', new Date().toLocaleString(), 'info');
+            
+            // API Tests
+            await testAPI('/xpswap/api/health', 'Health Check');
+            await testAPI('/xpswap/api/xp-price', 'XP Price');
+            await testAPI('/xpswap/api/crypto-ticker', 'Crypto Ticker');
+            
+            // Resource Tests
+            await testResourceLoading();
+            
+            // WordPress Interference Tests
+            testWordPressInterference();
+            
+            // DOM and React Tests
+            setTimeout(() => {
+                testDOMAndReact();
+                testServiceWorker();
+                testConsoleErrors();
+            }, 1000);
+            
+            addResult('테스트 완료', '모든 테스트가 실행되었습니다.', 'info');
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

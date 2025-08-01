@@ -1,0 +1,27 @@
+# XPSwap .htaccess - WordPress 완전 차단
+# /var/www/storage/xpswap/client/dist/.htaccess
+
+# WordPress 완전 차단
+RewriteEngine On
+
+# WordPress 관련 요청 차단
+RewriteCond %{REQUEST_URI} wp-content [NC,OR]
+RewriteCond %{REQUEST_URI} wp-includes [NC,OR]
+RewriteCond %{REQUEST_URI} wp-admin [NC]
+RewriteRule .* - [R=404,L]
+
+# XPSwap 전용 MIME 타입
+AddType application/javascript .js
+AddType text/css .css
+AddType application/json .json
+AddType image/svg+xml .svg
+
+# 보안 헤더
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options SAMEORIGIN
+Header always set X-XSS-Protection "1; mode=block"
+
+# React Router 지원
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^.*$ /xpswap/index.html [L]
