@@ -1,5 +1,5 @@
-# 🚀 XPSwap 프로젝트 - 클로드 데스크탑 통합 지침 (v2.0)
-# 최종 업데이트: 2025년 8월 1일
+# 🚀 XPSwap 프로젝트 - 클로드 데스크탑 통합 지침 (v2.2)
+# 최종 업데이트: 2025년 8월 2일
 
 ## 📋 프로젝트 개요
 
@@ -11,7 +11,10 @@
 - **프로덕션**: https://trendy.storydot.kr/xpswap/
 - **프로젝트 경로**: C:\Users\vincent\Downloads\XPswap\XPswap
 
-### 🆕 최신 업데이트 (2025-08-01)
+### 🆕 최신 업데이트 (2025-08-02)
+- ✅ **종합 디버깅 가이드 추가**: `doc/DEBUG_GUIDE.md` - 70+ 문제 상황별 해결책
+- ✅ **긴급 대응 절차 정립**: 서버 다운, React 에러 등 중요 문제 빠른 해결법
+- ✅ **React 청크 분리 문제 해결**: vite.config.ts 최적화로 프로덕션 안정성 확보
 - ✅ **Xphere RPC URL 변경**: `https://www.ankr.com/rpc/xphere/`
 - ✅ **지갑 연결 상태 유지**: WalletContext 구현
 - ✅ **PWA 지원**: manifest.json, Service Worker 추가
@@ -198,6 +201,32 @@ git checkout -b fix/버그수정명    # 버그 수정
 
 ### 3. 개발 환경별 주의사항
 
+#### React 청크 분리 동기화 (중요!)
+**로컬과 서버의 vite.config.ts 파일은 항상 동일해야 합니다.**
+
+```typescript
+// 핵심 설정 - 로컬/서버 모두 필수
+resolve: {
+  dedupe: ['react', 'react-dom', 'react/jsx-runtime'] // React 중복 방지
+},
+build: {
+  rollupOptions: {
+    output: {
+      manualChunks: {
+        'react-core': ['react', 'react-dom', 'react/jsx-runtime'], // 핵심!
+        // ... 기타 청크 설정
+      },
+    },
+  },
+  minify: 'esbuild', // terser 대신 esbuild 사용
+},
+```
+
+**작업 전 확인사항**:
+- 서버 배포 전 로컬에서 `npm run build` 테스트 필수
+- React 에러 발생 시 vite.config.ts 설정 우선 점검
+- 새로운 React 관련 라이브러리 추가 시 청크 분할 전략 검토
+
 #### Windows PowerShell 환경
 - `&&` 대신 `;` 사용: `npm install ; npm start`
 - `curl` 사용 시 CMD 권장 (PowerShell의 Invoke-WebRequest와 충돌)
@@ -302,56 +331,116 @@ Alias /xpswap /var/www/storage/xpswap/client/dist
 - [ ] 상단 암호화폐 티커 표시 확인
 - [ ] 메뉴 네비게이션 작동 확인
 - [ ] API 응답 확인 (/xpswap/api/health)
-- [ ] 콘솔 에러 없음 확인
+- [ ] 콘솔 에러 없음 확인 (특히 React Children 에러)
 - [ ] 새로고침 시 정상 작동 확인
+- [ ] React 청크 로딩 정상 확인 (react-core-xxx.js 파일 존재)
 
 ---
 
 ## 🐛 디버깅 및 테스트
 
-### 디버깅 도구
-- **API 테스트**: `client/public/debug.html`
-- **서버 로그**: `pm2 logs xpswap-api`
-- **브라우저 개발자 도구**: F12
+### 📋 종합 디버깅 가이드
+**상세한 디버깅 정보는 별도 문서를 참조하세요**: [`doc/DEBUG_GUIDE.md`](doc/DEBUG_GUIDE.md)
 
-### 일반적인 문제 해결
+이 섹션은 자주 발생하는 핵심 문제들의 빠른 해결책을 제공합니다.
 
-#### 1. 포트 충돌 (EADDRINUSE)
+### 🚨 긴급 문제별 우선순위
+1. **CRITICAL**: 프로덕션 서버 다운 → [서버 재시작](#긴급-서버-재시작)
+2. **HIGH**: React 앱 로딩 실패 → [React 청크 문제](#react-청크-분리-문제-중요)
+3. **MEDIUM**: API 호출 실패 → [API 문제](#api-호출-실패)
+4. **LOW**: UI 버그 → [프론트엔드 문제](#기타-ui-문제)
+
+### 🔧 긴급 서버 재시작
+```bash
+# SSH 접속
+ssh ubuntu@trendy.storydot.kr
+
+# PM2 프로세스 재시작
+pm2 restart xpswap-api
+
+# Apache 재로드
+sudo systemctl reload apache2
+
+# 상태 확인
+pm2 list
+curl https://trendy.storydot.kr/xpswap/api/health
+```
+
+### ⚛️ React 청크 분리 문제 (중요!)
+**증상**: 프로덕션에서 `TypeError: Cannot set properties of undefined (setting 'Children')` 에러, 화면 하얗게 표시
+
+**긴급 해결**: vite.config.ts 핵심 설정 확인
+```typescript
+export default defineConfig({
+  resolve: {
+    // 가장 중요: React 중복 인스턴스 방지
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime']
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-core': ['react', 'react-dom', 'react/jsx-runtime'],
+          // 기타 청크들...
+        },
+      },
+    },
+    minify: 'esbuild',
+  },
+});
+```
+
+**체크포인트**:
+- [ ] 로컬과 서버의 `vite.config.ts` 동일한가?
+- [ ] `dedupe` 배열에 React 라이브러리들이 포함되어 있는가?
+- [ ] 빌드 후 `react-core-xxx.js` 파일이 생성되는가?
+
+### 🔗 API 호출 실패
 ```powershell
+# 서버 상태 확인
+npm run dev:server
+
+# API 테스트
+curl http://localhost:5000/xpswap/api/health
+
+# 포트 충돌 해결
 netstat -ano | findstr :5000
-# 프로세스 ID 확인 후 종료
 taskkill /PID [프로세스ID] /F
 ```
 
-#### 2. API 호출 실패
-- 서버 실행 상태 확인: `npm run dev:server`
-- 포트 설정 확인: `.env` 파일의 PORT=5000
-- BASE_PATH 확인: 프로덕션에서는 `/xpswap/api`
-- CORS 설정 확인: `server/index.ts`
-
-#### 3. 빌드 오류
+### 💾 데이터베이스 문제
 ```powershell
-# TypeScript 타입 체크
-npx tsc --noEmit
-
-# 의존성 문제 해결 (서버)
-rm -rf node_modules package-lock.json
-npm install --legacy-peer-deps
-
-# import 오류 해결
-# realBlockchain.js의 CONTRACT_ADDRESSES import 주석 처리
-```
-
-#### 4. 데이터베이스 문제
-```powershell
-# SQLite DB 초기화
+# DB 재생성
 rm test.db
-npm run dev:server  # 자동으로 DB 재생성
+npm run dev:server  # 자동 테이블 생성
 ```
 
-#### 5. 크립토 티커 미표시
-- 캐시 삭제: Ctrl+F5
-- Service Worker 업데이트: 개발자 도구 > Application > Service Workers > Update
+### 🌐 지갑 연결 문제
+```javascript
+// 브라우저 콘솔에서 확인
+console.log('MetaMask:', typeof window.ethereum !== 'undefined');
+console.log('Wallet Context:', useWallet());
+
+// 네트워크 설정 확인: Xphere (https://www.ankr.com/rpc/xphere/)
+```
+
+### 기타 UI 문제
+- **크립토 티커 미표시**: Ctrl+F5로 캐시 삭제
+- **라우팅 문제**: BASE_PATH 설정 확인 (`/xpswap/`)
+- **컴포넌트 에러**: ErrorBoundary 로그 확인
+
+### 📊 디버깅 도구
+- **API 테스트**: `client/public/debug.html`
+- **서버 로그**: `pm2 logs xpswap-api --lines 50`
+- **브라우저**: F12 개발자 도구
+- **React DevTools**: 컴포넌트 상태 확인
+
+### 🔍 상세 문제 해결
+**복잡한 문제의 경우 종합 디버깅 가이드를 참조하세요**:
+- [`doc/DEBUG_GUIDE.md`](doc/DEBUG_GUIDE.md) - 전체 디버깅 매뉴얼
+- 70+ 문제 상황별 해결책
+- 단계별 진단 및 해결 방법
+- 예방적 유지보수 가이드
 
 ---
 
@@ -485,6 +574,7 @@ XPSwap은 **안전하고 효율적인 DeFi 플랫폼**을 목표로 합니다:
 
 ## 📚 참고 문서
 
+- **🔧 종합 디버깅 가이드**: `doc/DEBUG_GUIDE.md` ⭐ **신규 추가**
 - **작업 일지**: `doc/CLAUDE.md`
 - **진행 상황**: `doc/progress/` 디렉토리
 - **스마트 컨트랙트**: `doc/SMART_CONTRACT_DEPLOYMENT.md`
@@ -497,4 +587,4 @@ XPSwap은 **안전하고 효율적인 DeFi 플랫폼**을 목표로 합니다:
 
 **📞 프로젝트 문의**: GitHub Issues를 통해 제출해주세요.
 **🔗 저장소**: https://github.com/loganko83/xpswapmcp
-**📅 최종 업데이트**: 2025년 8월 1일
+**📅 최종 업데이트**: 2025년 8월 2일

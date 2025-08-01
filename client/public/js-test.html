@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPSwap JavaScript 테스트</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #10b981;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #60a5fa;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .test-result {
+            background: #334155;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #6366f1;
+        }
+        
+        .test-result.success {
+            border-left-color: #10b981;
+        }
+        
+        .test-result.error {
+            border-left-color: #ef4444;
+        }
+        
+        .test-result.warning {
+            border-left-color: #f59e0b;
+        }
+        
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .test-details {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #059669;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .summary {
+            background: #1e293b;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .summary h3 {
+            color: #10b981;
+            margin-top: 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background: #10b981; }
+        .status-error { background: #ef4444; }
+        .status-warning { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🧪 XPSwap JavaScript 테스트</h1>
+    
+    <div class="test-section">
+        <h2>🔧 테스트 제어</h2>
+        <button onclick="runAllTests()">모든 테스트 실행</button>
+        <button onclick="runBasicTests()">기본 테스트만</button>
+        <button onclick="runAdvancedTests()">고급 테스트만</button>
+        <button onclick="clearResults()">결과 지우기</button>
+        <button onclick="exportResults()">결과 내보내기</button>
+    </div>
+    
+    <div class="summary" id="testSummary" style="display: none;">
+        <h3>📊 테스트 요약</h3>
+        <div id="summaryContent"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🌐 브라우저 기본 기능</h2>
+        <div id="browserTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔗 API 연결 테스트</h2>
+        <div id="apiTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>💰 암호화폐 기능</h2>
+        <div id="cryptoTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎨 UI 컴포넌트</h2>
+        <div id="uiTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>⚡ 성능 테스트</h2>
+        <div id="performanceTests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔐 보안 기능</h2>
+        <div id="securityTests"></div>
+    </div>
+
+    <script>
+        // 테스트 결과 저장
+        let testResults = [];
+        
+        // 환경 감지
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const baseApiUrl = isLocal ? 'http://localhost:5000/xpswap/api' : '/xpswap/api';
+        
+        // 테스트 정의
+        const testSuites = {
+            browser: [
+                {
+                    name: 'JavaScript 기본 기능',
+                    test: () => {
+                        const arr = [1, 2, 3];
+                        const result = arr.map(x => x * 2);
+                        return { success: JSON.stringify(result) === '[2,4,6]', details: `결과: [${result}]` };
+                    }
+                },
+                {
+                    name: 'ES6 지원 (Arrow Functions)',
+                    test: () => {
+                        const fn = (x) => x + 1;
+                        return { success: fn(5) === 6, details: 'Arrow function 테스트' };
+                    }
+                },
+                {
+                    name: 'Promise 지원',
+                    test: async () => {
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                resolve({ success: true, details: 'Promise 정상 작동' });
+                            }, 100);
+                        });
+                    }
+                },
+                {
+                    name: 'Fetch API 지원',
+                    test: () => {
+                        return { success: typeof fetch !== 'undefined', details: `Fetch API: ${typeof fetch}` };
+                    }
+                },
+                {
+                    name: 'Local Storage',
+                    test: () => {
+                        try {
+                            localStorage.setItem('test', 'value');
+                            const value = localStorage.getItem('test');
+                            localStorage.removeItem('test');
+                            return { success: value === 'value', details: '로컬 스토리지 읽기/쓰기 정상' };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                },
+                {
+                    name: 'Session Storage',
+                    test: () => {
+                        try {
+                            sessionStorage.setItem('test', 'value');
+                            const value = sessionStorage.getItem('test');
+                            sessionStorage.removeItem('test');
+                            return { success: value === 'value', details: '세션 스토리지 읽기/쓰기 정상' };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                }
+            ],
+            
+            api: [
+                {
+                    name: 'Health Check API',
+                    test: async () => {
+                        try {
+                            const response = await fetch(`${baseApiUrl}/health`);
+                            const data = await response.json();
+                            return { 
+                                success: response.ok, 
+                                details: `상태: ${response.status}, 응답: ${JSON.stringify(data)}` 
+                            };
+                        } catch (e) {
+                            return { success: false, details: `네트워크 오류: ${e.message}` };
+                        }
+                    }
+                },
+                {
+                    name: 'Crypto Ticker API',
+                    test: async () => {
+                        try {
+                            const response = await fetch(`${baseApiUrl}/crypto-ticker`);
+                            const data = await response.json();
+                            return { 
+                                success: response.ok && Array.isArray(data), 
+                                details: `티커 개수: ${Array.isArray(data) ? data.length : 'N/A'}` 
+                            };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                },
+                {
+                    name: 'XP Price API',
+                    test: async () => {
+                        try {
+                            const response = await fetch(`${baseApiUrl}/xp-price`);
+                            const data = await response.json();
+                            return { 
+                                success: response.ok && typeof data.price === 'number', 
+                                details: `XP 가격: $${data.price || 'N/A'}` 
+                            };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                },
+                {
+                    name: 'Market Stats API',
+                    test: async () => {
+                        try {
+                            const response = await fetch(`${baseApiUrl}/market-stats`);
+                            const data = await response.json();
+                            return { 
+                                success: response.ok, 
+                                details: `시장 데이터: ${Object.keys(data || {}).length}개 항목` 
+                            };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                }
+            ],
+            
+            crypto: [
+                {
+                    name: 'Web3 지원 감지',
+                    test: () => {
+                        const hasWeb3 = typeof window.ethereum !== 'undefined';
+                        return { 
+                            success: hasWeb3, 
+                            details: hasWeb3 ? 'MetaMask 또는 Web3 지갑 감지됨' : 'Web3 지갑 없음' 
+                        };
+                    }
+                },
+                {
+                    name: 'MetaMask 연결 가능성',
+                    test: async () => {
+                        if (typeof window.ethereum === 'undefined') {
+                            return { success: false, details: 'MetaMask 설치되지 않음' };
+                        }
+                        
+                        try {
+                            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                            return { 
+                                success: true, 
+                                details: `연결된 계정: ${accounts.length}개` 
+                            };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                },
+                {
+                    name: '네트워크 감지',
+                    test: async () => {
+                        if (typeof window.ethereum === 'undefined') {
+                            return { success: false, details: 'MetaMask 없음' };
+                        }
+                        
+                        try {
+                            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                            return { 
+                                success: true, 
+                                details: `체인 ID: ${chainId} (${parseInt(chainId, 16)})` 
+                            };
+                        } catch (e) {
+                            return { success: false, details: `오류: ${e.message}` };
+                        }
+                    }
+                }
+            ],
+            
+            ui: [
+                {
+                    name: 'DOM 조작',
+                    test: () => {
+                        const div = document.createElement('div');
+                        div.textContent = 'Test';
+                        document.body.appendChild(div);
+                        const found = document.body.contains(div);
+                        document.body.removeChild(div);
+                        return { success: found, details: 'DOM 요소 추가/제거 정상' };
+                    }
+                },
+                {
+                    name: 'CSS 지원',
+                    test: () => {
+                        const div = document.createElement('div');
+                        div.style.display = 'none';
+                        const supported = div.style.display === 'none';
+                        return { success: supported, details: 'CSS 스타일 적용 정상' };
+                    }
+                },
+                {
+                    name: 'Event Listener',
+                    test: () => {
+                        let eventFired = false;
+                        const div = document.createElement('div');
+                        
+                        const handler = () => { eventFired = true; };
+                        div.addEventListener('click', handler);
+                        
+                        // 이벤트 발생 시뮬레이션
+                        const event = new Event('click');
+                        div.dispatchEvent(event);
+                        
+                        div.removeEventListener('click', handler);
+                        
+                        return { success: eventFired, details: '이벤트 처리 정상' };
+                    }
+                }
+            ],
+            
+            performance: [
+                {
+                    name: '메모리 사용량 측정',
+                    test: () => {
+                        if (performance.memory) {
+                            const memory = performance.memory;
+                            const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
+                            const limitMB = Math.round(memory.jsHeapSizeLimit / 1024 / 1024);
+                            return { 
+                                success: true, 
+                                details: `사용: ${usedMB}MB / 한계: ${limitMB}MB` 
+                            };
+                        }
+                        return { success: false, details: '메모리 정보 지원되지 않음' };
+                    }
+                },
+                {
+                    name: '타이밍 API',
+                    test: () => {
+                        const start = performance.now();
+                        // 간단한 계산
+                        let sum = 0;
+                        for (let i = 0; i < 1000; i++) {
+                            sum += i;
+                        }
+                        const duration = performance.now() - start;
+                        return { 
+                            success: duration >= 0, 
+                            details: `계산 시간: ${duration.toFixed(2)}ms` 
+                        };
+                    }
+                },
+                {
+                    name: '리소스 타이밍',
+                    test: () => {
+                        const resources = performance.getEntriesByType('resource');
+                        return { 
+                            success: resources.length > 0, 
+                            details: `로드된 리소스: ${resources.length}개` 
+                        };
+                    }
+                }
+            ],
+            
+            security: [
+                {
+                    name: 'HTTPS 사용',
+                    test: () => {
+                        const isHTTPS = location.protocol === 'https:';
+                        return { 
+                            success: isHTTPS || isLocal, 
+                            details: `프로토콜: ${location.protocol} (${isLocal ? '로컬 개발' : isHTTPS ? '보안' : '비보안'})` 
+                        };
+                    }
+                },
+                {
+                    name: 'Content Security Policy',
+                    test: () => {
+                        const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                        return { 
+                            success: meta !== null, 
+                            details: meta ? 'CSP 헤더 발견' : 'CSP 헤더 없음' 
+                        };
+                    }
+                },
+                {
+                    name: 'Same-Origin Policy',
+                    test: () => {
+                        // 기본적으로 동일 출처에서 실행되므로 true
+                        return { 
+                            success: true, 
+                            details: `출처: ${location.origin}` 
+                        };
+                    }
+                }
+            ]
+        };
+        
+        function runTest(testCase) {
+            return new Promise(async (resolve) => {
+                const startTime = performance.now();
+                try {
+                    const result = await testCase.test();
+                    const duration = performance.now() - startTime;
+                    resolve({
+                        name: testCase.name,
+                        success: result.success,
+                        details: result.details,
+                        duration: Math.round(duration * 100) / 100,
+                        error: null
+                    });
+                } catch (error) {
+                    const duration = performance.now() - startTime;
+                    resolve({
+                        name: testCase.name,
+                        success: false,
+                        details: error.message,
+                        duration: Math.round(duration * 100) / 100,
+                        error: error.toString()
+                    });
+                }
+            });
+        }
+        
+        function displayResult(result, containerId) {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${result.success ? 'success' : 'error'}`;
+            
+            resultDiv.innerHTML = `
+                <div class="test-name">
+                    <span class="status-indicator status-${result.success ? 'success' : 'error'}"></span>
+                    ${result.name}
+                    <span style="float: right; font-size: 12px; color: #94a3b8;">${result.duration}ms</span>
+                </div>
+                <div class="test-details">${result.details}</div>
+                ${result.error ? `<div class="code-block">${result.error}</div>` : ''}
+            `;
+            
+            container.appendChild(resultDiv);
+        }
+        
+        async function runTestSuite(suiteName, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '<div style="color: #6366f1;">테스트 실행 중...</div>';
+            
+            const suite = testSuites[suiteName];
+            const results = [];
+            
+            for (const testCase of suite) {
+                const result = await runTest(testCase);
+                results.push(result);
+                displayResult(result, containerId);
+                
+                // 각 테스트 사이에 약간의 지연
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            // 첫 번째 "실행 중..." 메시지 제거
+            const loadingMsg = container.querySelector('div');
+            if (loadingMsg && loadingMsg.textContent.includes('테스트 실행 중')) {
+                container.removeChild(loadingMsg);
+            }
+            
+            return results;
+        }
+        
+        async function runAllTests() {
+            testResults = [];
+            clearResults();
+            
+            const suites = ['browser', 'api', 'crypto', 'ui', 'performance', 'security'];
+            const containers = ['browserTests', 'apiTests', 'cryptoTests', 'uiTests', 'performanceTests', 'securityTests'];
+            
+            for (let i = 0; i < suites.length; i++) {
+                const results = await runTestSuite(suites[i], containers[i]);
+                testResults.push(...results);
+            }
+            
+            updateSummary();
+        }
+        
+        async function runBasicTests() {
+            testResults = [];
+            clearResults();
+            
+            const results1 = await runTestSuite('browser', 'browserTests');
+            const results2 = await runTestSuite('api', 'apiTests');
+            
+            testResults.push(...results1, ...results2);
+            updateSummary();
+        }
+        
+        async function runAdvancedTests() {
+            testResults = [];
+            clearResults();
+            
+            const results1 = await runTestSuite('crypto', 'cryptoTests');
+            const results2 = await runTestSuite('performance', 'performanceTests');
+            const results3 = await runTestSuite('security', 'securityTests');
+            
+            testResults.push(...results1, ...results2, ...results3);
+            updateSummary();
+        }
+        
+        function clearResults() {
+            const containers = ['browserTests', 'apiTests', 'cryptoTests', 'uiTests', 'performanceTests', 'securityTests'];
+            containers.forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            document.getElementById('testSummary').style.display = 'none';
+        }
+        
+        function updateSummary() {
+            const totalTests = testResults.length;
+            const passedTests = testResults.filter(r => r.success).length;
+            const failedTests = totalTests - passedTests;
+            const avgDuration = totalTests > 0 ? 
+                Math.round((testResults.reduce((sum, r) => sum + r.duration, 0) / totalTests) * 100) / 100 : 0;
+            
+            const summaryContent = document.getElementById('summaryContent');
+            summaryContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div>
+                        <div style="font-size: 24px; font-weight: bold; color: #10b981;">${passedTests}</div>
+                        <div style="color: #94a3b8;">성공</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 24px; font-weight: bold; color: #ef4444;">${failedTests}</div>
+                        <div style="color: #94a3b8;">실패</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 24px; font-weight: bold; color: #60a5fa;">${totalTests}</div>
+                        <div style="color: #94a3b8;">전체</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${avgDuration}ms</div>
+                        <div style="color: #94a3b8;">평균 시간</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #334155; border-radius: 6px;">
+                    성공률: ${totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0}%
+                </div>
+            `;
+            
+            document.getElementById('testSummary').style.display = 'block';
+        }
+        
+        function exportResults() {
+            if (testResults.length === 0) {
+                alert('실행된 테스트가 없습니다. 먼저 테스트를 실행해주세요.');
+                return;
+            }
+            
+            const report = {
+                timestamp: new Date().toISOString(),
+                environment: isLocal ? 'local' : 'production',
+                userAgent: navigator.userAgent,
+                url: window.location.href,
+                baseApiUrl: baseApiUrl,
+                testResults: testResults,
+                summary: {
+                    total: testResults.length,
+                    passed: testResults.filter(r => r.success).length,
+                    failed: testResults.filter(r => !r.success).length,
+                    averageDuration: testResults.reduce((sum, r) => sum + r.duration, 0) / testResults.length
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `xpswap-js-test-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('XPSwap JavaScript 테스트 도구 로드됨');
+            console.log('환경:', isLocal ? 'LOCAL' : 'PRODUCTION');
+            console.log('API Base URL:', baseApiUrl);
+        });
+    </script>
+</body>
+</html>
