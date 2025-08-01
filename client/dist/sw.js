@@ -1,39 +1,37 @@
-// XPSwap Service Worker v3.0.0 - Force Update
-const CACHE_NAME = "xpswap-v3-" + new Date().getTime();
+// XPSwap Service Worker v2.0.0
+const CACHE_NAME = 'xpswap-v2';
 const urlsToCache = [
-  "/xpswap/",
-  "/xpswap/index.html",
-  "/xpswap/manifest.json",
+  '/xpswap/',
+  '/xpswap/index.html',
+  '/xpswap/manifest.json',
 ];
 
 // Install Service Worker
-self.addEventListener("install", event => {
-  console.log("Service Worker installing v3...");
-  // Force immediate activation
+self.addEventListener('install', event => {
+  console.log('Service Worker installing v2...');
+  // Skip waiting to activate immediately
   self.skipWaiting();
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log("Opened cache v3");
+        console.log('Opened cache v2');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
 // Cache and return requests with network-first strategy
-self.addEventListener("fetch", event => {
+self.addEventListener('fetch', event => {
   // Skip caching for API calls
-  if (event.request.url.includes("/api/")) {
+  if (event.request.url.includes('/api/')) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // Always try network first
+  // Network first, fallback to cache
   event.respondWith(
-    fetch(event.request, {
-      cache: "no-cache"
-    })
+    fetch(event.request)
       .then(response => {
         // Clone the response
         const responseToCache = response.clone();
@@ -52,16 +50,18 @@ self.addEventListener("fetch", event => {
 });
 
 // Update Service Worker
-self.addEventListener("activate", event => {
-  console.log("Service Worker activating v3...");
+self.addEventListener('activate', event => {
+  console.log('Service Worker activating v2...');
   
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Delete ALL caches
-          console.log("Deleting cache:", cacheName);
-          return caches.delete(cacheName);
+          // Delete all old caches
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
         })
       );
     }).then(() => {
@@ -69,11 +69,4 @@ self.addEventListener("activate", event => {
       return self.clients.claim();
     })
   );
-});
-
-// Force update on message
-self.addEventListener("message", event => {
-  if (event.data === "skipWaiting") {
-    self.skipWaiting();
-  }
 });

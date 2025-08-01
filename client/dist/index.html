@@ -3,73 +3,63 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
     <!-- Cache Control Meta Tags -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <link rel="icon" type="image/svg+xml" href="/xpswap/xps-logo.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="description" content="안전하고 빠른 Xphere 블록체인 기반 DeFi 플랫폼" />
     <link rel="manifest" href="/xpswap/manifest.json" />
-    <title>XpSwap - Next-Gen DEX on Xphere</title>
     
-    <!-- Force reload CSS and JS with timestamp -->
-    <script type="module" crossorigin src="/xpswap/assets/index-DxHLzNoH.js?v=1754012290"></script>
-    <link rel="modulepreload" crossorigin href="/xpswap/assets/utils-BkLtITBR.js?v=1754012290">
-    <link rel="modulepreload" crossorigin href="/xpswap/assets/vendor-B0r8BCsL.js?v=1754012290">
-    <link rel="modulepreload" crossorigin href="/xpswap/assets/ui-BQCqNqg0.js?v=1754012290">
-    <link rel="modulepreload" crossorigin href="/xpswap/assets/react-CnjVYTDc.js?v=1754012290">
-    <link rel="modulepreload" crossorigin href="/xpswap/assets/router-B_5Dh3-u.js?v=1754012290">
-    <link rel="modulepreload" crossorigin href="/xpswap/assets/web3-30Ii_1H8.js?v=1754012290">
-    <link rel="stylesheet" crossorigin href="/xpswap/assets/index-CaZv4ZoX.css?v=1754012290">
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="XPSwap" />
+    <link rel="apple-touch-icon" href="/xpswap/xps-logo.svg" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/xpswap/xps-logo.svg" />
+    
+    <title>XpSwap - Next-Gen DEX on Xphere</title>
+    <script type="module" crossorigin src="/xpswap/assets/index-TmnicXAN.js"></script>
+    <link rel="modulepreload" crossorigin href="/xpswap/assets/utils-BkLtITBR.js">
+    <link rel="modulepreload" crossorigin href="/xpswap/assets/vendor-C9R_Cz-L.js">
+    <link rel="modulepreload" crossorigin href="/xpswap/assets/react-vendor-whffYpp3.js">
+    <link rel="modulepreload" crossorigin href="/xpswap/assets/router-Chclg4Zx.js">
+    <link rel="modulepreload" crossorigin href="/xpswap/assets/ui-DDPZ4K8P.js">
+    <link rel="modulepreload" crossorigin href="/xpswap/assets/web3-DuRBVa1D.js">
+    <link rel="stylesheet" crossorigin href="/xpswap/assets/index-BbhpJQqm.css">
   </head>
   <body>
     <div id="root"></div>
     
-    <!-- Service Worker Registration with Force Update -->
+    <!-- Service Worker Registration -->
     <script>
-      if ("serviceWorker" in navigator) {
-        // Unregister all existing service workers first
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
-          }
-        });
-        
-        // Register new service worker
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/xpswap/sw.js?v=" + Date.now())
+      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+        window.addEventListener('load', () => {
+          // First, unregister all existing service workers
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => {
+              registration.unregister();
+            });
+          });
+          
+          // Then register the new one with a timestamp to force update
+          navigator.serviceWorker.register('/xpswap/sw.js?v=' + Date.now())
             .then(registration => {
-              console.log("SW registered: ", registration);
-              // Force update on every load
+              console.log('SW registered:', registration);
+              // Check for updates immediately
               registration.update();
             })
-            .catch(error => {
-              console.log("SW registration failed: ", error);
-            });
+            .catch(error => console.log('SW registration failed:', error));
         });
       }
     </script>
     
-    <!-- Force reload on version mismatch -->
-    <script>
-      const currentVersion = "3.0.0";
-      const storedVersion = localStorage.getItem("xpswap-version");
-      
-      if (storedVersion && storedVersion !== currentVersion) {
-        // Clear all caches
-        if ("caches" in window) {
-          caches.keys().then(names => {
-            names.forEach(name => caches.delete(name));
-          });
-        }
-        // Clear localStorage
-        localStorage.clear();
-        // Force reload
-        location.reload(true);
-      }
-      
-      localStorage.setItem("xpswap-version", currentVersion);
-    </script>
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
 </html>
