@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
+    <!-- IE Compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="description" content="안전하고 빠른 Xphere 블록체인 기반 DeFi 플랫폼" />
+    <link rel="manifest" href="/xpswap/manifest.json" />
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="XPSwap" />
+    <link rel="apple-touch-icon" href="/xpswap/xps-logo.svg" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/xpswap/xps-logo.svg" />
+    
+    <title>XpSwap - Next-Gen DEX on Xphere</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" crossorigin href="/xpswap/assets/index-BbhpJQqm.css">
+    
+    <!-- Browser Compatibility Check -->
+    <script>      // IE 브라우저 감지 및 경고
+      var isIE = /*@cc_on!@*/false || !!document.documentMode;
+      var isEdge = !isIE && !!window.StyleMedia;
+      
+      if (isIE) {
+        document.addEventListener('DOMContentLoaded', function() {
+          var root = document.getElementById('root');
+          if (root) {
+            root.innerHTML = '<div style="padding: 40px; text-align: center; font-family: Arial, sans-serif;">' +
+              '<h1 style="color: #dc2626;">브라우저 호환성 문제</h1>' +
+              '<p style="font-size: 18px; margin: 20px 0;">Internet Explorer는 지원되지 않습니다.</p>' +
+              '<p style="font-size: 16px; color: #666;">다음 브라우저 중 하나를 사용해주세요:</p>' +
+              '<ul style="text-align: left; max-width: 400px; margin: 20px auto;">' +
+              '<li><strong>Chrome</strong> (권장)</li>' +
+              '<li><strong>Firefox</strong></li>' +
+              '<li><strong>Edge</strong></li>' +
+              '<li><strong>Safari</strong></li>' +
+              '</ul>' +
+              '<div style="margin-top: 30px;">' +
+              '<a href="https://www.google.com/chrome/" style="display: inline-block; padding: 10px 20px; background: #1e40af; color: white; text-decoration: none; border-radius: 5px; margin: 5px;">Chrome 다운로드</a>' +
+              '<a href="https://www.microsoft.com/edge" style="display: inline-block; padding: 10px 20px; background: #0078d4; color: white; text-decoration: none; border-radius: 5px; margin: 5px;">Edge 다운로드</a>' +
+              '</div>' +
+              '</div>';
+          }
+        });
+        // IE에서는 모던 스크립트 로드하지 않음
+      } else {
+        // 모던 브라우저에서만 스크립트 로드
+        document.write('<script type="module" crossorigin src="/xpswap/assets/index-BkmNh__t.js"><\/script>');
+        document.write('<link rel="modulepreload" crossorigin href="/xpswap/assets/utils-BkLtITBR.js">');
+        document.write('<link rel="modulepreload" crossorigin href="/xpswap/assets/vendor-C9R_Cz-L.js">');
+        document.write('<link rel="modulepreload" crossorigin href="/xpswap/assets/react-vendor-whffYpp3.js">');
+        document.write('<link rel="modulepreload" crossorigin href="/xpswap/assets/router-Chclg4Zx.js">');
+        document.write('<link rel="modulepreload" crossorigin href="/xpswap/assets/ui-DDPZ4K8P.js">');
+        document.write('<link rel="modulepreload" crossorigin href="/xpswap/assets/web3-DuRBVa1D.js">');
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Loading Screen -->
+      <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 9999;">
+        <div style="text-align: center;">
+          <img src="/xpswap/xps-logo.svg" alt="XPSwap" style="width: 80px; height: 80px; margin-bottom: 20px; animation: spin 2s linear infinite;" />
+          <h2 style="color: #1e40af; font-family: Arial, sans-serif; margin: 0 0 10px 0;">XPSwap 로딩 중...</h2>
+          <p style="color: #64748b; font-family: Arial, sans-serif; margin: 0;">잠시만 기다려주세요</p>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
+    
+    <!-- Service Worker Registration (모던 브라우저에서만) -->
+    <script>
+      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && !/*@cc_on!@*/false && !document.documentMode) {
+        window.addEventListener('load', function() {
+          // First, unregister all existing service workers
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            registrations.forEach(function(registration) {
+              registration.unregister();
+            });
+          });
+          
+          // Then register the new one with a timestamp to force update
+          navigator.serviceWorker.register('/xpswap/sw.js?v=' + Date.now())
+            .then(function(registration) {
+              console.log('SW registered:', registration);
+              // Check for updates immediately
+              registration.update();
+            })
+            .catch(function(error) {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+      
+      // React 앱이 로드되면 로딩 스크린 제거
+      setTimeout(function() {
+        var loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen && window.React) {
+          loadingScreen.style.display = 'none';
+        }
+      }, 3000); // 3초 후 강제 제거
+    </script>
+    
+    <!-- Error Handling for JavaScript -->
+    <script>
+      window.addEventListener('error', function(e) {
+        console.error('JavaScript Error:', e.error);
+        var root = document.getElementById('root');
+        var loadingScreen = document.getElementById('loading-screen');
+        
+        if (loadingScreen) {
+          loadingScreen.style.display = 'none';
+        }
+        
+        if (root && !root.hasChildNodes()) {
+          root.innerHTML = '<div style="padding: 40px; text-align: center; font-family: Arial, sans-serif;">' +
+            '<h1 style="color: #dc2626;">JavaScript 로드 오류</h1>' +
+            '<p style="font-size: 16px; margin: 20px 0;">페이지를 새로고침해주세요.</p>' +
+            '<button onclick="window.location.reload()" style="padding: 10px 20px; background: #1e40af; color: white; border: none; border-radius: 5px; cursor: pointer;">새로고침</button>' +
+            '<div style="margin-top: 20px; font-size: 12px; color: #666;">' +
+            '오류가 지속되면 브라우저 캐시를 삭제하거나 다른 브라우저를 사용해보세요.' +
+            '</div>' +
+            '</div>';
+        }
+      });
+    </script>
+  </body>
+</html>
