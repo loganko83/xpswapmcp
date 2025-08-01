@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+<<<<<<< HEAD
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     
     <!-- Cache Control Meta Tags -->
@@ -61,5 +62,53 @@
     
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+=======
+    <link rel="icon" type="image/svg+xml" href="/xpswap/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XPSwap - Advanced DeFi Platform</title>
+    <meta name="description" content="XPSwap is a decentralized exchange (DEX) built on Xphere blockchain. Trade, provide liquidity, farm, and earn with advanced DeFi features." />
+    <meta name="keywords" content="DeFi, DEX, Xphere, XP, XPS, swap, liquidity, farming, staking, blockchain" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://trendy.storydot.kr/xpswap/" />
+    <meta property="og:title" content="XPSwap - Advanced DeFi Platform" />
+    <meta property="og:description" content="Trade, provide liquidity, farm, and earn with advanced DeFi features on Xphere blockchain." />
+    <meta property="og:image" content="https://trendy.storydot.kr/xpswap/xps-logo.svg" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://trendy.storydot.kr/xpswap/" />
+    <meta property="twitter:title" content="XPSwap - Advanced DeFi Platform" />
+    <meta property="twitter:description" content="Trade, provide liquidity, farm, and earn with advanced DeFi features on Xphere blockchain." />
+    <meta property="twitter:image" content="https://trendy.storydot.kr/xpswap/xps-logo.svg" />
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/xpswap/manifest.json" />
+    <meta name="theme-color" content="#10b981" />
+    <link rel="apple-touch-icon" href="/xpswap/xps-logo.svg" />
+    
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:; connect-src 'self' https: wss:;" />
+  <script type="module" crossorigin src="/xpswap/assets/index-TmnicXAN.js"></script>
+  <link rel="stylesheet" crossorigin href="/xpswap/assets/index-BbhpJQqm.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/xpswap/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+>>>>>>> 3e68b6269a8c6074f5f6b98d5dc61e7d5339c123
   </body>
 </html>
