@@ -1,229 +1,188 @@
 #!/bin/bash
+# XPSwap 통합 수정 스크립트 - 하얀화면 문제 완전 해결
+# 실행: sudo bash fix-apache-unified.sh
 
-echo "🔧 XPSwap 통합 Apache 설정 수정 스크립트 v2.0"
-echo "================================================"
-echo "목표: storydot-kr-unified.conf에서 XPSwap 설정 수정"
-echo "문제: 하얀 화면 → 정상 XPSwap 서비스 표시"
-echo "================================================"
+echo "==========================================="
+echo "XPSwap 하얀화면 문제 해결 스크립트 시작"
+echo "실행 시간: $(date)"
+echo "==========================================="
 
-# 백업 생성
-echo -e "\n💾 1. 설정 파일 백업 생성"
-echo "-------------------------"
+# 변수 설정
+PROJECT_DIR="/var/www/storage/xpswap"
+APACHE_CONF="/etc/apache2/sites-available/xpswap.conf"
 BACKUP_DIR="/var/www/storage/backups/$(date +%Y%m%d_%H%M%S)"
-sudo mkdir -p "$BACKUP_DIR"
-sudo cp /etc/apache2/sites-available/storydot-kr-unified.conf "$BACKUP_DIR/"
-echo "백업 완료: $BACKUP_DIR/storydot-kr-unified.conf"
 
-# XPSwap 프로젝트 업데이트
-echo -e "\n📥 2. XPSwap 프로젝트 업데이트"
-echo "-----------------------------"
-cd /var/www/storage/xpswap
-echo "Git pull 실행..."
+# 1. 백업 생성
+echo -e "\n1. 백업 생성 중..."
+mkdir -p "$BACKUP_DIR"
+if [ -f "$APACHE_CONF" ]; then
+    cp "$APACHE_CONF" "$BACKUP_DIR/xpswap.conf.backup"
+    echo "✅ Apache 설정 백업 완료: $BACKUP_DIR/xpswap.conf.backup"
+fi
+
+# 2. 프로젝트 업데이트
+echo -e "\n2. 프로젝트 업데이트 중..."
+cd "$PROJECT_DIR" || exit 1
+
+echo "Git 상태 확인..."
+git status
+
+echo "최신 코드 다운로드..."
 git pull origin main
 
 echo "의존성 설치..."
-npm install --legacy-peer-deps --production
+npm install --legacy-peer-deps
 
-echo "프로젝트 빌드..."
-npm run build
+# 3. 클라이언트 빌드
+echo -e "\n3. 클라이언트 빌드 중..."
+npm run build:client
 
-# client/dist 디렉토리 확인 및 생성
-echo -e "\n📁 3. 빌드 결과 확인"
-echo "--------------------"
-if [ -d "client/dist" ] && [ -f "client/dist/index.html" ]; then
-    echo "✅ client/dist/index.html 존재 확인"
-    echo "파일 크기: $(du -h client/dist/index.html)"
-else
-    echo "❌ client/dist/index.html이 존재하지 않음"
-    echo "Vite 빌드 재시도..."
+# 빌드 결과 확인
+if [ ! -f "client/dist/index.html" ]; then
+    echo "❌ 클라이언트 빌드 실패 - index.html이 생성되지 않음"
+    echo "수동 빌드 시도..."
     cd client
     npm run build
     cd ..
+    
+    if [ ! -f "client/dist/index.html" ]; then
+        echo "❌ 클라이언트 빌드 완전 실패 - 수동 확인 필요"
+        exit 1
+    fi
 fi
 
-# Apache 설정 수정
-echo -e "\n🔧 4. Apache 설정 수정"
-echo "----------------------"
+echo "✅ 클라이언트 빌드 완료"
+ls -la client/dist/
 
-# 현재 XPSwap 설정 확인
-echo "현재 XPSwap 설정 확인:"
-grep -n "xpswap" /etc/apache2/sites-available/storydot-kr-unified.conf || echo "XPSwap 설정이 없음"
+# 4. 서버 빌드
+echo -e "\n4. 서버 빌드 중..."
+npm run build:server
+echo "✅ 서버 빌드 완료"
 
-# 새로운 XPSwap 설정 생성
-cat > /tmp/xpswap-apache-config.txt << 'EOF'
-    # XPSwap DEX Service Configuration
-    # API Proxy - MUST come before Alias to avoid conflicts
-    ProxyRequests Off
-    ProxyPreserveHost On
-    ProxyPass /xpswap/api http://localhost:5000/xpswap/api
-    ProxyPassReverse /xpswap/api http://localhost:5000/xpswap/api
+# 5. Apache 설정 수정
+echo -e "\n5. Apache 설정 수정 중..."
+cat > "$APACHE_CONF" << 'EOF'
+# XPSwap DEX Configuration - Fixed for React SPA
+# Updated: 2025-08-01
+
+# API Proxy - MUST come before Alias
+ProxyRequests Off
+ProxyPreserveHost On
+ProxyPass /xpswap/api http://localhost:5000/xpswap/api
+ProxyPassReverse /xpswap/api http://localhost:5000/xpswap/api
+
+# Static files - client/dist directory (FIXED PATH)
+Alias /xpswap /var/www/storage/xpswap/client/dist
+
+<Directory /var/www/storage/xpswap/client/dist>
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+    DirectoryIndex index.html
     
-    # Static files - serve React build from client/dist
-    Alias /xpswap /var/www/storage/xpswap/client/dist
+    # React Router Support - Handle SPA routing
+    RewriteEngine On
+    RewriteBase /xpswap
     
-    <Directory /var/www/storage/xpswap/client/dist>
-        Options FollowSymLinks
-        AllowOverride None
-        Require all granted
-        DirectoryIndex index.html
-        
-        # Enable rewrite engine for React Router
-        RewriteEngine On
-        RewriteBase /xpswap
-        
-        # Cache static assets
-        <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
-            ExpiresActive On
-            ExpiresDefault "access plus 1 month"
-            Header set Cache-Control "public, immutable"
-        </FilesMatch>
-        
-        # Security headers
-        Header always set X-Content-Type-Options nosniff
-        Header always set X-Frame-Options DENY
-        Header always set X-XSS-Protection "1; mode=block"
-        Header always set Referrer-Policy "strict-origin-when-cross-origin"
-        
-        # Handle React Router - serve index.html for all routes except files
-        RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteCond %{REQUEST_FILENAME} !-d
-        RewriteCond %{REQUEST_URI} !^/xpswap/api/
-        RewriteRule ^.*$ /xpswap/index.html [L]
-    </Directory>
+    # Skip API routes from React Router
+    RewriteCond %{REQUEST_URI} !^/xpswap/api/
     
-    # API health check without authentication
-    <Location /xpswap/api/health>
-        Require all granted
-    </Location>
+    # Serve existing files and directories directly
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Route everything else to index.html for React Router
+    RewriteRule ^.*$ /xpswap/index.html [L]
+</Directory>
+
+# Security headers
+<Directory /var/www/storage/xpswap/client/dist>
+    Header always set X-Frame-Options DENY
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</Directory>
+
+# Cache control for static assets
+<Directory /var/www/storage/xpswap/client/dist/assets>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+    Header append Cache-Control "public, immutable"
+</Directory>
 EOF
 
-echo "새로운 XPSwap 설정 준비 완료"
+echo "✅ Apache 설정 파일 생성 완료"
 
-# 기존 XPSwap 설정 제거 및 새 설정 추가
-echo "Apache 설정 파일 수정 중..."
+# 6. 파일 권한 설정
+echo -e "\n6. 파일 권한 설정 중..."
+chown -R www-data:www-data "$PROJECT_DIR/client/dist/"
+chmod -R 755 "$PROJECT_DIR/client/dist/"
+echo "✅ 파일 권한 설정 완료"
 
-# 임시 파일에 새 설정 생성
-python3 << 'PYTHON_SCRIPT'
-import re
-
-# 설정 파일 읽기
-with open('/etc/apache2/sites-available/storydot-kr-unified.conf', 'r') as f:
-    config_content = f.read()
-
-# 새 XPSwap 설정 읽기
-with open('/tmp/xpswap-apache-config.txt', 'r') as f:
-    new_xpswap_config = f.read()
-
-# 기존 XPSwap 설정 제거 (주석 포함)
-# XPSwap 관련 모든 라인 제거
-lines = config_content.split('\n')
-filtered_lines = []
-skip_xpswap = False
-
-for line in lines:
-    line_lower = line.lower()
+# 7. Apache 설정 테스트 및 재로드
+echo -e "\n7. Apache 설정 테스트 중..."
+if apache2ctl configtest; then
+    echo "✅ Apache 설정 테스트 통과"
     
-    # XPSwap 관련 라인 식별
-    if any(keyword in line_lower for keyword in ['xpswap', '/xpswap']):
-        skip_xpswap = True
-        continue
+    # Apache 모듈 활성화
+    a2enmod rewrite headers expires
+    a2ensite xpswap
     
-    # Directory나 Location 블록이 끝나면 스킵 해제
-    if skip_xpswap and (line.strip() == '</Directory>' or line.strip() == '</Location>'):
-        skip_xpswap = False
-        continue
-    
-    # 스킵 중이 아니면 라인 유지
-    if not skip_xpswap:
-        filtered_lines.append(line)
-
-# 새 설정을 </VirtualHost> 바로 앞에 삽입
-new_config = []
-for line in filtered_lines:
-    if line.strip() == '</VirtualHost>':
-        # XPSwap 설정을 </VirtualHost> 앞에 추가
-        new_config.append('')
-        new_config.append(new_xpswap_config.rstrip())
-        new_config.append('')
-    new_config.append(line)
-
-# 새 설정 파일 저장
-with open('/tmp/storydot-kr-unified-new.conf', 'w') as f:
-    f.write('\n'.join(new_config))
-
-print("✅ Apache 설정 파일 생성 완료")
-PYTHON_SCRIPT
-
-# 설정 파일 교체
-sudo cp /tmp/storydot-kr-unified-new.conf /etc/apache2/sites-available/storydot-kr-unified.conf
-echo "Apache 설정 파일 업데이트 완료"
-
-# 권한 설정
-echo -e "\n🔐 5. 파일 권한 설정"
-echo "--------------------"
-sudo chown -R www-data:www-data /var/www/storage/xpswap/client/dist/
-sudo chmod -R 755 /var/www/storage/xpswap/client/dist/
-echo "권한 설정 완료"
-
-# Apache 설정 테스트
-echo -e "\n🔍 6. Apache 설정 테스트"
-echo "------------------------"
-if sudo apache2ctl configtest; then
-    echo "✅ Apache 설정 문법 검사 통과"
+    systemctl reload apache2
+    echo "✅ Apache 재로드 완료"
 else
-    echo "❌ Apache 설정 오류 발견"
-    echo "백업에서 복원..."
-    sudo cp "$BACKUP_DIR/storydot-kr-unified.conf" /etc/apache2/sites-available/
+    echo "❌ Apache 설정 오류 - 백업에서 복원"
+    if [ -f "$BACKUP_DIR/xpswap.conf.backup" ]; then
+        cp "$BACKUP_DIR/xpswap.conf.backup" "$APACHE_CONF"
+        systemctl reload apache2
+    fi
     exit 1
 fi
 
-# PM2 프로세스 확인 및 재시작
-echo -e "\n🚀 7. PM2 프로세스 관리"
-echo "----------------------"
-if command -v pm2 &> /dev/null; then
-    echo "PM2 프로세스 상태:"
-    pm2 list
-    
-    echo "XPSwap API 재시작..."
-    pm2 stop xpswap-api 2>/dev/null || echo "xpswap-api 프로세스가 실행 중이 아님"
-    
-    cd /var/www/storage/xpswap
-    pm2 start ecosystem.config.js --env production
-    pm2 save
-    
-    echo "PM2 프로세스 재시작 완료"
+# 8. PM2 프로세스 재시작
+echo -e "\n8. PM2 프로세스 재시작 중..."
+cd "$PROJECT_DIR"
+pm2 stop xpswap-api 2>/dev/null || echo "기존 프로세스 없음"
+pm2 delete xpswap-api 2>/dev/null || echo "기존 프로세스 삭제"
+pm2 start ecosystem.config.js --env production
+echo "✅ PM2 프로세스 재시작 완료"
+
+# 9. 서비스 상태 확인
+echo -e "\n9. 서비스 상태 확인 중..."
+sleep 5
+
+echo "PM2 프로세스 상태:"
+pm2 list | grep xpswap
+
+echo -e "\nAPI 헬스체크:"
+curl -s http://localhost:5000/xpswap/api/health | head -5 || echo "로컬 API 연결 실패"
+
+echo -e "\n프로덕션 API 테스트:"
+curl -s https://trendy.storydot.kr/xpswap/api/health | head -5 || echo "프로덕션 API 연결 실패"
+
+echo -e "\n정적 파일 접근 테스트:"
+curl -I https://trendy.storydot.kr/xpswap/ 2>/dev/null | head -3 || echo "정적 파일 접근 실패"
+
+# 10. 최종 확인 및 정리
+echo -e "\n10. 최종 확인..."
+if [ -f "$PROJECT_DIR/client/dist/index.html" ] && pm2 list | grep -q xpswap; then
+    echo "✅ 모든 설정이 완료되었습니다!"
+    echo ""
+    echo "🎉 XPSwap 서비스 상태:"
+    echo "   📱 웹사이트: https://trendy.storydot.kr/xpswap/"
+    echo "   🔌 API: https://trendy.storydot.kr/xpswap/api/health"
+    echo "   📊 PM2 상태: $(pm2 list | grep xpswap | awk '{print $2, $10}')"
+    echo ""
+    echo "🔍 브라우저에서 확인해보세요!"
+    echo "   1. https://trendy.storydot.kr/xpswap/ 접속"
+    echo "   2. F5로 새로고침 (캐시 클리어)"
+    echo "   3. F12 개발자 도구에서 에러 확인"
 else
-    echo "PM2가 설치되지 않음"
+    echo "❌ 일부 설정이 실패했습니다. 수동 확인이 필요합니다."
+    echo "로그 확인: pm2 logs xpswap-api --lines 20"
 fi
 
-# Apache 재시작
-echo -e "\n🔄 8. Apache 서비스 재시작"
-echo "-------------------------"
-sudo systemctl reload apache2
-echo "Apache 서비스 재로드 완료"
-
-# 설정 확인
-echo -e "\n✅ 9. 최종 확인"
-echo "----------------"
-echo "XPSwap 디렉토리 구조:"
-ls -la /var/www/storage/xpswap/client/dist/ | head -5
-
-echo -e "\nAPI 테스트:"
-sleep 3  # 서비스 시작 대기
-curl -s http://localhost:5000/xpswap/api/health || echo "API 응답 없음"
-
-echo -e "\n웹 접근 테스트:"
-curl -s -I https://trendy.storydot.kr/xpswap/ | head -3
-
-echo -e "\n================================================"
-echo "🎯 XPSwap 설정 수정 완료!"
-echo "================================================"
-echo "다음 URL에서 확인하세요:"
-echo "• 메인 페이지: https://trendy.storydot.kr/xpswap/"
-echo "• API 상태: https://trendy.storydot.kr/xpswap/api/health"
-echo ""
-echo "문제가 지속되면 다음을 확인하세요:"
-echo "1. /var/log/apache2/error.log"
-echo "2. pm2 logs xpswap-api"
-echo "3. 브라우저 개발자 도구 (F12)"
-echo "================================================"
+echo -e "\n==========================================="
+echo "XPSwap 수정 스크립트 완료 - $(date)"
+echo "백업 위치: $BACKUP_DIR"
+echo "========================================="
