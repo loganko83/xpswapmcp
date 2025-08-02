@@ -78,6 +78,23 @@ export function AggregatorSwapInterface({
     }
   };
 
+  const handleSwapViaDex = async (dexName: string) => {
+    if (!aggregatedQuote || !wallet.isConnected) return;
+    
+    try {
+      const quote = aggregatedQuote.quotes.find(q => q.dex === dexName);
+      if (!quote) return;
+
+      // 선택된 DEX로 스왑 실행을 위해 외부 사이트로 이동
+      const externalDex = EXTERNAL_DEXES.find(d => d.name === dexName);
+      if (externalDex) {
+        window.open(externalDex.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error executing swap:', error);
+    }
+  };
+
   const formatCurrency = (amount: string, symbol: string) => {
     const num = parseFloat(amount);
     if (num < 0.001) return `< 0.001 ${symbol}`;
@@ -260,6 +277,7 @@ export function AggregatorSwapInterface({
                         className="w-full mt-4" 
                         variant={quote.dex === aggregatedQuote.bestQuote.dex ? "default" : "outline"}
                         disabled={!wallet.isConnected}
+                        onClick={() => handleSwapViaDex(quote.dex)}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Swap via {quote.dex}

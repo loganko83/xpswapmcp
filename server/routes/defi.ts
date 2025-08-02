@@ -227,4 +227,235 @@ router.get(
   }
 );
 
+// Get staking pools
+router.get(
+  "/staking/pools",
+  [
+    query("active").optional().isBoolean(),
+    query("limit").optional().isInt({ min: 1, max: 100 }),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const isActive = req.query.active === "true";
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      // Debug: Check available methods
+      console.log('BlockchainService methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(blockchainService)));
+      console.log('Has getStakingPools:', typeof blockchainService.getStakingPools);
+
+      const pools = await blockchainService.getStakingPools(isActive);
+      const limitedPools = pools.slice(0, limit);
+
+      res.json(limitedPools);
+    } catch (error) {
+      console.error("Error fetching staking pools:", error);
+      res.status(500).json({ error: "Failed to fetch staking pools" });
+    }
+  }
+);
+
+// Stake tokens
+router.post(
+  "/staking/stake",
+  [
+    body("poolId").isString(),
+    body("amount").isNumeric(),
+    body("duration").optional().isInt({ min: 1 }),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { poolId, amount, duration = 30 } = req.body;
+
+      const result = await blockchainService.stakeTokens({
+        poolId,
+        amount,
+        duration,
+        walletAddress: req.headers['x-wallet-address'] as string
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error staking tokens:", error);
+      res.status(500).json({ error: "Failed to stake tokens" });
+    }
+  }
+);
+
+// Unstake tokens
+router.post(
+  "/staking/unstake",
+  [
+    body("positionId").isString(),
+    body("amount").optional().isNumeric(),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { positionId, amount } = req.body;
+
+      const result = await blockchainService.unstakeTokens({
+        positionId,
+        amount,
+        walletAddress: req.headers['x-wallet-address'] as string
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error unstaking tokens:", error);
+      res.status(500).json({ error: "Failed to unstake tokens" });
+    }
+  }
+);
+
+// Get user staking positions
+router.get(
+  "/staking/positions/:wallet",
+  async (req, res) => {
+    try {
+      const { wallet } = req.params;
+
+      const positions = await blockchainService.getUserStakingPositions(wallet);
+
+      res.json(positions);
+    } catch (error) {
+      console.error("Error fetching staking positions:", error);
+      res.status(500).json({ error: "Failed to fetch staking positions" });
+    }
+  }
+);
+
+// Claim staking rewards
+router.post(
+  "/staking/claim",
+  [
+    body("positionId").isString(),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { positionId } = req.body;
+
+      const result = await blockchainService.claimStakingRewards({
+        positionId,
+        walletAddress: req.headers['x-wallet-address'] as string
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error claiming staking rewards:", error);
+      res.status(500).json({ error: "Failed to claim staking rewards" });
+    }
+  }
+);
+
+// Get staking rewards
+router.get(
+  "/staking/rewards/:wallet",
+  async (req, res) => {
+    try {
+      const { wallet } = req.params;
+
+      const rewards = await blockchainService.getStakingRewards(wallet);
+
+      res.json(rewards);
+    } catch (error) {
+      console.error("Error fetching staking rewards:", error);
+      res.status(500).json({ error: "Failed to fetch staking rewards" });
+    }
+  }
+);
+
+// Get liquidity pool details
+router.get(
+  "/liquidity/pool/:poolId",
+  async (req, res) => {
+    try {
+      const { poolId } = req.params;
+
+      const poolDetails = await blockchainService.getPoolDetails(poolId);
+
+      res.json(poolDetails);
+    } catch (error) {
+      console.error("Error fetching pool details:", error);
+      res.status(500).json({ error: "Failed to fetch pool details" });
+    }
+  }
+);
+
+// Get user liquidity positions
+router.get(
+  "/liquidity/positions/:wallet",
+  async (req, res) => {
+    try {
+      const { wallet } = req.params;
+
+      const positions = await blockchainService.getUserLiquidityPositions(wallet);
+
+      res.json(positions);
+    } catch (error) {
+      console.error("Error fetching liquidity positions:", error);
+      res.status(500).json({ error: "Failed to fetch liquidity positions" });
+    }
+  }
+);
+
+// Get user DeFi overview
+router.get(
+  "/overview/:wallet",
+  async (req, res) => {
+    try {
+      const { wallet } = req.params;
+
+      const [
+        liquidityPositions,
+        stakingPositions,
+        farmingPositions,
+        stakingRewards
+      ] = await Promise.all([
+        blockchainService.getUserLiquidityPositions(wallet),
+        blockchainService.getUserStakingPositions(wallet),
+        blockchainService.getUserFarmingPositions(wallet),
+        blockchainService.getStakingRewards(wallet)
+      ]);
+
+      // Calculate total values
+      const totalLiquidityValue = liquidityPositions.reduce((sum, pos) => sum + (pos.value || 0), 0);
+      const totalStakingValue = stakingPositions.reduce((sum, pos) => sum + (pos.value || 0), 0);
+      const totalFarmingValue = farmingPositions.reduce((sum, pos) => sum + (pos.value || 0), 0);
+      const totalRewardsValue = stakingRewards.reduce((sum, reward) => sum + (reward.value || 0), 0);
+
+      const overview = {
+        wallet,
+        totalValue: totalLiquidityValue + totalStakingValue + totalFarmingValue,
+        breakdown: {
+          liquidity: {
+            value: totalLiquidityValue,
+            positions: liquidityPositions.length
+          },
+          staking: {
+            value: totalStakingValue,
+            positions: stakingPositions.length
+          },
+          farming: {
+            value: totalFarmingValue,
+            positions: farmingPositions.length
+          },
+          rewards: {
+            value: totalRewardsValue,
+            available: stakingRewards.length
+          }
+        },
+        timestamp: Date.now()
+      };
+
+      res.json(overview);
+    } catch (error) {
+      console.error("Error fetching DeFi overview:", error);
+      res.status(500).json({ error: "Failed to fetch DeFi overview" });
+    }
+  }
+);
+
 export default router;

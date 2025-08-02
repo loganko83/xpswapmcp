@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PortfolioPosition, PortfolioAsset } from "./PortfolioTypes";
+import { API_BASE_URL } from "@/lib/apiUrl";
 
 interface PortfolioPositionsProps {
   positions: PortfolioPosition[];
@@ -20,6 +21,136 @@ export function PortfolioPositions({
   getChangeColor,
   getRiskColor
 }: PortfolioPositionsProps) {
+  
+  // Portfolio action handlers
+  const handleTradeAsset = (assetSymbol: string) => {
+    // Navigate to swap page with pre-selected token
+    window.location.href = `/swap?token=${assetSymbol}`;
+  };
+
+  const handleUnstakeAsset = (assetSymbol: string) => {
+    // TODO: Implement unstaking logic
+    console.log('Unstaking asset:', assetSymbol);
+    alert(`Unstaking ${assetSymbol} functionality will be implemented soon`);
+  };
+
+  const handleAddLiquidity = (positionId: string) => {
+    // Navigate to pool page
+    window.location.href = `/pool?action=add&position=${positionId}`;
+  };
+
+  const handleRemoveLiquidity = (positionId: string) => {
+    // Navigate to pool page  
+    window.location.href = `/pool?action=remove&position=${positionId}`;
+  };
+
+  const handleClaimRewards = (positionId: string) => {
+    // TODO: Implement reward claiming logic
+    console.log('Claiming rewards for position:', positionId);
+    alert('Reward claiming functionality will be implemented soon');
+  };
+
+  const handleUnstakePosition = async (positionId: string) => {
+    try {
+      console.log('Unstaking position:', positionId);
+      // TODO: Get wallet address from context
+      const walletAddress = '0x742d35Cc6634C0532925a3b8D02C2aF73a0b6C5C'; // Temporary
+      
+      const response = await fetch(`${API_BASE_URL}/staking/unstake`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          positionId,
+          walletAddress
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        alert('Position unstaked successfully!');
+        // TODO: Refresh positions data
+      } else {
+        alert('Failed to unstake position: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error unstaking position:', error);
+      alert('Error unstaking position. Please try again.');
+    }
+  };
+
+  const handleHarvest = (positionId: string) => {
+    // Navigate to farm page
+    window.location.href = `/farm?action=harvest&position=${positionId}`;
+  };
+
+  const handleHarvestFarm = async (positionId: string) => {
+    try {
+      console.log('Harvesting farm rewards:', positionId);
+      // TODO: Get wallet address from context
+      const walletAddress = '0x742d35Cc6634C0532925a3b8D02C2aF73a0b6C5C'; // Temporary
+      
+      const response = await fetch(`${API_BASE_URL}/farming/harvest`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          positionId,
+          walletAddress
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        alert(`Successfully harvested ${result.rewards} rewards!`);
+        // TODO: Refresh positions data
+      } else {
+        alert('Failed to harvest rewards: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error harvesting rewards:', error);
+      alert('Error harvesting rewards. Please try again.');
+    }
+  };
+
+  const handleExitFarm = async (positionId: string) => {
+    try {
+      console.log('Exiting farm position:', positionId);
+      // TODO: Get wallet address from context
+      const walletAddress = '0x742d35Cc6634C0532925a3b8D02C2aF73a0b6C5C'; // Temporary
+      
+      const response = await fetch(`${API_BASE_URL}/farming/exit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          positionId,
+          walletAddress
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        alert('Successfully exited farm position!');
+        // TODO: Refresh positions data
+      } else {
+        alert('Failed to exit farm: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error exiting farm:', error);
+      alert('Error exiting farm. Please try again.');
+    }
+  };
+
+  const handleViewDetails = (positionId: string) => {
+    // TODO: Open position details modal
+    console.log('Viewing position details:', positionId);
+    alert('Position details modal will be implemented soon');
+  };
+
   return (
     <div className="space-y-6">
       {/* Asset Holdings Table */}
@@ -97,11 +228,19 @@ export function PortfolioPositions({
                     </td>
                     <td className="text-right p-3">
                       <div className="flex justify-end gap-1">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleTradeAsset(asset.symbol)}
+                        >
                           Trade
                         </Button>
                         {asset.staked && (
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleUnstakeAsset(asset.symbol)}
+                          >
                             Unstake
                           </Button>
                         )}
@@ -180,10 +319,18 @@ export function PortfolioPositions({
                   <div className="flex justify-end gap-2 mt-3 pt-3 border-t">
                     {position.type === 'liquidity' && (
                       <>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleAddLiquidity(position.id)}
+                        >
                           Add Liquidity
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleRemoveLiquidity(position.id)}
+                        >
                           Remove Liquidity
                         </Button>
                       </>
@@ -191,26 +338,46 @@ export function PortfolioPositions({
                     {position.type === 'staking' && (
                       <>
                         {position.rewards && (
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleClaimRewards(position.id)}
+                          >
                             Claim Rewards
                           </Button>
                         )}
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleUnstakePosition(position.id)}
+                        >
                           Unstake
                         </Button>
                       </>
                     )}
                     {position.type === 'farming' && (
                       <>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleHarvestFarm(position.id)}
+                        >
                           Harvest
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleExitFarm(position.id)}
+                        >
                           Exit Farm
                         </Button>
                       </>
                     )}
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewDetails(position.id)}
+                    >
                       Details
                     </Button>
                   </div>
