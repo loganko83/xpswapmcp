@@ -8,7 +8,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Web3Provider } from "@/contexts/Web3Context";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PageLoader } from "@/components/LoadingSpinner";
+import { PageLoader, NetworkStatus } from "@/components/LoadingSpinner";
+import { ToastProvider, ToastStyles, useGlobalToast } from "@/components/Toast";
 import { Layout } from "@/components/Layout";
 
 // Lazy load pages for code splitting
@@ -38,8 +39,12 @@ const TestPage = lazy(() => import("@/pages/test"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 function RouterComponent() {
+  // Toast 시스템 글로벌 이벤트 리스너 등록
+  useGlobalToast();
+
   return (
     <Router base="/xpswap">
+      <NetworkStatus />
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Switch>
@@ -80,12 +85,15 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="system" storageKey="xpswap-ui-theme">
           <TooltipProvider>
-            <Web3Provider>
-              <WalletProvider>
-                <RouterComponent />
-                <Toaster />
-              </WalletProvider>
-            </Web3Provider>
+            <ToastProvider>
+              <ToastStyles />
+              <Web3Provider>
+                <WalletProvider>
+                  <RouterComponent />
+                  <Toaster />
+                </WalletProvider>
+              </Web3Provider>
+            </ToastProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

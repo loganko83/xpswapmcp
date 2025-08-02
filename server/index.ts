@@ -15,31 +15,68 @@ import {
 import { initializeEnvironmentSecurity, environmentSecurityMiddleware } from "./middleware/env-security";
 import { performanceMonitoringMiddleware } from "./services/api-optimizer";
 import { createXSSProtectionMiddleware } from "./services/xss-protection";
+import { SecurityKeyGenerator } from "./utils/security-keys";
 import path from "path";
 
-// 🔒 Environment Security Validation (First thing to run)
+// 🔒 Advanced Environment Security Validation (Enhanced v2.0)
 try {
+  console.log('🔐 Initializing XPSwap Security System v2.0...');
+  
   // 새로운 통합 환경변수 보안 시스템 사용
   initializeEnvironmentSecurity();
+  
+  // 보안 키 검증 (새로운 기능)
+  const envValidation = SecurityKeyGenerator.validateEnvironmentSecurity(process.env);
+  
+  if (!envValidation.isValid) {
+    console.error('❌ Security validation failed:');
+    envValidation.issues.forEach(issue => console.error(`  - ${issue}`));
+    console.log('\n💡 Recommendations:');
+    envValidation.recommendations.forEach(rec => console.log(`  - ${rec}`));
+    
+    if (process.env.NODE_ENV === 'production') {
+      console.error('\n🚨 Production environment requires secure configuration!');
+      process.exit(1);
+    } else {
+      console.warn('\n⚠️  Development environment detected. Proceeding with warnings...');
+    }
+  } else {
+    console.log('✅ Environment security validation passed');
+  }
   
   // 기존 검증 로직도 유지 (호환성)
   validateEnvironmentVariables();
   validateEnvironmentFormats();
   const secureSecret = ensureSecureSessionSecret();
   process.env.SESSION_SECRET = secureSecret;
+  
+  // 보안 설정 상태 로깅
+  console.log('🛡️  Security Status:');
+  console.log(`  - HTTPS: ${process.env.HTTPS === 'true' ? '✅' : '⚠️'}`);
+  console.log(`  - Rate Limiting: ${process.env.RATE_LIMIT_ENABLED === 'true' ? '✅' : '⚠️'}`);
+  console.log(`  - Error Leak Prevention: ${process.env.ERROR_LEAK_PREVENTION === 'true' ? '✅' : '⚠️'}`);
+  console.log(`  - Security Level: ${process.env.SECURITY_LEVEL || 'UNKNOWN'}`);
+  console.log(`  - Detailed Errors: ${process.env.DETAILED_ERRORS === 'true' ? '⚠️  (Dev Only)' : '✅'}`);
+  
 } catch (error) {
-  console.error('❌ Environment validation failed:', error.message);
+  console.error('❌ Environment security initialization failed:', error.message);
+  console.error('Stack:', error.stack);
   process.exit(1);
 }
 
 const app = express();
 const BASE_PATH = process.env.BASE_PATH || '';
 
-// Log environment configuration
-console.log('🚀 XPSwap Server Starting...');
+// Log environment configuration (sanitized for security)
+console.log('\n🚀 XPSwap Server Starting...');
+console.log('=====================================');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('BASE_PATH:', BASE_PATH);
 console.log('PORT:', process.env.PORT || 5000);
+console.log('HOST:', process.env.HOST || 'localhost');
+console.log('XPHERE_RPC_URL:', process.env.XPHERE_RPC_URL);
+console.log('DATABASE_URL:', process.env.DATABASE_URL?.replace(/\/[^\/]*\.db/, '/*****.db')); // Hide DB path
+console.log('Config Version:', process.env.CONFIG_VERSION || '1.0');
 
 // 🛡️ Apply Enhanced Security Middleware First (Before any other middleware)
 applyEnhancedSecurity(app);
@@ -48,176 +85,168 @@ applyEnhancedSecurity(app);
 app.use(environmentSecurityMiddleware);
 
 // 📊 Apply Performance Monitoring Middleware
-app.use(performanceMonitoringMiddleware);
+if (process.env.PERFORMANCE_MONITORING === 'true') {
+  app.use(performanceMonitoringMiddleware);
+  console.log('✅ Performance monitoring enabled');
+}
 
-// 🛡️ Apply XSS Protection Middleware
-app.use(createXSSProtectionMiddleware());
+// 🛡️ Apply XSS Protection
+const xssProtection = createXSSProtectionMiddleware();
+app.use(xssProtection);
 
-app.use(express.json({ limit: '10mb' })); // Limit request size
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+// ⚡ Setup Vite or Static serving
+const isProduction = process.env.NODE_ENV === "production";
+if (isProduction) {
+  serveStatic(app, BASE_PATH);
+  console.log('✅ Static file serving enabled (Production)');
+} else {
+  await setupVite(app, BASE_PATH);
+  console.log('✅ Vite development server enabled');
+}
 
-// Serve markdown files as static content
-app.use('/DEVELOPERS_GUIDE.md', express.static(path.join(process.cwd(), 'DEVELOPERS_GUIDE.md')));
-app.use('/API_REFERENCE.md', express.static(path.join(process.cwd(), 'API_REFERENCE.md')));
-app.use('/README.md', express.static(path.join(process.cwd(), 'README.md')));
+// 🔗 Setup API routes
+setupRoutes(app, BASE_PATH);
+console.log('✅ API routes configured');
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+// 🌐 Health check endpoint (enhanced)
+app.get(`${BASE_PATH}/api/health`, (req: Request, res: Response) => {
+  const healthStatus = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: process.env.CONFIG_VERSION || '1.0',
+    environment: process.env.NODE_ENV,
+    security_level: process.env.SECURITY_LEVEL,
+    uptime: process.uptime(),
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
+    },
+    features: {
+      https: process.env.HTTPS === 'true',
+      rate_limiting: process.env.RATE_LIMIT_ENABLED === 'true',
+      monitoring: process.env.PERFORMANCE_MONITORING === 'true',
+      security_logging: process.env.SECURITY_LOGGING === 'true'
+    }
   };
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api") || path.startsWith(`${BASE_PATH}/api`)) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
+  res.status(200).json(healthStatus);
 });
 
-(async () => {
-  // Setup modular routes
-  if (BASE_PATH) {
-    const router = express.Router();
-    setupRoutes(router);
-    app.use(BASE_PATH, router);
-  } else {
-    setupRoutes(app);
+// 🔧 Enhanced error handling middleware
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  // Security logging
+  if (process.env.SECURITY_LOGGING === 'true') {
+    console.error(`🚨 Error occurred: ${error.message}`);
+    console.error(`Request: ${req.method} ${req.path}`);
+    console.error(`User-Agent: ${req.get('User-Agent')}`);
+    console.error(`IP: ${req.ip}`);
   }
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // HTTPS/HTTP Server Setup
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
-  const useHTTPS = process.env.HTTPS === 'true' && fs.existsSync(process.env.SSL_CERT || '');
-
-  // Create server instance
-  let server;
+  // Error response based on environment
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const shouldShowDetails = process.env.DETAILED_ERRORS === 'true' && isDevelopment;
   
-  if (useHTTPS) {
-    try {
-      const options = {
-        key: fs.readFileSync(process.env.SSL_KEY || './certs/server.key'),
-        cert: fs.readFileSync(process.env.SSL_CERT || './certs/server.crt')
-      };
-      
-      server = https.createServer(options, app);
-      log(`🔒 HTTPS Server starting on https://${host}:${port}`);
-    } catch (error) {
-      log(`⚠️ HTTPS setup failed: ${error.message}. Falling back to HTTP.`);
-      server = app;
-    }
-  } else {
-    server = app;
-    log(`🌐 HTTP Server starting on http://${host}:${port}`);
-  }
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "development") {
-    // Create the server first
-    let httpServer;
-    if (useHTTPS && server !== app) {
-      httpServer = server;
-    } else {
-      httpServer = http.createServer(app);
-    }
-    
-    // Setup Vite before starting the server
-    await setupVite(app, httpServer);
-    
-    // 📊 Initialize Realtime Monitoring
-    try {
-      const { default: realtimeMonitor } = await import('./services/realtime-monitor');
-      realtimeMonitor.initialize(httpServer);
-      console.log('📊 Realtime monitoring initialized');
-      
-      // Add monitoring dashboard route
-      app.get('/monitoring', (req, res) => {
-        const path = require('path');
-        res.sendFile(path.join(process.cwd(), 'client', 'public', 'monitoring-dashboard.html'));
-      });
-      console.log('📊 Monitoring dashboard available at /monitoring');
-    } catch (error) {
-      console.error('📊 Failed to initialize realtime monitoring:', error);
-    }
-    
-    // Now start listening
-    httpServer.listen(port, host, () => {
-      if (useHTTPS && server !== app) {
-        log(`🔒 HTTPS server running on https://${host}:${port}`);
-      } else {
-        log(`🌐 HTTP server running on http://${host}:${port}`);
-      }
+  if (process.env.ERROR_LEAK_PREVENTION === 'true' && !shouldShowDetails) {
+    // Production-safe error response
+    res.status(500).json({
+      error: 'Internal server error',
+      timestamp: new Date().toISOString(),
+      request_id: req.headers['x-request-id'] || 'unknown'
     });
   } else {
-    serveStatic(app);
+    // Development error response with details
+    res.status(500).json({
+      error: error.message,
+      stack: isDevelopment ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      request_id: req.headers['x-request-id'] || 'unknown'
+    });
+  }
+});
+
+// 🌐 404 handler
+app.use((req: Request, res: Response) => {
+  if (req.path.startsWith(`${BASE_PATH}/api/`)) {
+    res.status(404).json({ 
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    // For non-API routes, serve the main app (SPA routing)
+    const indexPath = isProduction 
+      ? path.join(process.cwd(), 'client/dist/index.html')
+      : path.join(process.cwd(), 'client/index.html');
     
-    // 📊 Initialize Realtime Monitoring for Production
-    let productionServer;
-    
-    if (useHTTPS && server !== app) {
-      productionServer = server;
-      server.listen(port, host, () => {
-        log(`🔒 Production HTTPS server running on https://${host}:${port}`);
-      });
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
     } else {
-      productionServer = http.createServer(app);
-      productionServer.listen(port, host, () => {
-        log(`🌐 Production HTTP server running on http://${host}:${port}`);
-      });
-    }
-    
-    // Initialize monitoring after server is created
-    try {
-      const { default: realtimeMonitor } = await import('./services/realtime-monitor');
-      realtimeMonitor.initialize(productionServer);
-      console.log('📊 Production realtime monitoring initialized');
-      
-      // Add monitoring dashboard route for production
-      const path = require('path');
-      app.get('/xpswap/monitoring', (req, res) => {
-        res.sendFile(path.join(process.cwd(), 'client', 'public', 'monitoring-dashboard.html'));
-      });
-      console.log('📊 Production monitoring dashboard available at /xpswap/monitoring');
-    } catch (error) {
-      console.error('📊 Failed to initialize production realtime monitoring:', error);
+      res.status(404).send('Application not found');
     }
   }
+});
 
-  // Log security status on startup
-  setTimeout(() => {
-    console.log('🛡️ Enhanced security features activated:');
-    console.log('  ✅ Rate limiting enabled');
-    console.log('  ✅ IP reputation tracking');
-    console.log('  ✅ Advanced crypto security');
-    console.log('  ✅ Error leak prevention');
-    console.log(`  ${useHTTPS ? '✅' : '⚠️'} HTTPS ${useHTTPS ? 'enabled' : 'disabled (HTTP only)'}`);
-    console.log('  ✅ Enhanced CORS protection');
-    console.log('  ✅ Security headers enforced');
-  }, 1000);
-})();
+// 🚀 Server startup
+const PORT = parseInt(process.env.PORT || "5000", 10);
+const HOST = process.env.HOST || "localhost";
+
+// SSL/HTTPS support for production
+if (process.env.HTTPS === 'true' && process.env.NODE_ENV === 'production') {
+  const sslOptions = {
+    key: fs.readFileSync(process.env.SSL_KEY_PATH || '/etc/ssl/private/xpswap.key'),
+    cert: fs.readFileSync(process.env.SSL_CERT_PATH || '/etc/ssl/certs/xpswap.crt')
+  };
+  
+  const httpsServer = https.createServer(sslOptions, app);
+  httpsServer.listen(PORT, HOST, () => {
+    console.log('\n🚀 XPSwap HTTPS Server running!');
+    console.log(`🔒 https://${HOST}:${PORT}${BASE_PATH}`);
+    console.log('=====================================');
+  });
+  
+  // Redirect HTTP to HTTPS
+  const httpApp = express();
+  httpApp.use((req, res) => {
+    res.redirect(301, `https://${req.headers.host}${req.url}`);
+  });
+  const httpServer = http.createServer(httpApp);
+  httpServer.listen(80, () => {
+    console.log('🔄 HTTP to HTTPS redirect enabled on port 80');
+  });
+  
+} else {
+  // HTTP server for development
+  const server = http.createServer(app);
+  server.listen(PORT, HOST, () => {
+    console.log('\n🚀 XPSwap HTTP Server running!');
+    console.log(`🌐 http://${HOST}:${PORT}${BASE_PATH}`);
+    console.log('=====================================');
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('\n📋 Development URLs:');
+      console.log(`  - Frontend: http://localhost:5173${BASE_PATH}`);
+      console.log(`  - Backend API: http://${HOST}:${PORT}${BASE_PATH}/api`);
+      console.log(`  - Health Check: http://${HOST}:${PORT}${BASE_PATH}/api/health`);
+    }
+  });
+}
+
+// 🔄 Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n🛑 Received SIGINT, shutting down gracefully...');
+  process.exit(0);
+});
+
+// 💾 Log final startup status
+console.log('\n📊 Startup Summary:');
+console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+console.log(`✅ Security Level: ${process.env.SECURITY_LEVEL}`);
+console.log(`✅ Base Path: ${BASE_PATH}`);
+console.log(`✅ Config Version: ${process.env.CONFIG_VERSION || '1.0'}`);
+console.log('✅ Server initialization complete!');
