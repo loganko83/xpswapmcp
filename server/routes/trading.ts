@@ -5,7 +5,7 @@ import {
   validators, 
   handleValidationErrors,
   sanitizeSQLInput 
-} from "../middleware/security.js";
+} from "../middleware/validation-helpers.js";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../services/cache";
 import web3Service from "../services/web3";
 import { BlockchainService } from "../services/realBlockchain.js";

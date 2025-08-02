@@ -1,5 +1,16 @@
 import { Request, Response, Router } from 'express';
-import { getEnhancedSecurityStatus, cryptoManager } from '../middleware/enhanced-security';
+import { getEnhancedSecurityStatus, cryptoManager } from '../middleware/security-extensions';
+import { getEnvironmentSecurityReport } from '../middleware/env-security';
+import { getCacheStats } from '../middleware/cache-manager';
+import { 
+  getPerformanceStats, 
+  getAsyncTaskStatus, 
+  listAsyncTasks, 
+  warmupCache 
+} from '../services/api-optimizer';
+import { csrfTokenEndpoint, csrfStatsEndpoint } from '../services/csrf-protection';
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/security-logger';
+import { securityAuditor, ComplianceCategory } from '../services/security-auditor';
 import * as crypto from 'crypto';
 
 const router = Router();
@@ -19,11 +30,112 @@ router.get('/status', (req: Request, res: Response) => {
       data: status,
       timestamp: Date.now()
     });
+
+// 🚀 API Performance and Optimization Endpoints
+
+// Performance Statistics
+router.get('/performance/stats', getPerformanceStats);
+
+// Async Task Management
+router.get('/async/tasks', listAsyncTasks);
+router.get('/async/tasks/:taskId', getAsyncTaskStatus);
+
+// Cache Management
+router.post('/cache/warmup', warmupCache);
+
+// Combined Performance Dashboard
+router.get('/performance/dashboard', async (req, res) => {
+  try {
+    const [performanceStats, cacheStats, asyncTasks] = await Promise.all([
+      new Promise(resolve => {
+        const mockReq = { query: {} } as any;
+        const mockRes = {
+          json: (data: any) => resolve(data.data)
+        } as any;
+        getPerformanceStats(mockReq, mockRes);
+      }),
+      new Promise(resolve => {
+        const mockReq = {} as any;
+        const mockRes = {
+          json: (data: any) => resolve(data.cache)
+        } as any;
+        getCacheStats(mockReq, mockRes);
+      }),
+      new Promise(resolve => {
+        const mockReq = {} as any;
+        const mockRes = {
+          json: (data: any) => resolve(data.data)
+        } as any;
+        listAsyncTasks(mockReq, mockRes);
+      })
+    ]);
+    
+    res.json({
+      success: true,
+      data: {
+        performance: performanceStats,
+        cache: cacheStats,
+        asyncTasks,
+        systemInfo: {
+          uptime: process.uptime(),
+          memoryUsage: process.memoryUsage(),
+          cpuUsage: process.cpuUsage()
+        }
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Performance dashboard error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get performance dashboard',
+      timestamp: Date.now()
+    });
+  }
+});
   } catch (error) {
     console.error('Security status error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve security status',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 🔐 Environment Security Status Endpoint
+router.get('/environment', (req: Request, res: Response) => {
+  try {
+    const envReport = getEnvironmentSecurityReport();
+    
+    // 개발 환경에서만 상세 정보 제공
+    if (process.env.NODE_ENV === 'development') {
+      res.json({
+        success: true,
+        data: envReport,
+        timestamp: Date.now()
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 제외
+      res.json({
+        success: true,
+        data: {
+          timestamp: envReport.timestamp,
+          environment: envReport.environment,
+          securityLevel: envReport.securityLevel,
+          summary: envReport.summary,
+          isValid: envReport.validation.isValid,
+          errorCount: envReport.validation.errors.length,
+          warningCount: envReport.validation.warnings.length
+        },
+        timestamp: Date.now()
+      });
+    }
+  } catch (error) {
+    console.error('Environment security status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve environment security status',
       timestamp: Date.now()
     });
   }
@@ -366,6 +478,525 @@ router.get('/config', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve security configuration',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 🔄 Cache Status and Performance Endpoint
+router.get('/cache-status', getCacheStats);
+
+// 🗄️ Database Performance and Optimization Endpoints
+router.get('/database/status', async (req, res) => {
+  try {
+    const { databaseOptimizer } = await import('../database/database-optimizer.js');
+    const stats = await databaseOptimizer.analyzePerformance();
+    
+    res.json({
+      success: true,
+      database: stats,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Database status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get database status',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/database/health', async (req, res) => {
+  try {
+    const { databaseOptimizer } = await import('../database/database-optimizer.js');
+    const health = await databaseOptimizer.checkDatabaseHealth();
+    
+    res.json({
+      success: true,
+      health,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Database health check error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check database health',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 📊 Database Status and Statistics
+router.get('/database/status', async (req, res) => {
+  try {
+    const { getDatabaseStatus } = await import('../services/database-optimizer');
+    await getDatabaseStatus(req, res);
+  } catch (error) {
+    console.error('Database status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get database status',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 🔧 Database Optimization
+router.post('/database/optimize', async (req, res) => {
+  try {
+    const { optimizeDatabase } = await import('../services/database-optimizer');
+    await optimizeDatabase(req, res);
+  } catch (error) {
+    console.error('Database optimization error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to optimize database',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 🚀 API Performance Optimization
+router.get('/api/performance', async (req, res) => {
+  try {
+    const { getPerformanceMetrics } = await import('../services/api-optimizer');
+    await getPerformanceMetrics(req, res);
+  } catch (error) {
+    console.error('Performance metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get performance metrics',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.post('/api/optimize', async (req, res) => {
+  try {
+    const { optimizeAPI } = await import('../services/api-optimizer');
+    await optimizeAPI(req, res);
+  } catch (error) {
+    console.error('API optimization error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to optimize API',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/api/cache-analysis', async (req, res) => {
+  try {
+    const { analyzeCacheUsage } = await import('../services/api-optimizer');
+    await analyzeCacheUsage(req, res);
+  } catch (error) {
+    console.error('Cache analysis error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to analyze cache usage',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 📊 Phase 2.3: Realtime Monitoring Endpoints
+router.get('/monitor/metrics', async (req, res) => {
+  try {
+    const { default: realtimeMonitor } = await import('../services/realtime-monitor');
+    const { limit } = req.query;
+    const metrics = realtimeMonitor.getHistoricalMetrics(
+      limit ? parseInt(limit as string) : 100
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        metrics,
+        count: metrics.length
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Realtime metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get realtime metrics',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/monitor/summary', async (req, res) => {
+  try {
+    const { default: realtimeMonitor } = await import('../services/realtime-monitor');
+    const summary = realtimeMonitor.getStatsSummary();
+    
+    res.json({
+      success: true,
+      data: summary,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Monitor summary error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get monitoring summary',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/monitor/alerts', async (req, res) => {
+  try {
+    const { default: realtimeMonitor } = await import('../services/realtime-monitor');
+    const alertRules = realtimeMonitor.getAlertRules();
+    
+    res.json({
+      success: true,
+      data: {
+        rules: alertRules,
+        count: alertRules.length
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Alert rules error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get alert rules',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.post('/monitor/alerts', async (req, res) => {
+  try {
+    const { default: realtimeMonitor } = await import('../services/realtime-monitor');
+    const { id, metric, condition, threshold, enabled, message } = req.body;
+    
+    if (!id || !metric || !condition || threshold === undefined || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: id, metric, condition, threshold, message',
+        timestamp: Date.now()
+      });
+    }
+    
+    const alertRule = {
+      id,
+      metric,
+      condition,
+      threshold: parseFloat(threshold),
+      enabled: enabled !== false,
+      message
+    };
+    
+    realtimeMonitor.setAlertRule(alertRule);
+    
+    res.json({
+      success: true,
+      data: {
+        message: 'Alert rule created/updated successfully',
+        rule: alertRule
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Create alert rule error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create alert rule',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.delete('/monitor/alerts/:id', async (req, res) => {
+  try {
+    const { default: realtimeMonitor } = await import('../services/realtime-monitor');
+    const { id } = req.params;
+    
+    const deleted = realtimeMonitor.deleteAlertRule(id);
+    
+    if (deleted) {
+      res.json({
+        success: true,
+        data: {
+          message: 'Alert rule deleted successfully',
+          id
+        },
+        timestamp: Date.now()
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Alert rule not found',
+        timestamp: Date.now()
+      });
+    }
+  } catch (error) {
+    console.error('Delete alert rule error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete alert rule',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// 🛡️ CSRF Token Generation Endpoint
+router.get('/csrf-token', csrfTokenEndpoint());
+
+// 📊 CSRF Protection Statistics
+router.get('/csrf-stats', csrfStatsEndpoint());
+
+// 📊 Security Logging Endpoints
+router.get('/logs/recent', (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 1000);
+    const events = securityLogger.getRecentEvents(limit);
+    
+    res.json({
+      success: true,
+      data: {
+        events,
+        total: events.length,
+        limit
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Get security logs error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get security logs',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/logs/metrics', (req: Request, res: Response) => {
+  try {
+    const metrics = securityLogger.getSecurityMetrics();
+    
+    res.json({
+      success: true,
+      data: metrics,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Get security metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get security metrics',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/logs/suspicious-ips', (req: Request, res: Response) => {
+  try {
+    const suspiciousIPs = securityLogger.getSuspiciousIPs();
+    
+    res.json({
+      success: true,
+      data: {
+        suspiciousIPs,
+        total: suspiciousIPs.length
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Get suspicious IPs error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get suspicious IPs',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/logs/report', (req: Request, res: Response) => {
+  try {
+    const hours = Math.min(parseInt(req.query.hours as string) || 24, 168); // 최대 1주일
+    const report = securityLogger.generateSecurityReport(hours);
+    
+    res.json({
+      success: true,
+      data: report,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Generate security report error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate security report',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.post('/logs/event', (req: Request, res: Response) => {
+  try {
+    const { type, severity, description, source, metadata } = req.body;
+    
+    // 입력 검증
+    if (!type || !severity || !description || !source) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: type, severity, description, source',
+        timestamp: Date.now()
+      });
+    }
+    
+    // 클라이언트 정보 추가
+    const clientMetadata = {
+      ...metadata,
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent'),
+      referer: req.get('Referer')
+    };
+    
+    const eventId = securityLogger.logSecurityEvent(
+      type as SecurityEventType,
+      severity as SecuritySeverity,
+      description,
+      source,
+      clientMetadata
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        eventId,
+        message: 'Security event logged successfully'
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Log security event error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to log security event',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.post('/block-ip', (req: Request, res: Response) => {
+  try {
+    const { ip, reason } = req.body;
+    
+    if (!ip || !reason) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: ip, reason',
+        timestamp: Date.now()
+      });
+    }
+    
+    securityLogger.blockIP(ip, reason);
+    
+    res.json({
+      success: true,
+      data: {
+        message: `IP ${ip} has been blocked`,
+        ip,
+        reason
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Block IP error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to block IP',
+      timestamp: Date.now()
+    });
+  }
+});
+
+// =============================================================================
+// Security Audit Endpoints
+// =============================================================================
+
+router.get('/audit/report', (req: Request, res: Response) => {
+  try {
+    const auditReport = securityAuditor.generateComplianceReport();
+    
+    res.json({
+      success: true,
+      data: auditReport,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Generate audit report error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate audit report',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/audit/vulnerabilities', (req: Request, res: Response) => {
+  try {
+    const vulnerabilities = securityAuditor.scanVulnerabilities();
+    
+    res.json({
+      success: true,
+      data: vulnerabilities,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Scan vulnerabilities error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to scan vulnerabilities',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.get('/audit/compliance', (req: Request, res: Response) => {
+  try {
+    const complianceStatus = securityAuditor.checkCompliance();
+    
+    res.json({
+      success: true,
+      data: complianceStatus,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Check compliance error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check compliance',
+      timestamp: Date.now()
+    });
+  }
+});
+
+router.post('/audit/scan', (req: Request, res: Response) => {
+  try {
+    const { scanType = 'full' } = req.body;
+    const scanResults = securityAuditor.performSecurityScan(scanType);
+    
+    res.json({
+      success: true,
+      data: {
+        scanType,
+        results: scanResults,
+        completedAt: Date.now()
+      },
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Perform security scan error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to perform security scan',
       timestamp: Date.now()
     });
   }

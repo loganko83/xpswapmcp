@@ -113,6 +113,7 @@ export function HyperliquidInterface() {
   const [showOrderBook, setShowOrderBook] = useState(true);
   const [showChart, setShowChart] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -224,6 +225,19 @@ export function HyperliquidInterface() {
     setOrderSize((maxSize / price).toFixed(4));
   };
 
+  const handleRefreshData = async () => {
+    try {
+      await Promise.all([
+        refetchContracts(),
+        refetchOrderBook(),
+        refetchPositions(),
+        refetchTradeHistory()
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+  };
+
   const handleTrade = async () => {
     if (!wallet?.address || !orderSize) {
       alert("Please fill in all fields and connect your wallet");
@@ -275,7 +289,12 @@ export function HyperliquidInterface() {
             >
               {showOrderBook ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleRefreshData}
+              title="Refresh order book data"
+            >
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
@@ -434,7 +453,12 @@ export function HyperliquidInterface() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+            title="Trading settings"
+          >
             <Settings className="w-4 h-4" />
           </Button>
           {wallet?.isConnected ? (
@@ -442,7 +466,12 @@ export function HyperliquidInterface() {
               {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
             </Badge>
           ) : (
-            <Button size="sm">Connect Wallet</Button>
+            <Button 
+              size="sm" 
+              onClick={wallet?.connectWallet}
+            >
+              Connect Wallet
+            </Button>
           )}
         </div>
       </div>
